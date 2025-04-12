@@ -35,9 +35,9 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
           <div className="flex items-center justify-center rounded-md bg-primary text-white w-8 h-8">
-            <span className="font-display text-lg">R</span>
+            <span className="font-display text-lg">B</span>
           </div>
-          <span className="font-display text-xl font-bold">Renaissance</span>
+          <span className="font-display text-xl font-bold">Sales Bid</span>
         </Link>
 
         {/* Desktop Navigation */}
