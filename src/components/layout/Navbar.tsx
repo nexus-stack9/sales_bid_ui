@@ -1,17 +1,17 @@
-
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { 
-  Search, 
-  Menu, 
-  X, 
-  ShoppingCart, 
-  Bell, 
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import salesBidLogo from "@/assets/logo.png";
+import {
+  Search,
+  Menu,
+  X,
+  ShoppingCart,
+  Bell,
   User,
-  ChevronDown
-} from 'lucide-react';
+  ChevronDown,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -31,13 +31,15 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-sm border-b border-border">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="container flex h-16 items-center justify-between px-4 md:px-8">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="flex items-center justify-center rounded-md bg-primary text-white w-8 h-8">
-            <span className="font-display text-lg">B</span>
-          </div>
-          <span className="font-display text-xl font-bold">Sales Bid</span>
+        <Link to="/" className="flex items-center space-x-3">
+          <img
+            src={salesBidLogo}
+            alt="Sales Bid Logo"
+            className="h-12 w-auto object-contain"
+          />
+          {/* <span className="font-display text-2xl font-bold">Sales Bid</span> */}
         </Link>
 
         {/* Desktop Navigation */}
@@ -50,15 +52,43 @@ const Navbar = () => {
               </button>
               <div className="absolute top-full left-0 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <div className="py-1" role="menu" aria-orientation="vertical">
-                  <Link to="/categories/electronics" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Electronics</Link>
-                  <Link to="/categories/apparel" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Apparel</Link>
-                  <Link to="/categories/home-goods" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Home Goods</Link>
-                  <Link to="/categories/jewelry" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Jewelry</Link>
+                  <Link
+                    to="/categories/electronics"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    role="menuitem"
+                  >
+                    Electronics
+                  </Link>
+                  <Link
+                    to="/categories/apparel"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    role="menuitem"
+                  >
+                    Apparel
+                  </Link>
+                  <Link
+                    to="/categories/home-goods"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    role="menuitem"
+                  >
+                    Home Goods
+                  </Link>
+                  <Link
+                    to="/categories/jewelry"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    role="menuitem"
+                  >
+                    Jewelry
+                  </Link>
                 </div>
               </div>
             </div>
-            <Link to="/auctions" className="nav-link">All Auctions</Link>
-            <Link to="/how-it-works" className="nav-link">How It Works</Link>
+            <Link to="/auctions" className="nav-link">
+              All Auctions
+            </Link>
+            <Link to="/how-it-works" className="nav-link">
+              How It Works
+            </Link>
           </div>
         </nav>
 
@@ -112,17 +142,32 @@ const Navbar = () => {
               </SheetHeader>
               <div className="py-4">
                 <div className="flex flex-col space-y-4">
-                  <Link to="/categories" className="text-lg font-medium">Categories</Link>
-                  <Link to="/auctions" className="text-lg font-medium">All Auctions</Link>
-                  <Link to="/how-it-works" className="text-lg font-medium">How It Works</Link>
+                  <Link to="/categories" className="text-lg font-medium">
+                    Categories
+                  </Link>
+                  <Link to="/auctions" className="text-lg font-medium">
+                    All Auctions
+                  </Link>
+                  <Link to="/how-it-works" className="text-lg font-medium">
+                    How It Works
+                  </Link>
                   <hr className="my-2" />
-                  <Link to="/cart" className="text-lg font-medium flex items-center">
+                  <Link
+                    to="/cart"
+                    className="text-lg font-medium flex items-center"
+                  >
                     <ShoppingCart className="mr-2 h-5 w-5" /> Cart
                   </Link>
-                  <Link to="/user/watchlist" className="text-lg font-medium flex items-center">
+                  <Link
+                    to="/user/watchlist"
+                    className="text-lg font-medium flex items-center"
+                  >
                     <Bell className="mr-2 h-5 w-5" /> Watchlist
                   </Link>
-                  <Link to="/signin" className="text-lg font-medium flex items-center">
+                  <Link
+                    to="/signin"
+                    className="text-lg font-medium flex items-center"
+                  >
                     <User className="mr-2 h-5 w-5" /> Sign In
                   </Link>
                 </div>

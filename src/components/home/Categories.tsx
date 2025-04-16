@@ -68,7 +68,7 @@ const Categories = () => {
                 <img 
                   src={category.imageUrl} 
                   alt={category.name}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="h-full w-full object-cover"
                 />
                 <div className="absolute top-4 left-4 z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
                   {category.icon}

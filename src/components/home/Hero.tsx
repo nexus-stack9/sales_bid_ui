@@ -98,9 +98,9 @@ const Hero = () => {
             </div>
           </div>
           
-          <div className={`relative transition-all duration-1000 ${isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'}`}>
+         <div className={`relative transition-all duration-1000 ${isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-20'}`}>
             <div className="absolute -z-10 w-72 h-72 rounded-full bg-gradient-to-r from-secondary/30 to-accent/20 blur-3xl -right-10 -top-10"></div>
-            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform">
+            <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-2xl">
               <img 
                 src="https://images.unsplash.com/photo-1600401836478-f791a4d95d96?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=2070" 
                 alt="Featured auction items"
@@ -114,7 +114,7 @@ const Hero = () => {
               </div>
             </div>
             
-            <div className="absolute -bottom-6 -left-6 rounded-2xl bg-white p-6 shadow-xl">
+            {/* <div className="absolute -bottom-6 -left-6 rounded-2xl bg-white p-6 shadow-xl">
               <div className="flex items-start space-x-4">
                 <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,8 +126,8 @@ const Hero = () => {
                   <p className="text-sm text-muted-foreground">Average savings of 35%</p>
                 </div>
               </div>
-            </div>
-          </div>
+            </div> */}
+          </div> 
         </div>
       </div>
     </section>
