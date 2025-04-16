@@ -42,20 +42,20 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         {!isMobile && (
           <div className="flex items-center space-x-2">
-            <Button 
+            {/* <Button 
               variant={viewMode === 'grid' ? 'default' : 'outline'} 
               size="sm"
               onClick={() => setViewMode('grid')}
             >
               <Grid className="h-4 w-4 mr-1" /> Grid
-            </Button>
-            <Button 
+            </Button> */}
+            {/* <Button 
               variant={viewMode === 'list' ? 'default' : 'outline'} 
               size="sm"
               onClick={() => setViewMode('list')}
             >
               <List className="h-4 w-4 mr-1" /> List
-            </Button>
+            </Button> */}
           </div>
         )}
         
