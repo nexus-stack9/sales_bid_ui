@@ -125,7 +125,10 @@ const Navbar = () => {
               </Button>
             </Link>
             <Link to="/signin">
-              <Button variant="secondary" className="btn-hover-effect">
+              <Button
+                variant="default"
+                className="bg-primary hover:bg-primary-600 text-white"
+              >
                 Sign In
               </Button>
             </Link>
