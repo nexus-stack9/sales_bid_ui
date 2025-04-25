@@ -1,7 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import AuctionGrid from '@/components/auction/AuctionGrid';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, ArrowRight, TrendingUp, Clock, Package2, Zap, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Mock data for auctions
 const mockAuctions = [
@@ -84,41 +90,305 @@ const mockAuctions = [
     watchers: 47,
     featured: false,
     category: 'Jewelry'
+  },
+  {
+    id: '9',
+    title: 'Bulk Lot of Gaming Consoles - PlayStation & Xbox - 15 Units',
+    imageUrl: 'https://images.unsplash.com/photo-1605901309584-818e25960a8f?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1000',
+    currentBid: 3750,
+    timeLeft: '3d 8h',
+    watchers: 56,
+    featured: true,
+    category: 'Electronics'
+  },
+  {
+    id: '10',
+    title: 'Premium Outdoor Furniture Set - Retail Value $8,000',
+    imageUrl: 'https://images.unsplash.com/photo-1600210492493-0946911123ea?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1000',
+    currentBid: 1950,
+    timeLeft: '5d 12h',
+    watchers: 29,
+    featured: false,
+    category: 'Home Goods'
+  },
+  {
+    id: '11',
+    title: 'Designer Footwear Collection - Mixed Sizes - 30 Pairs',
+    imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1000',
+    currentBid: 1200,
+    timeLeft: '2d 18h',
+    watchers: 37,
+    featured: false,
+    category: 'Fashion'
+  },
+  {
+    id: '12',
+    title: 'Premium Audio Equipment - Speakers & Headphones Bundle',
+    imageUrl: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1000',
+    currentBid: 2250,
+    timeLeft: '1d 20h',
+    watchers: 41,
+    featured: true,
+    category: 'Electronics'
   }
 ];
 
+// Featured categories with icons
+const featuredCategories = [
+  { name: 'Electronics', count: 145, icon: <Zap className="h-4 w-4" /> },
+  { name: 'Fashion', count: 98, icon: <Package2 className="h-4 w-4" /> },
+  { name: 'Home Goods', count: 76, icon: <Package2 className="h-4 w-4" /> },
+  { name: 'Jewelry', count: 52, icon: <Package2 className="h-4 w-4" /> },
+  { name: 'Sports', count: 43, icon: <Package2 className="h-4 w-4" /> },
+  { name: 'Automotive', count: 37, icon: <Package2 className="h-4 w-4" /> },
+];
+
+// Trending auctions - subset of mock data
+const trendingAuctions = mockAuctions.filter(auction => auction.watchers > 30);
+const endingSoonAuctions = [...mockAuctions].sort((a, b) => {
+  const aTime = parseInt(a.timeLeft.split('d')[0] || '0') * 24 + parseInt(a.timeLeft.split('h')[0].split(' ')[1] || '0');
+  const bTime = parseInt(b.timeLeft.split('d')[0] || '0') * 24 + parseInt(b.timeLeft.split('h')[0].split(' ')[1] || '0');
+  return aTime - bTime;
+}).slice(0, 8);
+
 const AuctionsPage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+  
+  // Simulate loading when changing pages
+  const handlePageChange = (page: number) => {
+    setIsLoading(true);
+    setCurrentPage(page);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+  };
+  
+  // Filter auctions based on active tab
+  const getFilteredAuctions = () => {
+    switch(activeTab) {
+      case 'trending':
+        return trendingAuctions;
+      case 'ending-soon':
+        return endingSoonAuctions;
+      case 'featured':
+        return mockAuctions.filter(auction => auction.featured);
+      default:
+        return mockAuctions;
+    }
+  };
+
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold">All Auctions</h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            Find and bid on premium inventory at great prices
-          </p>
+      <div className="relative overflow-hidden">
+        {/* Hero Section with Animated Background */}
+        <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 py-16">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+            <div className="absolute top-60 -left-20 w-60 h-60 bg-secondary/10 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-3xl"
+            >
+              <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight">
+                Discover Premium Inventory at <span className="text-primary">Wholesale Prices</span>
+              </h1>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Find and bid on high-quality merchandise from top retailers and manufacturers. Perfect for resellers, small businesses, and savvy shoppers.
+              </p>
+              
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search for auctions, brands, or categories..." 
+                    className="pl-10 py-6 text-base rounded-full"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Button size="lg" className="rounded-full px-8">
+                  Search <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="mt-8 flex flex-wrap gap-3">
+                <span className="text-sm font-medium text-muted-foreground">Popular:</span>
+                {featuredCategories.slice(0, 5).map((category) => (
+                  <Badge 
+                    key={category.name} 
+                    variant="outline" 
+                    className="rounded-full px-3 py-1 hover:bg-primary/10 cursor-pointer transition-colors"
+                  >
+                    {category.icon}
+                    <span className="ml-1">{category.name}</span>
+                  </Badge>
+                ))}
+              </div>
+            </motion.div>
+          </div>
         </div>
-
-        <AuctionGrid auctions={mockAuctions} />
         
-        <div className="mt-10 flex justify-center">
-          <nav className="flex items-center space-x-2">
-            <button className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium bg-primary text-white">
-              1
-            </button>
-            <button className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
-              2
-            </button>
-            <button className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
-              3
-            </button>
-            <span className="px-2">...</span>
-            <button className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
-              8
-            </button>
-            <button className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
-              Next
-            </button>
-          </nav>
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+          {/* Category Highlights */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-12"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-display font-semibold">Browse Categories</h2>
+              <Button variant="ghost" className="text-primary">
+                View All <ChevronDown className="ml-1 h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {featuredCategories.map((category, index) => (
+                <motion.div
+                  key={category.name}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-xl shadow-sm border border-muted p-4 text-center cursor-pointer hover:border-primary/20 hover:shadow-md transition-all"
+                >
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                    {category.icon}
+                  </div>
+                  <h3 className="font-medium">{category.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{category.count} items</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+          
+          {/* Auction Tabs */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Tabs defaultValue="all" className="mb-8" onValueChange={setActiveTab}>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-display font-semibold">Explore Auctions</h2>
+                <TabsList>
+                  <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                    All Auctions
+                  </TabsTrigger>
+                  <TabsTrigger value="trending" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                    <TrendingUp className="h-4 w-4 mr-1" /> Trending
+                  </TabsTrigger>
+                  <TabsTrigger value="ending-soon" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                    <Clock className="h-4 w-4 mr-1" /> Ending Soon
+                  </TabsTrigger>
+                  <TabsTrigger value="featured" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                    Featured
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <AnimatePresence mode="wait">
+                {isLoading ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex justify-center items-center py-20"
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                      <p className="mt-4 text-muted-foreground">Loading auctions...</p>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <TabsContent value="all" className="mt-0">
+                      <AuctionGrid auctions={mockAuctions} />
+                    </TabsContent>
+                    
+                    <TabsContent value="trending" className="mt-0">
+                      <AuctionGrid auctions={trendingAuctions} />
+                    </TabsContent>
+                    
+                    <TabsContent value="ending-soon" className="mt-0">
+                      <AuctionGrid auctions={endingSoonAuctions} />
+                    </TabsContent>
+                    
+                    <TabsContent value="featured" className="mt-0">
+                      <AuctionGrid auctions={mockAuctions.filter(a => a.featured)} />
+                    </TabsContent>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Tabs>
+          </motion.div>
+          
+          {/* Pagination */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="mt-12 flex justify-center"
+          >
+            <nav className="flex items-center space-x-2">
+              <Button 
+                variant={currentPage === 1 ? "default" : "outline"}
+                onClick={() => handlePageChange(1)}
+                className="transition-all duration-300"
+              >
+                1
+              </Button>
+              <Button 
+                variant={currentPage === 2 ? "default" : "outline"}
+                onClick={() => handlePageChange(2)}
+                className="transition-all duration-300"
+              >
+                2
+              </Button>
+              <Button 
+                variant={currentPage === 3 ? "default" : "outline"}
+                onClick={() => handlePageChange(3)}
+                className="transition-all duration-300"
+              >
+                3
+              </Button>
+              <span className="px-2">...</span>
+              <Button 
+                variant={currentPage === 8 ? "default" : "outline"}
+                onClick={() => handlePageChange(8)}
+                className="transition-all duration-300"
+              >
+                8
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => handlePageChange(currentPage + 1)}
+                className="transition-all duration-300"
+                disabled={currentPage === 8}
+              >
+                Next <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            </nav>
+          </motion.div>
         </div>
       </div>
     </Layout>
