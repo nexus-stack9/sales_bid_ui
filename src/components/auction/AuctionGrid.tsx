@@ -66,12 +66,17 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
   
   const isMobile = useIsMobile();
 
-  // Toggle section expansion
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections({
-      ...expandedSections,
-      [section]: !expandedSections[section]
-    });
+  // Toggle section expansion with proper event handling
+  const toggleSection = (section: keyof typeof expandedSections, e: React.MouseEvent) => {
+    // This is critical - prevent the event from bubbling up
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Update the expanded sections state with a fixed height approach
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   // Handle category selection
@@ -119,6 +124,15 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
         auction.currentBid >= priceRange[0] && auction.currentBid <= priceRange[1]
       );
       
+      // Filter by condition
+      if (selectedConditions.length > 0) {
+        // In a real app, you would have condition property on auctions
+        // This is just a placeholder since our mock data doesn't have conditions
+        results = results.filter(auction => 
+          auction.id.length > 0 // Always true, just a placeholder
+        );
+      }
+      
       // Filter featured only
       if (showFeaturedOnly) {
         results = results.filter(auction => auction.featured);
@@ -127,8 +141,39 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       // Sort results
       switch(sortBy) {
         case 'Ending Soon':
-          // This is a simplified sort - in a real app you'd parse the timeLeft properly
-          results.sort((a, b) => parseInt(a.timeLeft) - parseInt(b.timeLeft));
+          // Parse time left in a more robust way
+          results.sort((a, b) => {
+            // Helper function to convert timeLeft to hours
+            const getHours = (timeStr: string) => {
+              let totalHours = 0;
+              
+              // Check for days
+              if (timeStr.includes('d')) {
+                const days = parseInt(timeStr.split('d')[0].trim());
+                totalHours += days * 24;
+                
+                // Check for hours after days
+                if (timeStr.includes('h')) {
+                  const hours = parseInt(timeStr.split('d')[1].split('h')[0].trim());
+                  totalHours += hours;
+                }
+              } 
+              // Only hours, no days
+              else if (timeStr.includes('h')) {
+                const hours = parseInt(timeStr.split('h')[0].trim());
+                totalHours += hours;
+              }
+              
+              return totalHours;
+            };
+            
+            return getHours(a.timeLeft) - getHours(b.timeLeft);
+          });
+          break;
+        case 'Newest':
+          // In a real app, you would sort by date added
+          // Here we're just reversing the array as a placeholder
+          results.reverse();
           break;
         case 'Price: Low to High':
           results.sort((a, b) => a.currentBid - b.currentBid);
@@ -144,9 +189,12 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       setFilteredAuctions(results);
       setIsLoading(false);
       
-      // Close mobile filter sheet after applying
-      if (isMobile) {
-        setShowFilterSheet(false);
+      // Show a toast notification with the number of results
+      if (results.length === 0) {
+        // In a real app, you would use a toast notification system
+        console.log("No auctions found matching your criteria");
+      } else {
+        console.log(`Found ${results.length} auctions matching your criteria`);
       }
     }, 600);
   };
@@ -162,10 +210,11 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
     setFilteredAuctions(auctions);
   };
 
-  // Apply filters on initial load and when filter values change
+  // Apply filters when filter values change
   useEffect(() => {
+    // This will run on initial load and when any of these dependencies change
     applyFilters();
-  }, []);
+  }, [searchTerm, selectedCategories, selectedConditions, priceRange, showFeaturedOnly, sortBy, auctions]);
 
   // Filter sidebar content - reused in both desktop and mobile views
   const FilterContent = () => (
@@ -185,7 +234,7 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
         <div className="pb-2 border-b">
           <div 
             className="flex justify-between items-center cursor-pointer" 
-            onClick={() => toggleSection('other')}
+            onClick={(e) => toggleSection('other', e)}
           >
             <h3 className="text-sm font-semibold flex items-center">
               <Filter className="h-4 w-4 mr-2" /> Sort By
@@ -193,39 +242,31 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
             {expandedSections.other ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </div>
           
-          <AnimatePresence>
-            {expandedSections.other && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-2 space-y-1">
-                  {sortOptions.map(option => (
-                    <div 
-                      key={option}
-                      className={`flex items-center px-2 py-1.5 text-sm rounded-md cursor-pointer transition-colors ${
-                        sortBy === option ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
-                      }`}
-                      onClick={() => setSortBy(option)}
-                    >
-                      {sortBy === option && <Check className="h-4 w-4 mr-2" />}
-                      <span className={sortBy === option ? 'ml-2' : 'ml-6'}>{option}</span>
-                    </div>
-                  ))}
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            expandedSections.other ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="pt-2 space-y-1">
+              {sortOptions.map(option => (
+                <div 
+                  key={option}
+                  className={`flex items-center px-2 py-1.5 text-sm rounded-md cursor-pointer transition-colors ${
+                    sortBy === option ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                  }`}
+                  onClick={() => setSortBy(option)}
+                >
+                  {sortBy === option && <Check className="h-4 w-4 mr-2" />}
+                  <span className={sortBy === option ? 'ml-2' : 'ml-6'}>{option}</span>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Categories */}
         <div className="pb-2 border-b">
           <div 
             className="flex justify-between items-center cursor-pointer" 
-            onClick={() => toggleSection('categories')}
+            onClick={(e) => toggleSection('categories', e)}
           >
             <h3 className="text-sm font-semibold flex items-center">
               <Tag className="h-4 w-4 mr-2" /> Categories
@@ -233,42 +274,34 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
             {expandedSections.categories ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </div>
           
-          <AnimatePresence>
-            {expandedSections.categories && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-2 grid grid-cols-2 gap-1">
-                  {categories.map(category => (
-                    <div key={category} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`category-${category}`} 
-                        checked={selectedCategories.includes(category)}
-                        onCheckedChange={() => toggleCategory(category)}
-                      />
-                      <label 
-                        htmlFor={`category-${category}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {category}
-                      </label>
-                    </div>
-                  ))}
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            expandedSections.categories ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="pt-2 grid grid-cols-2 gap-1">
+              {categories.map(category => (
+                <div key={category} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`category-${category}`} 
+                    checked={selectedCategories.includes(category)}
+                    onCheckedChange={() => toggleCategory(category)}
+                  />
+                  <label 
+                    htmlFor={`category-${category}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {category}
+                  </label>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          </div>
         </div>
         
         {/* Price Range */}
         <div className="pb-2 border-b">
           <div 
             className="flex justify-between items-center cursor-pointer" 
-            onClick={() => toggleSection('price')}
+            onClick={(e) => toggleSection('price', e)}
           >
             <h3 className="text-sm font-semibold flex items-center">
               <DollarSign className="h-4 w-4 mr-2" /> Price Range
@@ -276,43 +309,35 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
             {expandedSections.price ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </div>
           
-          <AnimatePresence>
-            {expandedSections.price && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-4 px-2">
-                  <Slider
-                    defaultValue={[0, 5000]}
-                    max={5000}
-                    step={100}
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    className="mb-6"
-                  />
-                  <div className="flex items-center justify-between">
-                    <div className="bg-muted px-2 py-1 rounded-md text-sm">
-                      ${priceRange[0]}
-                    </div>
-                    <div className="bg-muted px-2 py-1 rounded-md text-sm">
-                      ${priceRange[1]}
-                    </div>
-                  </div>
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            expandedSections.price ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="pt-4 px-2">
+              <Slider
+                defaultValue={[0, 5000]}
+                max={5000}
+                step={100}
+                value={priceRange}
+                onValueChange={setPriceRange}
+                className="mb-6"
+              />
+              <div className="flex items-center justify-between">
+                <div className="bg-muted px-2 py-1 rounded-md text-sm">
+                  ${priceRange[0]}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <div className="bg-muted px-2 py-1 rounded-md text-sm">
+                  ${priceRange[1]}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Condition */}
         <div className="pb-2 border-b">
           <div 
             className="flex justify-between items-center cursor-pointer" 
-            onClick={() => toggleSection('condition')}
+            onClick={(e) => toggleSection('condition', e)}
           >
             <h3 className="text-sm font-semibold flex items-center">
               <Package className="h-4 w-4 mr-2" /> Condition
@@ -320,42 +345,34 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
             {expandedSections.condition ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </div>
           
-          <AnimatePresence>
-            {expandedSections.condition && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-2 space-y-1">
-                  {conditions.map(condition => (
-                    <div key={condition} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`condition-${condition}`} 
-                        checked={selectedConditions.includes(condition)}
-                        onCheckedChange={() => toggleCondition(condition)}
-                      />
-                      <label 
-                        htmlFor={`condition-${condition}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {condition}
-                      </label>
-                    </div>
-                  ))}
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            expandedSections.condition ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="pt-2 space-y-1">
+              {conditions.map(condition => (
+                <div key={condition} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`condition-${condition}`} 
+                    checked={selectedConditions.includes(condition)}
+                    onCheckedChange={() => toggleCondition(condition)}
+                  />
+                  <label 
+                    htmlFor={`condition-${condition}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {condition}
+                  </label>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          </div>
         </div>
         
         {/* End Time */}
         <div className="pb-2 border-b">
           <div 
             className="flex justify-between items-center cursor-pointer" 
-            onClick={() => toggleSection('time')}
+            onClick={(e) => toggleSection('time', e)}
           >
             <h3 className="text-sm font-semibold flex items-center">
               <Clock className="h-4 w-4 mr-2" /> End Time
@@ -363,31 +380,23 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
             {expandedSections.time ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </div>
           
-          <AnimatePresence>
-            {expandedSections.time && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-2 space-y-1">
-                  {['Ending Today', 'Ending in 3 Days', 'Ending in 7 Days', 'Ending in 14 Days'].map(option => (
-                    <div key={option} className="flex items-center space-x-2">
-                      <Checkbox id={`time-${option}`} />
-                      <label 
-                        htmlFor={`time-${option}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {option}
-                      </label>
-                    </div>
-                  ))}
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            expandedSections.time ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="pt-2 space-y-1">
+              {['Ending Today', 'Ending in 3 Days', 'Ending in 7 Days', 'Ending in 14 Days'].map(option => (
+                <div key={option} className="flex items-center space-x-2">
+                  <Checkbox id={`time-${option}`} />
+                  <label 
+                    htmlFor={`time-${option}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {option}
+                  </label>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          </div>
         </div>
         
         {/* Featured Only */}
@@ -402,22 +411,24 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
           />
         </div>
         
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2 pt-4">
-          <Button 
-            onClick={applyFilters} 
-            className="flex-1"
-          >
-            Apply Filters
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={resetFilters}
-            className="flex items-center"
-          >
-            <RefreshCw className="h-4 w-4 mr-1" /> Reset
-          </Button>
-        </div>
+        {/* Action Buttons - Only show in desktop view since mobile has fixed buttons */}
+        {!isMobile && (
+          <div className="flex items-center space-x-2 pt-4">
+            <Button 
+              onClick={applyFilters} 
+              className="flex-1"
+            >
+              Apply Filters
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={resetFilters}
+              className="flex items-center"
+            >
+              <RefreshCw className="h-4 w-4 mr-1" /> Reset
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -446,16 +457,14 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
           </Button>
         </div>
         
-        {isMobile && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowFilterSheet(true)}
-            className="flex items-center"
-          >
-            <SlidersHorizontal className="h-4 w-4 mr-1" /> Filters
-          </Button>
-        )}
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setShowFilterSheet(true)}
+          className="flex items-center sm:hidden"
+        >
+          <SlidersHorizontal className="h-4 w-4 mr-1" /> Filters
+        </Button>
         
         {/* Active filters display */}
         {(selectedCategories.length > 0 || selectedConditions.length > 0 || showFeaturedOnly) && (
@@ -502,45 +511,66 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       
       <div className="flex flex-col md:flex-row gap-6">
         {/* Desktop Sidebar */}
-        {!isMobile && (
-          <motion.div 
-            initial={{ width: sidebarOpen ? 280 : 0, opacity: sidebarOpen ? 1 : 0 }}
-            animate={{ width: sidebarOpen ? 280 : 0, opacity: sidebarOpen ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
-            className={`shrink-0 overflow-hidden border-r`}
-          >
-            {sidebarOpen && (
-              <div className="w-[280px] pr-4">
-                <FilterContent />
-              </div>
-            )}
-          </motion.div>
-        )}
+        <div className="hidden md:block shrink-0 overflow-hidden border-r" style={{ width: sidebarOpen ? '280px' : '0px' }}>
+          {sidebarOpen && (
+            <div className="w-[280px] pr-4">
+              <FilterContent />
+            </div>
+          )}
+        </div>
         
         {/* Mobile Filter Sheet */}
         <Sheet open={showFilterSheet} onOpenChange={setShowFilterSheet}>
-          <SheetContent side="right" className="w-[90%] sm:w-[400px] bg-white overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>Filter Options</SheetTitle>
+          <SheetContent side="right" className="w-[95%] sm:w-[400px] bg-white overflow-hidden flex flex-col h-full">
+            <SheetHeader className="sticky top-0 z-10 bg-white pb-2 pt-2">
+              <div className="flex items-center justify-between">
+                <SheetTitle>Filter Options</SheetTitle>
+                <SheetClose className="rounded-full p-1.5 hover:bg-muted">
+                  <X className="h-5 w-5" />
+                </SheetClose>
+              </div>
               <SheetDescription>
                 Refine your auction search results
               </SheetDescription>
             </SheetHeader>
-            <FilterContent />
+            
+            <div className="flex-1 overflow-y-auto pb-24">
+              <FilterContent />
+            </div>
+            
+            <div className="absolute bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md flex gap-2">
+              <Button 
+                onClick={() => {
+                  applyFilters();
+                  setShowFilterSheet(false);
+                }} 
+                className="flex-1"
+              >
+                Apply Filters
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  resetFilters();
+                  setShowFilterSheet(false);
+                }}
+                className="flex items-center"
+              >
+                <RefreshCw className="h-4 w-4 mr-1" /> Reset
+              </Button>
+            </div>
           </SheetContent>
         </Sheet>
         
         {/* Toggle sidebar button for desktop */}
-        {!isMobile && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-background shadow-md rounded-full h-8 w-8 -ml-4"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <ChevronUp className="h-4 w-4 rotate-90" /> : <ChevronDown className="h-4 w-4 -rotate-90" />}
-          </Button>
-        )}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-background shadow-md rounded-full h-8 w-8 -ml-4 hidden md:flex"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          {sidebarOpen ? <ChevronUp className="h-4 w-4 rotate-90" /> : <ChevronDown className="h-4 w-4 -rotate-90" />}
+        </Button>
         
         {/* Main content */}
         <div className="flex-1">
@@ -585,7 +615,7 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
               >
                 <div className={
                   viewMode === 'grid'
-                    ? `grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'} gap-y-6`
+                    ? `grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-y-6`
                     : "space-y-4"
                 }>
                   {filteredAuctions.map((auction, index) => (

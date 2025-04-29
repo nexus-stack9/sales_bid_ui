@@ -186,7 +186,7 @@ const AuctionsPage = () => {
     <Layout>
       <div className="relative overflow-hidden">
         {/* Hero Section with Animated Background */}
-        <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 py-16">
+        {/* <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 py-16">
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
             <div className="absolute top-60 -left-20 w-60 h-60 bg-secondary/10 rounded-full blur-3xl"></div>
@@ -236,12 +236,12 @@ const AuctionsPage = () => {
               </div>
             </motion.div>
           </div>
-        </div>
+        </div> */}
         
         {/* Main Content */}
         <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
           {/* Category Highlights */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -272,7 +272,7 @@ const AuctionsPage = () => {
                 </motion.div>
               ))}
             </div>
-          </motion.div>
+          </motion.div> */}
           
           {/* Auction Tabs */}
           <motion.div
@@ -281,19 +281,19 @@ const AuctionsPage = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             <Tabs defaultValue="all" className="mb-8" onValueChange={setActiveTab}>
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
                 <h2 className="text-2xl font-display font-semibold">Explore Auctions</h2>
-                <TabsList>
-                  <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                <TabsList className="w-full sm:w-auto overflow-x-auto flex-nowrap">
+                  <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white whitespace-nowrap">
                     All Auctions
                   </TabsTrigger>
-                  <TabsTrigger value="trending" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  <TabsTrigger value="trending" className="data-[state=active]:bg-primary data-[state=active]:text-white whitespace-nowrap">
                     <TrendingUp className="h-4 w-4 mr-1" /> Trending
                   </TabsTrigger>
-                  <TabsTrigger value="ending-soon" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  <TabsTrigger value="ending-soon" className="data-[state=active]:bg-primary data-[state=active]:text-white whitespace-nowrap">
                     <Clock className="h-4 w-4 mr-1" /> Ending Soon
                   </TabsTrigger>
-                  <TabsTrigger value="featured" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  <TabsTrigger value="featured" className="data-[state=active]:bg-primary data-[state=active]:text-white whitespace-nowrap">
                     Featured
                   </TabsTrigger>
                 </TabsList>
