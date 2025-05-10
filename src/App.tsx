@@ -13,28 +13,32 @@ import Watchlist from "./pages/user/Watchlist";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import Cart from "./pages/cart/Cart";
+import SellersPage from "./pages/SellersPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auctions" element={<AuctionsPage />} />
-          <Route path="/auctions/:id" element={<AuctionDetail />} />
-          <Route path="/user/profile" element={<Profile />} />
-          <Route path="/user/watchlist" element={<Watchlist />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/cart" element={<Cart />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <div className="overflow-x-hidden">
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auctions" element={<AuctionsPage />} />
+            <Route path="/auctions/:id" element={<AuctionDetail />} />
+            <Route path="/user/profile" element={<Profile />} />
+            <Route path="/user/watchlist" element={<Watchlist />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/sellers" element={<SellersPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
     </TooltipProvider>
   </QueryClientProvider>
 );

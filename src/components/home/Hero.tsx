@@ -1,242 +1,210 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Package, Users, Award } from "lucide-react";
-import { useInView } from "@/utils/scrollAnimation";
-import banner1 from "@/assets/banners/banner1.png";
-import banner2 from "@/assets/banners/banner2.png";
-import banner3 from "@/assets/banners/banner3.png";
-import bid_gif from "@/assets/bid_win_repeat_fixed.gif";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { Gavel, Trophy, Repeat } from "lucide-react";
+import { motion, useAnimation } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { useInView } from "react-intersection-observer";
+import bannerImage from "@/assets/banners/banner1.png";
 
-const banners = [
-  { id: 1, image: banner1, alt: "Banner 1" },
-  { id: 2, image: banner2, alt: "Banner 2" },
-  { id: 3, image: banner3, alt: "Banner 3" },
-];
+// BlurText component inspired by ReactBits library
+const BlurText = ({ text, className }: { text: string; className?: string }) => {
+  const controls = useAnimation();
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  
+  useEffect(() => {
+    if (inView) {
+      controls.start("visible");
+    }
+  }, [controls, inView]);
+  
+  // Split the text to apply gradient only to specific words
+  const firstPart = "Exclusive auctions, unbeatable prices—";
+  const highlightedPart = "start bidding today!";
+  
+  const container = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.12, delayChildren: 0.04 * i },
+    }),
+  };
+  
+  const child = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+    hidden: {
+      opacity: 0,
+      y: 20,
+      filter: "blur(10px)",
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+  };
+  
+  return (
+    <motion.div
+      ref={ref}
+      className={cn("w-full flex flex-wrap justify-center", className)}
+      variants={container}
+      initial="hidden"
+      animate={controls}
+    >
+      {/* First part with regular color */}
+      {firstPart.split(" ").map((word, index) => (
+        <motion.span
+          key={`first-${index}`}
+          className="text-xl md:text-2xl font-semibold mx-1 my-1 inline-block text-gray-800"
+          variants={child}
+        >
+          {word}
+        </motion.span>
+      ))}
+      
+      {/* Highlighted part with gradient color */}
+      {highlightedPart.split(" ").map((word, index) => (
+        <motion.span
+          key={`highlight-${index}`}
+          className="text-xl md:text-2xl font-semibold mx-1 my-1 inline-block"
+          style={{
+            background: "linear-gradient(to right, #ff7e33, #ff4d4d)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text"
+          }}
+          variants={child}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.div>
+  );
+};
 
 const Hero = () => {
-  const { ref, isInView } = useInView<HTMLDivElement>();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (!isInView) {
-      const textElements = document.querySelectorAll(".animate-text-reveal");
-      textElements.forEach((el) => {
-        (el as HTMLElement).style.opacity = "0";
-      });
-    }
-  }, [isInView]);
-
-  useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
-    }, 4000);
-
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [currentIndex]);
-
   return (
-    <section
-      ref={ref}
-      className="relative overflow-hidden bg-gradient-to-b from-primary-50 to-white pt-4 sm:pt-6 pb-20 sm:pb-28"
-    >
-      {/* Carousel */}
-      <div className="w-screen mb-8">
-        <div className="relative h-56 sm:h-72 md:h-80 lg:h-[30rem] overflow-hidden">
-          {banners.map((banner, index) => (
-            <img
-              key={banner.id}
-              src={banner.image}
-              alt={banner.alt}
-              className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
-                index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
-            />
-          ))}
-        </div>
+    <section className="pt-0 pb-12 md:pb-16 relative bg-gray-50">
+      {/* Banner Image - Full width with no spacing */}
+      <div className="w-full h-auto mb-12">
+        <img 
+          src={bannerImage} 
+          alt="Sales Bid Banner" 
+          className="w-full h-auto object-cover"
+        />
       </div>
-
-      {/* Background SVG */}
-      <div className="absolute inset-x-0 top-0 -z-10">
-        <svg
-          className="w-full"
-          viewBox="0 0 1440 200"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M0,140 C320,100 420,180 720,120 C1020,60 1120,80 1440,100 L1440,0 L0,0 Z"
-            fill="#1A365D"
-            fillOpacity="0.05"
-          />
-        </svg>
+      
+      {/* Dot pattern background */}
+      <div className="absolute inset-0 z-0 opacity-50">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(#94a3b8 1px, transparent 1px)`,
+          backgroundSize: '20px 20px'
+        }}></div>
       </div>
-
-      {/* Main Hero Content */}
-      <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Section */}
-          <div
-            className={`max-w-2xl transition-all duration-700 ${
-              isInView
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-10"
-            }`}
-          >
-            <h1 className="text-4xl font-display font-bold tracking-tight sm:text-5xl lg:text-6xl mb-3">
-              Discover{" "}
-              <span className="text-primary relative inline-flex flex-col">
-                <span className="inline-flex flex-wrap">
-                  {"Premium Auction".split("").map((char, index) => (
-                    <span
-                      key={"line1-" + index}
-                      className="relative z-10 animate-text-reveal opacity-0 whitespace-pre-wrap"
-                      style={{
-                        animationDelay: `${index * 30}ms`,
-                        animationFillMode: "forwards",
-                        marginRight: char === " " ? "0.25em" : "0.01em",
-                      }}
-                    >
-                      {char}
-                    </span>
-                  ))}
-                </span>
-                <span className="inline-flex flex-wrap">
-                  {"Deals".split("").map((char, index) => (
-                    <span
-                      key={"line2-" + index}
-                      className="relative z-10 animate-text-reveal opacity-0 whitespace-pre-wrap"
-                      style={{
-                        animationDelay: `${(index + 14) * 30}ms`,
-                        animationFillMode: "forwards",
-                        marginRight: char === " " ? "0.25em" : "0.01em",
-                      }}
-                    >
-                      {char}
-                    </span>
-                  ))}
-                </span>
-              </span>
-            </h1>
-
-            <p className="mt-6 text-xl text-gray-600">
-              Find exceptional value on surplus, salvage, and returned inventory
-              from top retailers and manufacturers.
-            </p>
-
-            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-4">
-              <Link to="/auctions">
-                <Button
-                  size="lg"
-                  className="group bg-primary hover:bg-primary-600 shadow-lg hover:shadow-xl transition-all"
-                >
-                  Browse Auctions
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
-              <Link to="/sell">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary hover:text-white hover:border-transparent transform hover:scale-105 transition-all duration-300"
-                >
-                  Sell With Us
-                </Button>
-              </Link>
-            </div>
-
-            <div className="mt-12 grid grid-cols-3 gap-4">
-              {[
-                {
-                  icon: <Package className="h-5 w-5 text-secondary-800" />,
-                  title: "1000+",
-                  subtitle: "Premium Auctions",
-                  delay: 200,
-                },
-                {
-                  icon: <Users className="h-5 w-5 text-primary" />,
-                  title: "10,000+",
-                  subtitle: "Active Buyers",
-                  delay: 300,
-                },
-                {
-                  icon: <Award className="h-5 w-5 text-accent" />,
-                  title: "35%",
-                  subtitle: "Avg. Savings",
-                  delay: 400,
-                },
-              ].map(({ icon, title, subtitle, delay }, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center transition-all duration-500 ${
-                    isInView
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-4"
-                  }`}
-                  style={{ transitionDelay: `${delay}ms` }}
-                >
-                  <div className="p-2 rounded-full bg-secondary/20 mr-3">
-                    {icon}
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{title}</p>
-                    <p className="text-xs text-gray-500">{subtitle}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Section Image - visible only on desktop */}
-          <div
-            className={`hidden lg:flex flex-col items-center justify-center space-y-12 transition-all duration-1000 ${
-              isInView
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 translate-x-20"
-            }`}
-          >
+      
+      <div className="container relative z-10 mx-auto px-4 text-center">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight mb-6">
+            <span className="inline-block" style={{
+              background: "linear-gradient(135deg, #0a2240 0%, #1a4b8c 50%, #0a2240 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text"
+            }}>
+              Discover Premium Auction
+              <br />
+              Deals
+            </span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
+            Access an ever-growing collection of premium, meticulously crafted templates and component packs.
+            Save time and focus on what matters—building standout websites that captivate your audience.
+          </p>
+          
+          {/* Bid Win Repeat Icons - Modern Interactive Layout */}
+          <div className="flex justify-center items-center gap-6 md:gap-12 mb-6">
             {[
               {
                 label: "BID",
-                icon: <Gavel className="h-12 w-12 text-primary z-10 mb-2" />,
-                glowColor: "text-primary/20",
+                icon: <Gavel className="h-8 w-8 text-primary mb-2" />,
+                color: "from-blue-500 to-indigo-600",
+                delay: 0,
               },
               {
                 label: "WIN",
-                icon: <Trophy className="h-12 w-12 text-green-600 z-10 mb-2" />,
-                glowColor: "text-green-600/20",
+                icon: <Trophy className="h-8 w-8 text-green-600 mb-2" />,
+                color: "from-green-500 to-emerald-600",
+                delay: 0.1,
               },
               {
                 label: "REPEAT",
-                icon: (
-                  <Repeat className="h-12 w-12 text-yellow-500 z-10 mb-2" />
-                ),
-                glowColor: "text-yellow-500/20",
+                icon: <Repeat className="h-8 w-8 text-yellow-500 mb-2" />,
+                color: "from-amber-500 to-yellow-600",
+                delay: 0.2,
               },
-            ].map(({ label, icon, glowColor }, i) => (
-              <div
+            ].map(({ label, icon, color, delay }, i) => (
+              <motion.div
                 key={i}
-                className="relative flex flex-col items-center text-center"
+                className="relative group"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: delay, duration: 0.5 }}
+                whileHover={{ scale: 1.05 }}
               >
-                {/* Glow Layer */}
-                <p
-                  className={`absolute text-6xl font-extrabold blur-md opacity-30 ${glowColor}`}
-                  style={{ top: 10 }}
-                >
-                  {label}
-                </p>
-
-                {/* Foreground Icon + Text */}
-                {icon}
-                <p className="relative z-10 text-4xl font-extrabold tracking-widest text-gray-900">
-                  {label}
-                </p>
-              </div>
+                <div className="flex flex-col items-center text-center relative z-10">
+                  <motion.div 
+                    className={`w-16 h-16 rounded-full bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}
+                    whileHover={{ 
+                      rotate: [0, -5, 5, -5, 0],
+                      transition: { duration: 0.5 }
+                    }}
+                  >
+                    {React.cloneElement(icon as React.ReactElement, { 
+                      className: "h-8 w-8 text-white" 
+                    })}
+                  </motion.div>
+                  <motion.div
+                    className="mt-3 bg-white/80 backdrop-blur-sm px-4 py-1 rounded-full shadow-sm"
+                    whileHover={{ y: -2 }}
+                  >
+                    <p className="text-base font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                      {label}
+                    </p>
+                  </motion.div>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/0 to-white/80 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
+              </motion.div>
             ))}
+          </div>
+          
+          {/* BlurText Effect */}
+          <div className="mb-8">
+            <BlurText 
+              text="Exclusive auctions, unbeatable prices—start bidding today!" 
+              className="text-gray-800"
+            />
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="bg-black text-white hover:bg-gray-800">
+              <Link to="/auctions">Explore Collection</Link>
+            </Button>
+            
+            <Button asChild size="lg" variant="outline" className="border-gray-300">
+              <Link to="/sellers">Unlock Unlimited Access</Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -245,3 +213,67 @@ const Hero = () => {
 };
 
 export default Hero;
+
+{/* Bid Win Repeat Icons - Custom Layout Based on Images */}
+<div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16 mb-12">
+  {/* BID */}
+  <div className="flex flex-col items-center">
+    <div className="w-20 h-20 mb-4">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bidGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ff5f33" />
+            <stop offset="100%" stopColor="#ff9933" />
+          </linearGradient>
+        </defs>
+        <g fill="url(#bidGradient)">
+          <path d="M50 10C33.4 10 20 21.6 20 36c0 7.8 3.8 14.8 9.9 20H25c-2.8 0-5 2.2-5 5v10c0 2.8 2.2 5 5 5h10l5 10 5-10h10c2.8 0 5-2.2 5-5V61c0-2.8-2.2-5-5-5h-4.9c6.1-5.2 9.9-12.2 9.9-20C60 21.6 46.6 10 30 10z" />
+          <path d="M70 50c-2.8 0-5 2.2-5 5v5h-5c-2.8 0-5 2.2-5 5v15c0 5.5 4.5 10 10 10h15c5.5 0 10-4.5 10-10V65c0-2.8-2.2-5-5-5h-5v-5c0-2.8-2.2-5-5-5h-5z" />
+        </g>
+      </svg>
+    </div>
+    <h3 className="text-4xl font-black tracking-tight">BID</h3>
+  </div>
+  
+  {/* WIN */}
+  <div className="flex flex-col items-center">
+    <div className="w-20 h-20 mb-4">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="winGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#2a9d2a" />
+            <stop offset="100%" stopColor="#5dc75d" />
+          </linearGradient>
+        </defs>
+        <g fill="url(#winGradient)">
+          <path d="M50 10c-2.8 0-5 2.2-5 5v5c0 2.8 2.2 5 5 5s5-2.2 5-5v-5c0-2.8-2.2-5-5-5z" />
+          <path d="M35 20c-2.8 0-5 2.2-5 5v5c0 2.8 2.2 5 5 5s5-2.2 5-5v-5c0-2.8-2.2-5-5-5z" />
+          <path d="M65 20c-2.8 0-5 2.2-5 5v5c0 2.8 2.2 5 5 5s5-2.2 5-5v-5c0-2.8-2.2-5-5-5z" />
+          <path d="M30 45h40c2.8 0 5 2.2 5 5v30c0 2.8-2.2 5-5 5H30c-2.8 0-5-2.2-5-5V50c0-2.8 2.2-5 5-5z" />
+          <rect x="35" y="55" width="30" height="5" rx="2.5" />
+          <rect x="35" y="65" width="30" height="5" rx="2.5" />
+          <rect x="35" y="75" width="30" height="5" rx="2.5" />
+        </g>
+      </svg>
+    </div>
+    <h3 className="text-4xl font-black tracking-tight">WIN</h3>
+  </div>
+  
+  {/* REPEAT */}
+  <div className="flex flex-col items-center">
+    <div className="w-20 h-20 mb-4">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="repeatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#1a56db" />
+            <stop offset="100%" stopColor="#38bdf8" />
+          </linearGradient>
+        </defs>
+        <g fill="url(#repeatGradient)">
+          <path d="M65 25c-8.3 0-15.6 4.1-20 10.4C40.6 29.1 33.3 25 25 25c-13.8 0-25 11.2-25 25s11.2 25 25 25h40c13.8 0 25-11.2 25-25s-11.2-25-25-25zm-40 40c-8.3 0-15-6.7-15-15s6.7-15 15-15c5.1 0 9.6 2.5 12.3 6.4l-7.3 7.3 25 5-5-25-7.4 7.4C38.9 31.9 32.3 30 25 30c-11 0-20 9-20 20s9 20 20 20h5c-1.9-1.6-3.5-3.5-4.7-5.7-.7-.1-1.5-.3-2.3-.3zm40 0h-5c1.9-1.6 3.5-3.5 4.7-5.7.8.1 1.6.3 2.3.3 8.3 0 15-6.7 15-15s-6.7-15-15-15c-5.1 0-9.6 2.5-12.3 6.4l7.3 7.3-25 5 5-25 7.4 7.4c3.7-4.2 10.3-6.1 17.6-6.1 11 0 20 9 20 20s-9 20-20 20z" />
+        </g>
+      </svg>
+    </div>
+    <h3 className="text-4xl font-black tracking-tight">REPEAT</h3>
+  </div>
+</div>

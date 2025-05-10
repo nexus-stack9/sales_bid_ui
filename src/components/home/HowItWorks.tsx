@@ -1,122 +1,85 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import {
-  ArrowRight,
-  UserRound,
-  Search,
-  DollarSign,
-  PackageCheck,
+  CheckCircle,
+  Package,
+  Truck,
+  CreditCard,
 } from "lucide-react";
-import { useInView } from "@/utils/scrollAnimation";
-import { useStaggeredAnimation } from "@/utils/scrollAnimation";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
+// Steps in the auction process
 const steps = [
   {
-    number: "01",
-    title: "Create an account",
+    icon: <Package className="h-10 w-10 text-white" />,
+    title: "Place Your Bid",
     description:
-      "Sign up for free and get verified to start bidding on premium inventory.",
-    icon: <UserRound className="h-6 w-6 text-primary" />,
+      "Browse our extensive catalog and place bids on premium inventory from trusted sellers.",
   },
   {
-    number: "02",
-    title: "Browse auctions",
+    icon: <CheckCircle className="h-10 w-10 text-white" />,
+    title: "Win Auctions",
     description:
-      "Explore thousands of auctions from retailers and manufacturers.",
-    icon: <Search className="h-6 w-6 text-primary" />,
+      "Secure deals at competitive prices, often 40-60% below retail value.",
   },
   {
-    number: "03",
-    title: "Place your bid",
-    description: "Find the perfect lot and place a competitive bid.",
-    icon: <DollarSign className="h-6 w-6 text-primary" />,
-  },
-  {
-    number: "04",
-    title: "Win & Receive",
-    description: "If you win, complete payment and receive your items.",
-    icon: <PackageCheck className="h-6 w-6 text-primary" />,
+    icon: <CreditCard className="h-10 w-10 text-white" />,
+    title: "Complete Payment",
+    description:
+      "Use our secure payment system with multiple payment options for your convenience.",
   },
 ];
 
+// Benefits of using the platform
+const benefits = [
+  "Access to premium inventory from major retailers",
+  "Verified authentic products with detailed descriptions",
+  "Secure bidding platform with fraud protection",
+  "Dedicated customer support for all your questions",
+];
+
 const HowItWorks = () => {
-  const { ref, isInView } = useInView<HTMLDivElement>();
-  const getItemStyle = useStaggeredAnimation(steps.length, isInView);
+  // References for scroll animations
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.2 });
 
   return (
-    <section ref={ref} className="py-12 bg-white relative overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <svg
-          className="w-full h-full opacity-5"
-          viewBox="0 0 100 100"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <pattern
-            id="grid"
-            width="10"
-            height="10"
-            patternUnits="userSpaceOnUse"
+    <section ref={ref} className="py-16 bg-[#002639] text-white relative overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="mb-12">
+          {/* Main heading */}
+          <motion.h2
+            className="text-3xl md:text-4xl lg:text-5xl font-display font-bold max-w-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.5 }}
           >
-            <path
-              d="M 10 0 L 0 0 0 10"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="0.5"
-            />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
-
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div
-          className={`text-center mb-16 transition-all duration-700 ${
-            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          <div className="inline-block px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
-            Easy Process
-          </div>
-          <h2 className="text-3xl md:text-4xl font-display font-bold">
-            How It Works
-          </h2>
-          <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Simple steps to start bidding and winning auctions in our
-            marketplace
-          </p>
+            Maximize your returns with a Sales Bid account that generates.
+          </motion.h2>
         </div>
 
-        <div className="relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative">
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                style={getItemStyle(index)}
-                className="flex flex-col items-center text-center relative"
-              >
-                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/5 border border-primary/10 shadow-sm relative">
-                  {step.icon}
-                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold text-secondary-foreground shadow-lg">
-                    {step.number.split("")[1]}
-                  </div>
-                </div>
-                <h3 className="mb-3 text-xl font-display font-semibold">
-                  {step.title}
-                </h3>
-                <p className="text-muted-foreground">{step.description}</p>
+        {/* Steps cards in a row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {steps.map((step, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="bg-[#003a52] rounded-lg p-8 relative"
+            >
+              {/* Large icon instead of number */}
+              <div className="text-[120px] leading-none mb-4 opacity-30 flex justify-start">
+                {step.icon}
               </div>
-            ))}
-          </div>
+              
+              {/* Step content */}
+              <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+              <p className="text-[#a0b4c0]">{step.description}</p>
+            </motion.div>
+          ))}
         </div>
-
-        {/* <div className={`mt-14 text-center transition-all duration-500 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '600ms' }}>
-          <Link to="/how-it-works">
-            <Button variant="outline" size="lg" className="group border-primary text-primary hover:bg-primary-50">
-              Learn More
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        </div> */}
       </div>
     </section>
   );

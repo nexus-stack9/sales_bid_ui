@@ -1,0 +1,87 @@
+import React from "react";
+import { motion } from "framer-motion";
+import { Star, Quote } from "lucide-react";
+
+const testimonials = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    role: "Retail Business Owner",
+    image: "https://randomuser.me/api/portraits/women/32.jpg",
+    content: "Sales Bid has transformed how I source inventory for my store. The platform is intuitive, and I've found incredible deals that have significantly increased my profit margins.",
+    rating: 5
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    role: "Professional Reseller",
+    image: "https://randomuser.me/api/portraits/men/45.jpg",
+    content: "As someone who resells full-time, I've tried many auction platforms. Sales Bid stands out with its transparent bidding process and exceptional customer service.",
+    rating: 5
+  },
+  {
+    id: 3,
+    name: "Emily Rodriguez",
+    role: "Collector",
+    image: "https://randomuser.me/api/portraits/women/68.jpg",
+    content: "I've been able to find rare items for my collection that I couldn't source anywhere else. The verification process gives me confidence in the authenticity of every purchase.",
+    rating: 4
+  }
+];
+
+const Testimonials = () => {
+  return (
+    <section className="py-16 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-display font-bold mb-3">What Our Users Say</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Join thousands of satisfied buyers and sellers who have found success on our platform
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={testimonial.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-xl p-6 shadow-md relative"
+            >
+              <div className="absolute -top-4 -right-4 bg-primary text-white p-3 rounded-full">
+                <Quote className="h-5 w-5" />
+              </div>
+              
+              <div className="flex items-center mb-4">
+                <img 
+                  src={testimonial.image} 
+                  alt={testimonial.name}
+                  className="w-14 h-14 rounded-full object-cover mr-4 border-2 border-gray-100"
+                />
+                <div>
+                  <h3 className="font-semibold">{testimonial.name}</h3>
+                  <p className="text-sm text-gray-500">{testimonial.role}</p>
+                </div>
+              </div>
+              
+              <p className="text-gray-700 mb-4 italic">"{testimonial.content}"</p>
+              
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star 
+                    key={i} 
+                    className={`h-4 w-4 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+                  />
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Testimonials;
