@@ -1,81 +1,32 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { Gavel, Trophy, Repeat } from "lucide-react";
-import { motion, useAnimation } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useInView } from "react-intersection-observer";
 import bannerImage from "@/assets/banners/banner1.png";
 
-// BlurText component inspired by ReactBits library
+// Simplified BlurText component without animations
 const BlurText = ({ text, className }: { text: string; className?: string }) => {
-  const controls = useAnimation();
-  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  
-  useEffect(() => {
-    if (inView) {
-      controls.start("visible");
-    }
-  }, [controls, inView]);
-  
   // Split the text to apply gradient only to specific words
   const firstPart = "Exclusive auctions, unbeatable prices—";
   const highlightedPart = "start bidding today!";
   
-  const container = {
-    hidden: { opacity: 0 },
-    visible: (i = 1) => ({
-      opacity: 1,
-      transition: { staggerChildren: 0.12, delayChildren: 0.04 * i },
-    }),
-  };
-  
-  const child = {
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 100,
-      },
-    },
-    hidden: {
-      opacity: 0,
-      y: 20,
-      filter: "blur(10px)",
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 100,
-      },
-    },
-  };
-  
   return (
-    <motion.div
-      ref={ref}
-      className={cn("w-full flex flex-wrap justify-center", className)}
-      variants={container}
-      initial="hidden"
-      animate={controls}
-    >
+    <div className={cn("w-full flex flex-wrap justify-center", className)}>
       {/* First part with regular color */}
       {firstPart.split(" ").map((word, index) => (
-        <motion.span
+        <span
           key={`first-${index}`}
           className="text-xl md:text-2xl font-semibold mx-1 my-1 inline-block text-gray-800"
-          variants={child}
         >
           {word}
-        </motion.span>
+        </span>
       ))}
       
       {/* Highlighted part with gradient color */}
       {highlightedPart.split(" ").map((word, index) => (
-        <motion.span
+        <span
           key={`highlight-${index}`}
           className="text-xl md:text-2xl font-semibold mx-1 my-1 inline-block"
           style={{
@@ -84,12 +35,11 @@ const BlurText = ({ text, className }: { text: string; className?: string }) => 
             WebkitTextFillColor: "transparent",
             backgroundClip: "text"
           }}
-          variants={child}
         >
           {word}
-        </motion.span>
+        </span>
       ))}
-    </motion.div>
+    </div>
   );
 };
 

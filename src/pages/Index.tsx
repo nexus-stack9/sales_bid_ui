@@ -18,12 +18,12 @@ const Index = () => {
     <Layout>
       <div className="min-h-screen">
         <Hero />
+        <SellerSpotlight />
         <TrendingCategories />
+        <CompanyStats />
         {/* <FeaturedAuctions /> */}
         {/* <FeaturedCountdown /> */}
         <LiveAuctions />
-        <CompanyStats />
-        <SellerSpotlight />
         <HowItWorks />
         <IntegrationsSection />
         <CTASection />
