@@ -20,10 +20,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import Cookies from "js-cookie";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Check for token in cookies
+  const token = Cookies.get("authToken");
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -124,14 +128,22 @@ const Navbar = () => {
                 <ShoppingCart className="h-5 w-5" />
               </Button>
             </Link>
-            <Link to="/signin">
-              <Button
-                variant="default"
-                className="bg-primary hover:bg-primary-600 text-white"
-              >
-                Sign In
-              </Button>
-            </Link>
+            {token ? (
+              <Link to="/user/profile">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/signin">
+                <Button
+                  variant="default"
+                  className="bg-primary hover:bg-primary-600 text-white"
+                >
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
           <Sheet>
             <SheetTrigger asChild className="md:hidden">
@@ -167,12 +179,21 @@ const Navbar = () => {
                   >
                     <Bell className="mr-2 h-5 w-5" /> Watchlist
                   </Link>
-                  <Link
-                    to="/signin"
-                    className="text-lg font-medium flex items-center"
-                  >
-                    <User className="mr-2 h-5 w-5" /> Sign In
-                  </Link>
+                  {token ? (
+                    <Link
+                      to="/user/profile"
+                      className="text-lg font-medium flex items-center"
+                    >
+                      <User className="mr-2 h-5 w-5" /> Profile
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/signin"
+                      className="text-lg font-medium flex items-center"
+                    >
+                      <User className="mr-2 h-5 w-5" /> Sign In
+                    </Link>
+                  )}
                 </div>
               </div>
             </SheetContent>

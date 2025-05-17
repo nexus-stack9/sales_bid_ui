@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Gavel, CheckCircle, AlertCircle } from "lucide-react";
 import logoNoBg from "@/assets/logo.png";
 import { loginUser } from "@/services/auth";
+import Cookies from "js-cookie"; // Import js-cookie library
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -45,18 +46,25 @@ const SignIn = () => {
 
     try {
       const response = await loginUser({ email, password });
-      // toast({
-      //   title: "Sign in successful",
-      //   description: "Welcome back to Premium Auctions!",
-      //   icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-      // });
+      
+      // Store token in cookies
+      if (response.token) {
+        Cookies.set('authToken', response.token, { expires: 7 }); // Expires in 7 days
+      }
+      
+      toast({
+        title: "Sign in successful",
+        description: "Welcome back to Premium Auctions!",
+        // icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+      });
+      
       navigate("/");
     } catch (error) {
-      // toast({
-      //   title: "Sign in failed",
-      //   description: "Invalid email or password. Please try again.",
-      //   icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-      // });
+      toast({
+        title: "Sign in failed",
+        description: "Invalid email or password. Please try again.",
+        // icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+      });
     }
   };
 
