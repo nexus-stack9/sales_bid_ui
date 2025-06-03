@@ -1,0 +1,781 @@
+/* ProductDetailPage.module.css */
+.container {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+    line-height: 1.5;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+.productHeader {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+}
+
+.productHeader h1 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: #000;
+    font-weight: bold;
+}
+
+.headerMeta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.conditionBadge {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.usedGood {
+    background-color: #e0f7fa;
+    color: #006064;
+}
+
+.location {
+    font-size: 12px;
+    color: #666;
+}
+
+.contentWrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: auto;
+}
+
+.leftColumn {
+    flex: 1;
+    min-width: 50%;
+    max-width: 50%;
+    padding: 0 50px; /* Changed from padding-right to padding on both sides */
+    margin-left: auto;
+    margin-right: auto; /* Center the column */
+}
+
+.rightColumn {
+    flex: 1;
+    min-width: 300px;
+    max-width: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Adjust the width of the Current Bid and Seller boxes */
+/* Current Bid Box */
+.topBox {
+    width: 100%; /* Changed from 80% to 100% but constrained by parent */
+    max-width: 350px; /* Added max-width to limit expansion */
+    background-color: white;
+    padding: 15px;
+    border: 1px solid #ddd;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Seller Information Box */
+.bottomBox {
+    width: 100%; /* Changed from 80% to 100% but constrained by parent */
+    max-width: 350px; /* Added max-width to match topBox */
+    padding: 15px;
+    background-color: white;
+    border: 1px solid #ddd;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Image Gallery */
+.imageGallery {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.mainImage {
+    width: 100%; /* Changed from 90% to 100% since we're controlling padding in parent */
+    margin: 0 auto 10px;
+    height: 300px;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mainImage img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.thumbnailStrip {
+    display: flex;
+    width: 100%;
+    gap: 5px;
+    padding: 5px 50px; /* Added horizontal padding to match */
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.thumbnail {
+    width: 60px;
+    height: 60px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}
+
+/* Replace existing product details styles with these */
+.productDetails {
+    width: 100%;
+    margin: 0;
+    padding: 15px;
+    background-color: #fff;
+    text-align: left;
+  }
+  
+  @media (max-width: 768px) {
+    .productDetails {
+      padding: 15px 10px;
+      margin: 0;
+    }
+  
+    .productDetails h2 {
+      text-align: left;
+      margin-left: 0;
+      padding-left: 0;
+    }
+  
+    .productDetails ul {
+      padding-left: 15px;
+      margin-left: 0;
+    }
+  
+    .productDetails li {
+      text-align: left;
+      padding-left: 0;
+    }
+  }
+
+.productDetails h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #000;
+    font-weight: bold;
+}
+
+.productDetails ul {
+    list-style: none;
+    padding: 0;
+    margin-right: auto;
+}
+
+.productDetails li {
+    margin-bottom: 5px;
+    padding: 5px 0;
+    font-size: 12px;
+}
+
+.productDetails li:last-child {
+    border-bottom: none;
+}
+
+.productDetails li strong {
+    color: #000;
+    font-weight: bold;
+}
+
+/* Bid Section */
+.bidSection {
+    padding: 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+/* Bid Form */
+.bidForm {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.bidInputGroup {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.bidInputGroup .currencySymbol {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: normal;
+    color: #666;
+    font-size: 12px;
+}
+
+.bidInputGroup input {
+    width: 100%;
+    padding: 8px 10px 8px 25px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    background-color: #fff;
+}
+
+.bidInputGroup input:focus {
+    outline: none;
+    border-color: #000;
+}
+
+.bidButton {
+    width: 100%;
+    padding: 10px;
+    background-color: #003087;
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.bidButton:hover {
+    background-color: #005087;
+    color: #fff;
+}
+
+.priceInfo {
+    margin-bottom: 15px;
+}
+
+.currentBid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.currentBid .amount {
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+}
+
+.perUnit {
+    color: #666;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.msrpEstimate {
+    color: #666;
+    font-size: 12px;
+}
+
+.timeRemaining {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px 0 0;
+}
+
+.timeRemaining .label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.timeRemaining .icon {
+    font-size: 14px;
+    color: #666;
+}
+
+.timer {
+    font-weight: bold;
+    font-size: 12px;
+    color: #000;
+}
+
+.totalBids {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding: 10px 0 0;
+}
+
+.totalBids .label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.totalBids .icon {
+    font-size: 14px;
+    color: #666;
+}
+
+.totalBids .timer {
+    font-weight: bold;
+}
+
+.label {
+    font-weight: normal;
+    color: #000;
+    font-size: 12px;
+}
+
+.timer {
+    color: #000;
+    font-size: 12px;
+}
+
+.shippingEstimate, .paymentMethods {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #999;
+    padding: 5px 0;
+}
+
+/* Seller Info */
+.sellerInfo {
+    background-color: #fff;
+}
+
+.sellerInfo h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.sellerNameRating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.sellerName {
+    font-weight: bold;
+    font-size: 12px;
+    color: #000;
+}
+
+.sellerRating {
+    color: #ff9800;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.starFilled {
+    color: #ff9800;
+}
+
+.starEmpty {
+    color: #fff;
+}
+
+.sellerTerms {
+    font-size: 11px;
+    color: #666;
+}
+
+/* Tabbed Info - Desktop */
+.tabbedInfoDesktop {
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    width: 90%; /* Increased width to span most of the screen */
+    max-width: 1200px; /* Set a max-width to prevent overflow on very wide screens */
+    margin-left: auto;
+    margin-right: auto; /* Center the entire container on the screen */
+}
+
+.tabHeaders {
+    display: flex;
+    background-color: #fff;
+    justify-content: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabHeader {
+    padding: 12px 20px;
+    font-size: 14px;
+    text-align: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: normal;
+    color: #666;
+    margin: 0 10px;
+}
+
+.tabHeader:hover {
+    color: #000;
+}
+
+.tabHeader.active {
+    color: #000;
+    font-weight: bold;
+    border-bottom: 2px solid #000;
+}
+
+.tabContent {
+    padding: 15px;
+    background-color: #fff;
+}
+
+/* Manifest Table */
+.tableHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  .tableHeader h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+.downloadButton {
+    padding: 6px 12px;
+    background-color: #003087;
+    color: white;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    margin-left: auto; /* Aligns to right in table header */
+    display: inline-block; /* Prevents full-width */
+    width: auto; /* Prevents stretching */
+  }
+
+  .downloadButton:hover {
+    background-color: #002366;
+  }
+
+.tableau {
+    margin-top: 10px;
+}
+
+.tableWrapper {
+    margin-top: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #ddd;
+    color: #000;
+    font-weight: bold;
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+    font-size: 12px;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    font-size: 12px;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+.bidHistoryTab {
+    margin-top: 15px;
+}
+
+/* Accordion - Mobile */
+.tabbedInfoMobile {
+    display: none;
+    margin-bottom: 20px;
+    width: 90%; /* Match the desktop width */
+    max-width: 1200px; /* Match the desktop max-width */
+    margin-left: auto;
+    margin-right: auto; /* Center on smaller screens */
+}
+
+.accordionItem {
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .accordionHeader {
+    width: 100%;
+    padding: 12px 15px;
+    text-align: left;
+    background-color: #fff;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+.accordionHeader:hover {
+    background-color: #f9f9f9;
+}
+
+.accordionHeader.active {
+    background-color: #f5f5f5;
+    color: #000;
+}
+
+.accordionIcon {
+    font-size: 14px;
+    font-weight: normal;
+    color: #666;
+}
+
+.accordionContent {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+  
+  .accordionContent.open {
+    max-height: 2000px; /* Adjust this value based on your content */
+    transition: max-height 0.5s ease-in;
+  }
+  
+  /* Content container inside accordion */
+  .accordionContent > div {
+    padding: 15px;
+  }
+/* Responsive styles */
+@media (max-width: 992px) {
+    .contentWrapper {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .leftColumn, .rightColumn {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .leftColumn {
+        padding-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .topBox, .bottomBox {
+        width: 100%;
+    }
+
+    .tabbedInfoDesktop {
+        display: none;
+    }
+
+    .tabbedInfoMobile {
+        display: block;
+    }
+
+    .mainImage {
+        height: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .productHeader h1 {
+        font-size: 16px;
+    }
+
+    .bidSection, .productDetails, .sellerInfo {
+        padding: 10px;
+    }
+
+    .mainImage {
+        width: 100%;
+        margin: 0 auto;
+        height: auto;
+        max-height: 250px;
+        display: flex;
+        justify-content: center;
+        padding: 0 10px;
+      }
+      .mainImage img {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+      }
+    
+      .thumbnailStrip {
+        justify-content: center;
+        flex-wrap: wrap;
+        padding: 10px;
+      }
+    
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding: 10px;
+    }
+
+    .productHeader h1 {
+        font-size: 14px;
+    }
+
+    .thumbnail {
+        width: 50px;
+        height: 50px;
+    }
+
+    .mainImage {
+        height: 180px;
+    }
+
+    .tabHeader, .accordionHeader {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    th, td {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+}
+
+.activeThumbnail {
+    border: 2px solid #007bff;
+    opacity: 1;
+}
+
+.thumbnail {
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s, border 0.3s;
+}
+
+.thumbnail:hover {
+    opacity: 1;
+}
+
+/* Add these new styles */
+.manifestTableMobile {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tableWrapper {
+  min-width: 100%;
+  width: max-content;
+}
+
+.downloadButtonMobile {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  width: 100%;
+}
+
+  /* Mobile Manifest Styles */
+.mobileManifestContainer {
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  .scrollableTableContainer {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+  }
+  
+  .fullManifestTable {
+    width: 100%;
+    min-width: 800px; /* Ensures all columns show up */
+    border-collapse: collapse;
+  }
+  
+  .fullManifestTable th, 
+  .fullManifestTable td {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    font-size: 12px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  
+  .fullManifestTable th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+
+
+/* Mobile container adjustments */
+@media (max-width: 768px) {
+    .container {
+      padding: 10px;
+    }
+  
+    .leftColumn {
+      padding: 0;
+      margin: 0 auto;
+      width: 100%;
+    }
+  
+    .contentWrapper {
+      flex-direction: column;
+      gap: 15px;
+    }
+  }
+
+  /* Mobile-specific spacing */
+.mobileSpacer {
+    height: 20px;
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .mobileSpacer {
+      display: block;
+    }
+    
+    .bottomBox {
+      margin-bottom: 15px;
+    }
+    
+    .sellerDetails {
+      padding: 10px 0;
+    }
+  }
+
+  
