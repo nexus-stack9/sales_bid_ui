@@ -627,16 +627,39 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
                       whileHover={{ scale: 1.02 }}
                       className="transition-all duration-300"
                     >
+
+                     
                       <AuctionCard
                         id={auction.id}
                         title={auction.title}
                         imageUrl={auction.imageUrl}
                         currentBid={auction.currentBid}
-                        timeLeft={auction.timeLeft}
+                         startDate="2025-06-06T18:30:00Z"
+  endDate="2025-06-07T18:30:00Z"
                         watchers={auction.watchers}
+                         bidsPlaced={12}
+                          msrp={27499}
+                          location="Tanna, Thuringia, Germany"
                         featured={auction.featured}
                         category={auction.category}
+                          condition="Used - Fair"
+                          // totalPieces={55}
                       />
+
+                      {/* <AuctionCard
+  id="1"
+  title="Mixed Electronics, 55 Pieces"
+  imageUrl="/images/mixed-electronics.jpg"
+  currentBid={695}
+  msrp={27499}
+  timeLeft="0s left"
+  watchers={0}
+  bidsPlaced={12}
+  category="Electronics"
+  location="Tanna, Thuringia, Germany"
+  condition="Used - Fair"
+  totalPieces={55}
+/> */}
                     </motion.div>
                   ))}
                 </div>
