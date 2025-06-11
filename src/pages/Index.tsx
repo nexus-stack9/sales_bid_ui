@@ -15,7 +15,7 @@ import FeaturedCountdown from "@/components/home/FeaturedCountdown";
 import TrendingNow from "@/components/home/TrendingNow";
 import Newsletter from "@/components/home/Newsletter";
 import FeaturedSellers from "@/components/home/FeaturedSellers";
-import MobileApp from "@/components/home/MobileApp";
+import AuctionInsights from "@/components/home/AuctionInsights";
 
 const Index = () => {
   return (
@@ -29,7 +29,7 @@ const Index = () => {
         <CompanyStats />
         <FeaturedSellers />
         <HowItWorks />
-        <MobileApp />
+        <AuctionInsights />
         <Newsletter />
         <Testimonials />
         <CTASection />
