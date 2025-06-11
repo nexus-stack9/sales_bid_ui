@@ -8,7 +8,7 @@ import { FaGavel } from 'react-icons/fa';
 const ProductDetailPage = () => {
   const [activeTab, setActiveTab] = useState("description");
   const [timeRemaining, setTimeRemaining] = useState(48 * 60 * 60);
-  const [bidAmount, setBidAmount] = useState("");
+  const [bidAmount, setBidAmount] = useState(2150);
   const [mobileAccordionOpen, setMobileAccordionOpen] = useState(null);
   const [selectedImage, setSelectedImage] = useState(fridgeWebp);
 
@@ -61,11 +61,7 @@ const ProductDetailPage = () => {
   const [bidHistory] = useState([
     { bidder: "Bidder123", amount: 11500 * 85, time: "2023-05-15 14:30:22" },
     { bidder: "AppliancePro", amount: 11000 * 85, time: "2023-05-15 13:45:10" },
-    {
-      bidder: "WarehouseBuyer",
-      amount: 10500 * 85,
-      time: "2023-05-15 12:15:45",
-    },
+    { bidder: "WarehouseBuyer", amount: 10500 * 85, time: "2023-05-15 12:15:45" },
     { bidder: "Bidder123", amount: 10000 * 85, time: "2023-05-15 10:20:30" },
   ]);
 
@@ -81,6 +77,10 @@ const ProductDetailPage = () => {
     console.log("Bid submitted:", bidAmount);
   };
 
+  const handleQuickBid = (amount) => {
+    setBidAmount(amount);
+  };
+
   const toggleMobileAccordion = (tab) => {
     setMobileAccordionOpen(mobileAccordionOpen === tab ? null : tab);
   };
@@ -92,20 +92,8 @@ const ProductDetailPage = () => {
   return (
     <Layout>
       <div className={styles.container}>
-        <div className={styles.productHeader}>
-          <h1>
-            51 Units of Used - Good Condition Refrigerators, Dishwashers, Ranges
-            & More
-          </h1>
-          <div className={styles.headerMeta}>
-            <span className={`${styles.conditionBadge} ${styles.usedGood}`}>
-              Used - Good
-            </span>
-            <span className={styles.location}>Mirooka Warehouse</span>
-          </div>
-        </div>
-
         <div className={styles.contentWrapper}>
+          {/* Left Column: Image Gallery and Bid Card (Desktop) */}
           <div className={styles.leftColumn}>
             <div className={styles.imageGallery}>
               <div className={styles.mainImage}>
@@ -126,116 +114,250 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
-            <div className={styles.productDetails}>
-              <h2>Product Details</h2>
-              <ul>
-                <li>
-                  <strong>Quantity:</strong> 51 units
-                </li>
-                {/* <li>
-                  <strong>Shipping:</strong> Standard Shipping only
-                </li>
-                <li>
-                  <strong>Estimated Shipping Cost:</strong>{" "}
-                  {formatCurrency(6000 * 85)}
-                </li> */}
-                {/* <li>
-                  <strong>Payment Methods:</strong> Various payment methods
-                  available
-                </li> */}
-                <li>
-                  <strong>Category:</strong> Major Appliances: Kitchen 90.2%,
-                  Major Appliances: Laundry 5.9%, and Small Appliances
-                </li>
-              </ul>
+            {/* Place Your Bid Card (Desktop Only) */}
+            <div className={styles.desktopPlaceBidCard}>
+              <div className={styles.placeBidCard}>
+                <div className={styles.bidHeader}>
+                  <span className={styles.bidLabel}>Place Your Bid</span>
+                  <span className={styles.auctionStatus}>
+                    <span className={styles.statusIcon}>⏰</span>
+                    Ends in {formatCountdown(timeRemaining)}
+                  </span>
+                </div>
+                <form onSubmit={handleBidSubmit} className={styles.bidForm}>
+                  <div className={styles.bidInputGroup}>
+                    <label className={styles.inputLabel}>YOUR BID (INR)</label>
+                    <div className={styles.inputWrapper}>
+                      <span className={styles.currencySymbol}>₹</span>
+                      <input
+                        type="number"
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        min={2150}
+                        step={50}
+                        required
+                      />
+                    </div>
+                    <div className={styles.bidInfo}>
+                      <span className={styles.bidRequirement}>
+                        <span className={styles.requirementIcon}>🛡️</span>
+                        Minimum bid: {formatCurrency(2150)}
+                      </span>
+                      <span className={styles.bidIncrement}>
+                        +{formatCurrency(50)} increments
+                      </span>
+                    </div>
+                  </div>
+                  <button type="submit" className={styles.placeBidButton}>
+                    Place Bid Now
+                    <FaGavel className={styles.buttonIcon} />
+                  </button>
+                  <div className={styles.terms}>
+                    By placing a bid, you agree to the{" "}
+                    <a href="#" className={styles.termsLink}>
+                      Terms & Conditions
+                    </a>
+                  </div>
+                </form>
+                <div className={styles.quickBidSection}>
+                  <h3>Quick Bid Options</h3>
+                  <div className={styles.quickBidOptions}>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2150 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2150)}
+                    >
+                      {formatCurrency(2150)}
+                      <span className={styles.quickBidLabel}>Minimum</span>
+                    </button>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2200 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2200)}
+                    >
+                      {formatCurrency(2200)}
+                    </button>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2250 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2250)}
+                    >
+                      {formatCurrency(2250)}
+                    </button>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2600 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2600)}
+                    >
+                      {formatCurrency(2600)}
+                      <span className={styles.quickBidLabel}>Recommended</span>
+                    </button>
+                  </div>
+                </div>
+                {/* <div className={styles.assurances}>
+                  <div className={styles.assuranceItem}>
+                    <span className={styles.assuranceIcon}>✅</span>
+                    Secure bidding process
+                  </div>
+                  <div className={styles.assuranceItem}>
+                    <span className={styles.assuranceIcon}>🛡️</span>
+                    Buyer protection available
+                  </div>
+                  <div className={styles.assuranceItem}>
+                    <span className={styles.assuranceIcon}>😊</span>
+                    Satisfaction guaranteed
+                  </div>
+                </div> */}
+              </div>
             </div>
           </div>
 
+          {/* Right Column: Product Header and Bid Info */}
           <div className={styles.rightColumn}>
-            <div className={styles.topBox}>
-              <div className={styles.priceInfo}>
-                <div className={styles.currentBid}>
-                  <span className={styles.label}>Current Bid:</span>
-                  <span className={styles.amount}>
-                    {formatCurrency(12000 * 85)}
-                  </span>
-                </div>
-                <div className={styles.perUnit}>
-                  {formatCurrency(323.29 * 85)} per unit
-                </div>
-                <div className={styles.msrpEstimate}>
-                  Estimated MSRP: {formatCurrency(75467.0 * 85)} /{" "}
-                  {formatCurrency(4480.61 * 85)} per unit
-                </div>
-              </div>
-              <div className={styles.timeRemaining}>
-                <span className={styles.label}>
-                  <span className={styles.icon}>⌛</span>
-                  Time Remaining:
+            <div className={styles.productHeader}>
+              <h1>
+                51 Units of Used - Good Condition Refrigerators, Dishwashers, Ranges
+                & More
+              </h1>
+              <div className={styles.headerMeta}>
+                <span className={`${styles.conditionBadge} ${styles.usedGood}`}>
+                  Used - Good
                 </span>
-                <span className={styles.timer}>
-                  {formatCountdown(timeRemaining)}
-                </span>
+                <span className={styles.location}>Mirooka Warehouse</span>
               </div>
-              <div className={styles.totalBids}>
-                <span className={styles.label}>
-                  <span className={styles.icon}>
-                  <FaGavel size={14} />
-                  </span>
-                  Total Bids:
-                </span>
-                <span className={styles.timer}>12</span>
-              </div>
-              <form onSubmit={handleBidSubmit} className={styles.bidForm}>
-                <div className={styles.bidInputGroup}>
-                  <span className={styles.currencySymbol}>₹</span>
-                  <input
-                    type="number"
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder="Enter bid amount"
-                    min={12000 * 85 * 1.05}
-                    step="100"
-                    required
-                  />
-                </div>
-                <button type="submit" className={styles.bidButton}>
-                  Place Bid
-                </button>
-              </form>
             </div>
 
-            <div className={styles.bottomBox}>
-              <div className={styles.sellerInfo}>
-                <h3>Seller Information</h3>
-                <div className={styles.sellerDetails}>
-                  <div className={styles.sellerNameRating}>
-                    <span className={styles.sellerName}>Sales Bid</span>
-                    <span className={styles.sellerRating}>
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <span
-                          key={i}
-                          className={
-                            i < 4 ? styles.starFilled : styles.starEmpty
-                          }
-                        >
-                          ★
-                        </span>
-                      ))}
-                      (4.8)
-                    </span>
+            <div className={styles.topBox}>
+              <div className={styles.bidCard}>
+                <div className={styles.bidHeader}>
+                  <span className={styles.bidLabel}>CURRENT BID</span>
+                </div>
+                <div className={styles.bidAmount}>
+                  {formatCurrency(2100)}
+                </div>
+                <div className={styles.progressBar}>
+                  <div className={styles.progressFill} style={{ width: '25%' }}></div>
+                </div>
+                <div className={styles.bidStats}>
+                  <div className={styles.bidCount}>
+                    <FaGavel className={styles.statIcon} />
+                    5 bids
                   </div>
-                  <div className={styles.sellerTerms}>
-                    <strong>Terms:</strong> Standard auction terms apply
+                  <div className={styles.retailPercentage}>
+                    25% of retail
                   </div>
                 </div>
+              </div>
+              <div className={styles.auctionDetails}>
+                <h3>Auction Details</h3>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Retail Value:</span>
+                  <span className={styles.detailValue}>{formatCurrency(8500)}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Starting Bid:</span>
+                  <span className={styles.detailValue}>{formatCurrency(1000)}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Min Increment:</span>
+                  <span className={styles.detailValue}>+{formatCurrency(50)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Place Your Bid Card (Mobile Only) */}
+            <div className={styles.mobilePlaceBidCard}>
+              <div className={styles.placeBidCard}>
+                <div className={styles.bidHeader}>
+                  <span className={styles.bidLabel}>Place Your Bid</span>
+                  <span className={styles.auctionStatus}>
+                    <span className={styles.statusIcon}>⏰</span>
+                    Ends in {formatCountdown(timeRemaining)}
+                  </span>
+                </div>
+                <form onSubmit={handleBidSubmit} className={styles.bidForm}>
+                  <div className={styles.bidInputGroup}>
+                    <label className={styles.inputLabel}>YOUR BID (INR)</label>
+                    <div className={styles.inputWrapper}>
+                      <span className={styles.currencySymbol}>₹</span>
+                      <input
+                        type="number"
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        min={2150}
+                        step={50}
+                        required
+                      />
+                    </div>
+                    <div className={styles.bidInfo}>
+                      <span className={styles.bidRequirement}>
+                        <span className={styles.requirementIcon}>🛡️</span>
+                        Minimum bid: {formatCurrency(2150)}
+                      </span>
+                      <span className={styles.bidIncrement}>
+                        +{formatCurrency(50)} increments
+                      </span>
+                    </div>
+                  </div>
+                  <button type="submit" className={styles.placeBidButton}>
+                    Place Bid Now
+                    <FaGavel className={styles.buttonIcon} />
+                  </button>
+                  <div className={styles.terms}>
+                    By placing a bid, you agree to the{" "}
+                    <a href="#" className={styles.termsLink}>
+                      Terms & Conditions
+                    </a>
+                  </div>
+                </form>
+                <div className={styles.quickBidSection}>
+                  <h3>Quick Bid Options</h3>
+                  <div className={styles.quickBidOptions}>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2150 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2150)}
+                    >
+                      {formatCurrency(2150)}
+                      <span className={styles.quickBidLabel}>Minimum</span>
+                    </button>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2200 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2200)}
+                    >
+                      {formatCurrency(2200)}
+                    </button>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2250 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2250)}
+                    >
+                      {formatCurrency(2250)}
+                    </button>
+                    <button
+                      className={`${styles.quickBidButton} ${bidAmount === 2600 ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(2600)}
+                    >
+                      {formatCurrency(2600)}
+                      <span className={styles.quickBidLabel}>Recommended</span>
+                    </button>
+                  </div>
+                </div>
+                {/* <div className={styles.assurances}>
+                  <div className={styles.assuranceItem}>
+                    <span className={styles.assuranceIcon}>✅</span>
+                    Secure bidding process
+                  </div>
+                  <div className={styles.assuranceItem}>
+                    <span className={styles.assuranceIcon}>🛡️</span>
+                    Buyer protection available
+                  </div>
+                  <div className={styles.assuranceItem}>
+                    <span className={styles.assuranceIcon}>😊</span>
+                    Satisfaction guaranteed
+                  </div>
+                </div> */}
               </div>
             </div>
           </div>
         </div>
         <div className={styles.mobileSpacer}></div>
 
-        {/* Moved tabbedInfoDesktop and tabbedInfoMobile outside of leftColumn */}
+        {/* Tabbed Info Desktop */}
         <div className={styles.tabbedInfoDesktop}>
           <div className={styles.tabHeaders}>
             {[
@@ -244,6 +366,7 @@ const ProductDetailPage = () => {
               "returns",
               "manifest",
               "bid-history",
+              "seller",
             ].map((tab) => (
               <button
                 key={tab}
@@ -293,76 +416,103 @@ const ProductDetailPage = () => {
                 </p>
               </div>
             )}
+            {activeTab === "manifest" && (
+              <div className={styles.manifestTable}>
+                <div className={styles.tableHeader}>
+                  <h3>Full Manifest</h3>
+                  <button className={styles.downloadButton}>
+                    Download Manifest
+                  </button>
+                </div>
+                <div className={styles.tableWrapper}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>LOT ID</th>
+                        <th>MANUFACTURER</th>
+                        <th>MODEL</th>
+                        <th>ITEM #</th>
+                        <th>ITEM DESCRIPTION</th>
+                        <th>QTY</th>
+                        <th>UNIT RETAIL</th>
+                        <th>UNIT WEIGHT</th>
+                        <th>CONDITION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {manifestData.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.lotId}</td>
+                          <td>{item.manufacturer}</td>
+                          <td>{item.model}</td>
+                          <td>{item.itemNumber}</td>
+                          <td>{item.description}</td>
+                          <td>{item.quantity}</td>
+                          <td>{formatCurrency(item.unitRetail)}</td>
+                          <td>{item.unitWeight}</td>
+                          <td>{item.condition}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {activeTab === "bid-history" && (
+              <div className={styles.bidHistoryTab}>
+                <h3>Bid History</h3>
+                <div className={styles.historyTable}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Bidder</th>
+                        <th>Amount</th>
+                        <th>Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bidHistory.map((bid, index) => (
+                        <tr key={index}>
+                          <td>{bid.bidder}</td>
+                          <td>{formatCurrency(bid.amount)}</td>
+                          <td>{bid.time}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {activeTab === "seller" && (
+              <div className={styles.sellerInfo}>
+                <h3>Seller Information</h3>
+                <div className={styles.sellerDetails}>
+                  <div className={styles.sellerNameRating}>
+                    <span className={styles.sellerName}>Sales Bid</span>
+                    <span className={styles.sellerRating}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className={
+                            i < 4 ? styles.starFilled : styles.starEmpty
+                          }
+                        >
+                          ★
+                        </span>
+                      ))}
+                      (4.8)
+                    </span>
+                  </div>
+                  <div className={styles.sellerTerms}>
+                    <strong>Terms:</strong> Standard auction terms apply
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          {activeTab === "manifest" && (
-            <div className={styles.manifestTable}>
-              <div className={styles.tableHeader}>
-                <h3>Full Manifest</h3>
-                <button className={styles.downloadButton}>
-                  Download Manifest
-                </button>
-              </div>
-              <div className={styles.tableWrapper}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>LOT ID</th>
-                      <th>MANUFACTURER</th>
-                      <th>MODEL</th>
-                      <th>ITEM #</th>
-                      <th>ITEM DESCRIPTION</th>
-                      <th>QTY</th>
-                      <th>UNIT RETAIL</th>
-                      <th>UNIT WEIGHT</th>
-                      <th>CONDITION</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {manifestData.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.lotId}</td>
-                        <td>{item.manufacturer}</td>
-                        <td>{item.model}</td>
-                        <td>{item.itemNumber}</td>
-                        <td>{item.description}</td>
-                        <td>{item.quantity}</td>
-                        <td>{formatCurrency(item.unitRetail)}</td>
-                        <td>{item.unitWeight}</td>
-                        <td>{item.condition}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-          {activeTab === "bid-history" && (
-            <div className={styles.bidHistoryTab}>
-              <h3>Bid History</h3>
-              <div className={styles.historyTable}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Bidder</th>
-                      <th>Amount</th>
-                      <th>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bidHistory.map((bid, index) => (
-                      <tr key={index}>
-                        <td>{bid.bidder}</td>
-                        <td>{formatCurrency(bid.amount)}</td>
-                        <td>{bid.time}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
 
+        {/* Tabbed Info Mobile */}
         <div className={styles.tabbedInfoMobile}>
           {[
             "description",
@@ -370,6 +520,7 @@ const ProductDetailPage = () => {
             "returns",
             "manifest",
             "bid-history",
+            "seller",
           ].map((tab) => (
             <div key={tab} className={styles.accordionItem}>
               <button
@@ -461,6 +612,31 @@ const ProductDetailPage = () => {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+                )}
+                {tab === "seller" && (
+                  <div className={styles.sellerInfo}>
+                    <div className={styles.sellerDetails}>
+                      <div className={styles.sellerNameRating}>
+                        <span className={styles.sellerName}>Sales Bid</span>
+                        <span className={styles.sellerRating}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span
+                              key={i}
+                              className={
+                                i < 4 ? styles.starFilled : styles.starEmpty
+                              }
+                            >
+                              ★
+                            </span>
+                          ))}
+                          (4.8)
+                        </span>
+                      </div>
+                      <div className={styles.sellerTerms}>
+                        <strong>Terms:</strong> Standard auction terms apply
+                      </div>
                     </div>
                   </div>
                 )}
