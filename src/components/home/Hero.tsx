@@ -6,11 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 
-// Hero background images
+// Hero background images - lighter, more colorful images
 const heroBackgrounds = [
-  "https://images.unsplash.com/photo-1607082349566-187342175e2f?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1607083206968-13611e3d76db?q=80&w=2070&auto=format&fit=crop"
+  "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=2070&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1556742111-a301076d9d18?q=80&w=2070&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1556745753-b2904692b3cd?q=80&w=2066&auto=format&fit=crop"
 ];
 
 // Featured auction items
@@ -95,14 +95,14 @@ const Hero = () => {
             className="absolute inset-0 bg-cover bg-center"
             style={{ 
               backgroundImage: `url(${heroBackgrounds[backgroundIndex]})`,
-              filter: 'brightness(0.4)'
+              filter: 'brightness(0.9)'
             }}
           />
         </motion.div>
       </AnimatePresence>
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80 z-10"></div>
+      {/* Gradient overlay - lighter */}
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-100/70 via-white/50 to-white/80 z-10"></div>
 
       {/* Content container */}
       <div className="container mx-auto px-4 relative z-20 py-16">
@@ -112,25 +112,25 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-white"
+            className="text-gray-800"
           >
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-1 rounded-full text-sm font-medium mb-4"
+              className="inline-block bg-gradient-to-r from-sky-400 to-indigo-400 px-4 py-1 rounded-full text-sm font-medium mb-4 text-white"
             >
               Premium Auction Platform
             </motion.div>
 
             <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight mb-6">
-              <span className="block">Discover Exclusive</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+              <span className="block text-gray-800">Discover Exclusive</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
                 Auction Treasures
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-xl">
+            <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-xl">
               Join thousands of bidders worldwide in the most exciting online auctions. 
               Find rare collectibles, luxury items, and unbeatable deals all in one place.
             </p>
@@ -143,11 +143,11 @@ const Hero = () => {
               <Input
                 type="text"
                 placeholder="Search for auctions..."
-                className="pl-10 py-6 bg-white/10 backdrop-blur-md border-gray-700 text-white w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 py-6 bg-white shadow-lg border-gray-200 text-gray-800 w-full rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Button className="absolute right-1.5 top-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg">
+              <Button className="absolute right-1.5 top-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg">
                 Search
               </Button>
             </div>
@@ -164,9 +164,11 @@ const Hero = () => {
                 >
                   <Link 
                     to={`/auctions?category=${category.name}`}
-                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full transition-all duration-300"
+                    className="flex items-center gap-2 bg-white shadow-md hover:shadow-lg px-4 py-2 rounded-full transition-all duration-300 text-gray-700 border border-gray-100"
                   >
-                    {category.icon}
+                    {React.cloneElement(category.icon as React.ReactElement, { 
+                      className: "h-4 w-4 text-blue-500" 
+                    })}
                     <span>{category.name}</span>
                   </Link>
                 </motion.div>
@@ -181,12 +183,12 @@ const Hero = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 + index * 0.1 }}
-                  className="text-center"
+                  className="text-center bg-white p-4 rounded-xl shadow-md border border-gray-100"
                 >
-                  <p className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                  <p className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-gray-400">{stat.label}</p>
+                  <p className="text-sm text-gray-500">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
@@ -201,13 +203,13 @@ const Hero = () => {
           >
             <div className="relative">
               {/* Decorative elements */}
-              <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
               
               {/* Featured items */}
-              <div className="relative bg-black/30 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Star className="h-5 w-5 mr-2 text-yellow-400" />
+              <div className="relative bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-xl">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                  <Star className="h-5 w-5 mr-2 text-amber-500" />
                   Featured Auctions
                 </h3>
                 
@@ -219,7 +221,7 @@ const Hero = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 + index * 0.1 }}
                       whileHover={{ scale: 1.02 }}
-                      className="bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden transition-all duration-300 border border-white/10"
+                      className="bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-xl overflow-hidden transition-all duration-300 border border-gray-200 shadow-sm"
                     >
                       <Link to={`/auctions/${item.id}`} className="flex">
                         <div className="w-24 h-24 flex-shrink-0">
@@ -232,17 +234,17 @@ const Hero = () => {
                         <div className="p-3 flex-1">
                           <div className="flex justify-between items-start">
                             <div>
-                              <h4 className="text-white font-medium line-clamp-1">{item.title}</h4>
-                              <p className="text-xs text-gray-400">{item.category}</p>
+                              <h4 className="text-gray-800 font-medium line-clamp-1">{item.title}</h4>
+                              <p className="text-xs text-gray-500">{item.category}</p>
                             </div>
-                            <div className="bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded-full flex items-center">
+                            <div className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full flex items-center">
                               <Clock className="h-3 w-3 mr-1" />
                               {item.timeLeft}
                             </div>
                           </div>
                           <div className="mt-2">
-                            <p className="text-sm text-gray-300">
-                              Current bid: <span className="text-green-400 font-semibold">₹{item.currentBid.toLocaleString()}</span>
+                            <p className="text-sm text-gray-600">
+                              Current bid: <span className="text-green-600 font-semibold">₹{item.currentBid.toLocaleString()}</span>
                             </p>
                           </div>
                         </div>
@@ -252,7 +254,7 @@ const Hero = () => {
                 </div>
                 
                 <div className="mt-4 text-center">
-                  <Button asChild variant="outline" className="text-white border-white/20 hover:bg-white/10">
+                  <Button asChild className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white">
                     <Link to="/auctions" className="flex items-center">
                       View All Auctions
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -273,19 +275,19 @@ const Hero = () => {
               {
                 label: "BID",
                 icon: <Gavel className="h-6 w-6 text-white" />,
-                color: "from-blue-500 to-indigo-600",
+                color: "from-blue-400 to-indigo-500",
                 delay: 1.0,
               },
               {
                 label: "WIN",
                 icon: <Trophy className="h-6 w-6 text-white" />,
-                color: "from-green-500 to-emerald-600",
+                color: "from-green-400 to-teal-500",
                 delay: 1.1,
               },
               {
                 label: "REPEAT",
                 icon: <Repeat className="h-6 w-6 text-white" />,
-                color: "from-amber-500 to-yellow-600",
+                color: "from-amber-400 to-orange-500",
                 delay: 1.2,
               },
             ].map(({ label, icon, color, delay }, i) => (
@@ -310,15 +312,15 @@ const Hero = () => {
                     })}
                   </motion.div>
                   <motion.div
-                    className="mt-2 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm"
+                    className="mt-2 bg-white shadow-md px-3 py-1 rounded-full"
                     whileHover={{ y: -2 }}
                   >
-                    <p className="text-sm font-bold text-white">
+                    <p className="text-sm font-bold text-gray-700">
                       {label}
                     </p>
                   </motion.div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-white/0 to-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/0 to-white/70 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
               </motion.div>
             ))}
           </div>
