@@ -12,27 +12,27 @@ import FeaturedAuctions from "@/components/home/FeaturedAuctions";
 import Testimonials from "@/components/home/Testimonials";
 import TrendingCategories from "@/components/home/TrendingCategories";
 import FeaturedCountdown from "@/components/home/FeaturedCountdown";
-import TrendingNow from "@/components/home/TrendingNow";
-import Newsletter from "@/components/home/Newsletter";
-import FeaturedSellers from "@/components/home/FeaturedSellers";
-import AuctionInsights from "@/components/home/AuctionInsights";
+
+
+
+
 
 const Index = () => {
   return (
     <Layout>
       <div className="min-h-screen">
         <Hero />
-        <TrendingNow />
+        <SellerSpotlight />
         <TrendingCategories />
-        <LiveAuctions />
-        <FeaturedAuctions />
         <CompanyStats />
-        <FeaturedSellers />
+        {/* <FeaturedAuctions /> */}
+        {/* <FeaturedCountdown /> */}
+        <LiveAuctions />
         <HowItWorks />
-        <AuctionInsights />
-        <Newsletter />
-        <Testimonials />
+        <IntegrationsSection />
         <CTASection />
+        <Testimonials />
+        {/* <ReviewsMarquee /> */}
       </div>
     </Layout>
   );
