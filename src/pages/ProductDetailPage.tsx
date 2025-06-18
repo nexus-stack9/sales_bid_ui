@@ -1,22 +1,163 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import styles from "./ProductDetailPage.module.css";
 import Layout from "@/components/layout/Layout";
 import fridgeWebp from "@/assets/fridge.webp";
 import fridge2Png from "@/assets/fridge2.png";
-import { FaGavel } from 'react-icons/fa';
+import { FaGavel, FaMapMarkerAlt } from 'react-icons/fa';
+import { placeBid } from "@/services/crudService";
 
 const ProductDetailPage = () => {
+  const { id: productId } = useParams();
+  const navigate = useNavigate();
+  
+  // WebSocket and product data state
+  const [ws, setWs] = useState(null);
+  const [productData, setProductData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
+  
+  // UI state
   const [activeTab, setActiveTab] = useState("description");
-  const [timeRemaining, setTimeRemaining] = useState(48 * 60 * 60);
-  const [bidAmount, setBidAmount] = useState(2150);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [bidAmount, setBidAmount] = useState(0);
   const [mobileAccordionOpen, setMobileAccordionOpen] = useState(null);
   const [selectedImage, setSelectedImage] = useState(fridgeWebp);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const images = [
-    { src: fridgeWebp, alt: "Fridge 1" },
-    { src: fridge2Png, alt: "Fridge 2" },
+    { src: fridgeWebp, alt: "Product Image 1" },
+    { src: fridge2Png, alt: "Product Image 2" },
   ];
 
+  // Static manifest data
+  const [manifestData] = useState([
+    {
+      lotId: "3284U",
+      manufacturer: "Mirooka",
+      model: "E1ET2/200MV",
+      itemNumber: "485104276",
+      description: "27 inch electric vertical laundry...",
+      quantity: 1,
+      unitRetail: 2349.0 * 85,
+      unitWeight: "346 lbs",
+      condition: "Used Good",
+      category: "Electronics"
+    },
+    {
+      lotId: "3284U",
+      manufacturer: "Mirooka",
+      model: "E1ET2/400MT",
+      itemNumber: "485107514",
+      description: "27 inch electric vertical laundry...",
+      quantity: 1,
+      unitRetail: 3049.0 * 85,
+      unitWeight: "346 lbs",
+      condition: "Used Good",
+      category: "Electronics"
+    },
+  ]);
+
+  // WebSocket connection setup with proper cleanup
+  useEffect(() => {
+    if (!productId) {
+      toast.error('Product ID not found');
+      navigate('/');
+      return;
+    }
+
+    let websocket;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+
+    const connectWebSocket = () => {
+      // Close any existing connection
+      if (websocket) {
+        websocket.close();
+      }
+
+      websocket = new WebSocket(`ws://localhost:3000/ws/product?product_id=${productId}`);
+      
+      websocket.onopen = () => {
+        console.log(`WebSocket connected for product ${productId}`);
+        reconnectAttempts = 0;
+        setConnectionError(false);
+      };
+      
+      websocket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === 'product_update' && message.data) {
+            setProductData(message.data);
+            setLoading(false);
+            
+            const highestBid = getHighestBid(message.data.bids);
+            const minBid = highestBid ? highestBid + 50 : parseFloat(message.data.starting_price);
+            setBidAmount(minBid);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+      
+      websocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setConnectionError(true);
+      };
+      
+      websocket.onclose = () => {
+        console.log(`WebSocket disconnected for product ${productId}`);
+        setConnectionError(true);
+        
+        // Only attempt to reconnect if we're still on the same product
+        if (websocket === ws && reconnectAttempts < maxReconnectAttempts) {
+          reconnectAttempts++;
+          setTimeout(() => {
+            if (!websocket || websocket.readyState === WebSocket.CLOSED) {
+              connectWebSocket();
+            }
+          }, 3000);
+        }
+      };
+      
+      setWs(websocket);
+    };
+
+    connectWebSocket();
+
+    // Cleanup on component unmount or productId change
+    return () => {
+      if (websocket) {
+        websocket.close();
+        console.log(`Cleaning up WebSocket for product ${productId}`);
+      }
+    };
+  }, [productId]);
+
+  // Timer for auction countdown
+  useEffect(() => {
+    if (!productData?.auction_end) return;
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const endTime = new Date(productData.auction_end).getTime();
+      const difference = endTime - now;
+      
+      if (difference > 0) {
+        setTimeRemaining(Math.floor(difference / 1000));
+      } else {
+        setTimeRemaining(0);
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    
+    return () => clearInterval(timer);
+  }, [productData?.auction_end]);
+
+  // Helper functions
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -33,52 +174,92 @@ const ProductDetailPage = () => {
     return `${days}d ${hours}h ${mins}m ${secs}s`;
   };
 
-  const [manifestData] = useState([
-    {
-      lotId: "3284U",
-      manufacturer: "Mirooka",
-      model: "E1ET2/200MV",
-      itemNumber: "485104276",
-      description: "27 inch electric vertical laundry...",
-      quantity: 1,
-      unitRetail: 2349.0 * 85,
-      unitWeight: "346 lbs",
-      condition: "Used Good",
-    },
-    {
-      lotId: "3284U",
-      manufacturer: "Mirooka",
-      model: "E1ET2/400MT",
-      itemNumber: "485107514",
-      description: "27 inch electric vertical laundry...",
-      quantity: 1,
-      unitRetail: 3049.0 * 85,
-      unitWeight: "346 lbs",
-      condition: "Used Good",
-    },
-  ]);
+  const getHighestBid = (bids) => {
+    if (!bids || bids.length === 0) return null;
+    return Math.max(...bids.map(bid => bid.bid_amount));
+  };
 
-  const [bidHistory] = useState([
-    { bidder: "Bidder123", amount: 11500 * 85, time: "2023-05-15 14:30:22" },
-    { bidder: "AppliancePro", amount: 11000 * 85, time: "2023-05-15 13:45:10" },
-    { bidder: "WarehouseBuyer", amount: 10500 * 85, time: "2023-05-15 12:15:45" },
-    { bidder: "Bidder123", amount: 10000 * 85, time: "2023-05-15 10:20:30" },
-  ]);
+  const getBidCount = () => {
+    return productData?.bids?.length || 0;
+  };
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const getRetailPercentage = () => {
+    if (!productData) return 0;
+    const highestBid = getHighestBid(productData.bids) || parseFloat(productData.starting_price);
+    const retailValue = parseFloat(productData.retail_value);
+    return Math.round((highestBid / retailValue) * 100);
+  };
 
-  const handleBidSubmit = (e) => {
+  const getCurrentBid = () => {
+    if (!productData) return 0;
+    return getHighestBid(productData.bids) || parseFloat(productData.starting_price);
+  };
+
+  const getMinimumBid = () => {
+    const currentBid = getCurrentBid();
+    return currentBid + 50;
+  };
+
+  // Event handlers
+  const handleBidSubmit = async (e) => {
     e.preventDefault();
-    console.log("Bid submitted:", bidAmount);
+    
+    if (!bidAmount || isNaN(bidAmount)) {
+      toast.error('Please enter a valid bid amount');
+      return;
+    }
+
+    const minBid = getMinimumBid();
+    if (bidAmount < minBid) {
+      toast.error(`Bid amount must be at least ${formatCurrency(minBid)}`);
+      return;
+    }
+
+    if (timeRemaining <= 0) {
+      toast.error('This auction has already ended');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const response = await placeBid(productId, bidAmount);
+      toast.success('Bid placed successfully!', {
+        position: 'top-center',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      
+      // The WebSocket will automatically update the UI with the new bid
+      return response;
+    } catch (error) {
+      console.error('Error placing bid:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to place bid', {
+        position: 'top-center',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      throw error; // Re-throw to allow form to handle the error
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleQuickBid = (amount) => {
-    setBidAmount(amount);
+    if (timeRemaining > 0) {
+      setBidAmount(amount);
+      // Optional: Scroll the bid input into view
+      const bidInput = document.querySelector(`.${styles.bidInputGroup} input`);
+      if (bidInput) {
+        bidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
   };
 
   const toggleMobileAccordion = (tab) => {
@@ -89,6 +270,47 @@ const ProductDetailPage = () => {
     setSelectedImage(imageSrc);
   };
 
+  // Loading and error states
+  if (loading) {
+    return (
+      <Layout>
+        <div className={styles.container}>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>Loading product details...</p>
+            {connectionError && (
+              <p style={{ color: 'red' }}>
+                Connection error. Attempting to reconnect...
+              </p>
+            )}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!productData) {
+    return (
+      <Layout>
+        <div className={styles.container}>
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>Product not found</p>
+            <button onClick={() => navigate('/')}>Go back to home</button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Quick bid options based on current bid
+  const currentBid = getCurrentBid();
+  const minimumBid = getMinimumBid();
+  const quickBidOptions = [
+    { amount: minimumBid, label: "Minimum" },
+    { amount: minimumBid + 50, label: "" },
+    { amount: minimumBid + 100, label: "" },
+    { amount: Math.round(currentBid * 1.2), label: "Recommended" }
+  ];
+
   return (
     <Layout>
       <div className={styles.container}>
@@ -97,7 +319,7 @@ const ProductDetailPage = () => {
           <div className={styles.leftColumn}>
             <div className={styles.imageGallery}>
               <div className={styles.mainImage}>
-                <img src={selectedImage} alt="Selected Appliance" />
+                <img src={selectedImage} alt="Selected Product" />
               </div>
               <div className={styles.thumbnailStrip}>
                 {images.map((image, index) => (
@@ -121,7 +343,7 @@ const ProductDetailPage = () => {
                   <span className={styles.bidLabel}>Place Your Bid</span>
                   <span className={styles.auctionStatus}>
                     <span className={styles.statusIcon}>⏰</span>
-                    Ends in {formatCountdown(timeRemaining)}
+                    {timeRemaining > 0 ? `Ends in ${formatCountdown(timeRemaining)}` : 'Auction Ended'}
                   </span>
                 </div>
                 <form onSubmit={handleBidSubmit} className={styles.bidForm}>
@@ -132,24 +354,29 @@ const ProductDetailPage = () => {
                       <input
                         type="number"
                         value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                        min={2150}
+                        onChange={(e) => setBidAmount(parseFloat(e.target.value))}
+                        min={minimumBid}
                         step={50}
                         required
+                        disabled={timeRemaining === 0}
                       />
                     </div>
                     <div className={styles.bidInfo}>
                       <span className={styles.bidRequirement}>
                         <span className={styles.requirementIcon}>🛡️</span>
-                        Minimum bid: {formatCurrency(2150)}
+                        Minimum bid: {formatCurrency(minimumBid)}
                       </span>
                       <span className={styles.bidIncrement}>
                         +{formatCurrency(50)} increments
                       </span>
                     </div>
                   </div>
-                  <button type="submit" className={styles.placeBidButton}>
-                    Place Bid Now
+                  <button 
+                    type="submit" 
+                    className={styles.placeBidButton}
+                    disabled={isSubmitting || timeRemaining === 0}
+                  >
+                    {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Bid Now'}
                     <FaGavel className={styles.buttonIcon} />
                   </button>
                   <div className={styles.terms}>
@@ -162,48 +389,19 @@ const ProductDetailPage = () => {
                 <div className={styles.quickBidSection}>
                   <h3>Quick Bid Options</h3>
                   <div className={styles.quickBidOptions}>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2150 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2150)}
-                    >
-                      {formatCurrency(2150)}
-                      <span className={styles.quickBidLabel}>Minimum</span>
-                    </button>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2200 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2200)}
-                    >
-                      {formatCurrency(2200)}
-                    </button>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2250 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2250)}
-                    >
-                      {formatCurrency(2250)}
-                    </button>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2600 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2600)}
-                    >
-                      {formatCurrency(2600)}
-                      <span className={styles.quickBidLabel}>Recommended</span>
-                    </button>
+                    {quickBidOptions.map((option, index) => (
+                      <button
+                        key={index}
+                        className={`${styles.quickBidButton} ${bidAmount === option.amount ? styles.selected : ""}`}
+                        onClick={() => handleQuickBid(option.amount)}
+                        disabled={timeRemaining === 0}
+                      >
+                        {formatCurrency(option.amount)}
+                        {option.label && <span className={styles.quickBidLabel}>{option.label}</span>}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                {/* <div className={styles.assurances}>
-                  <div className={styles.assuranceItem}>
-                    <span className={styles.assuranceIcon}>✅</span>
-                    Secure bidding process
-                  </div>
-                  <div className={styles.assuranceItem}>
-                    <span className={styles.assuranceIcon}>🛡️</span>
-                    Buyer protection available
-                  </div>
-                  <div className={styles.assuranceItem}>
-                    <span className={styles.assuranceIcon}>😊</span>
-                    Satisfaction guaranteed
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
@@ -211,16 +409,19 @@ const ProductDetailPage = () => {
           {/* Right Column: Product Header and Bid Info */}
           <div className={styles.rightColumn}>
             <div className={styles.productHeader}>
-              <h1>
-                51 Units of Used - Good Condition Refrigerators, Dishwashers, Ranges
-                & More
-              </h1>
+              <h1>{productData.name}</h1>
               <div className={styles.headerMeta}>
-                <span className={`${styles.conditionBadge} ${styles.usedGood}`}>
-                  Used - Good
+                <span className={`${styles.conditionBadge} ${styles.condition}`}>
+                  {productData.status}
                 </span>
-                <span className={styles.location}>Mirooka Warehouse</span>
+                <span className={`${styles.conditionBadge} ${styles.category}`}>
+                  {productData.category}
+                </span>
               </div>
+              <span className={styles.location}>
+                <FaMapMarkerAlt className={styles.locationIcon} />
+                {productData.location}
+              </span>
             </div>
 
             <div className={styles.topBox}>
@@ -229,18 +430,18 @@ const ProductDetailPage = () => {
                   <span className={styles.bidLabel}>CURRENT BID</span>
                 </div>
                 <div className={styles.bidAmount}>
-                  {formatCurrency(2100)}
+                  {formatCurrency(getCurrentBid())}
                 </div>
                 <div className={styles.progressBar}>
-                  <div className={styles.progressFill} style={{ width: '25%' }}></div>
+                  <div className={styles.progressFill} style={{ width: `${getRetailPercentage()}%` }}></div>
                 </div>
                 <div className={styles.bidStats}>
                   <div className={styles.bidCount}>
                     <FaGavel className={styles.statIcon} />
-                    5 bids
+                    {getBidCount()} bids
                   </div>
                   <div className={styles.retailPercentage}>
-                    25% of retail
+                    {getRetailPercentage()}% of retail
                   </div>
                 </div>
               </div>
@@ -248,15 +449,19 @@ const ProductDetailPage = () => {
                 <h3>Auction Details</h3>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Retail Value:</span>
-                  <span className={styles.detailValue}>{formatCurrency(8500)}</span>
+                  <span className={styles.detailValue}>{formatCurrency(productData.retail_value)}</span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Starting Bid:</span>
-                  <span className={styles.detailValue}>{formatCurrency(1000)}</span>
+                  <span className={styles.detailValue}>{formatCurrency(productData.starting_price)}</span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Min Increment:</span>
                   <span className={styles.detailValue}>+{formatCurrency(50)}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Quantity:</span>
+                  <span className={styles.detailValue}>{productData.quantity} units</span>
                 </div>
               </div>
             </div>
@@ -268,7 +473,7 @@ const ProductDetailPage = () => {
                   <span className={styles.bidLabel}>Place Your Bid</span>
                   <span className={styles.auctionStatus}>
                     <span className={styles.statusIcon}>⏰</span>
-                    Ends in {formatCountdown(timeRemaining)}
+                    {timeRemaining > 0 ? `Ends in ${formatCountdown(timeRemaining)}` : 'Auction Ended'}
                   </span>
                 </div>
                 <form onSubmit={handleBidSubmit} className={styles.bidForm}>
@@ -279,24 +484,29 @@ const ProductDetailPage = () => {
                       <input
                         type="number"
                         value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                        min={2150}
+                        onChange={(e) => setBidAmount(parseFloat(e.target.value))}
+                        min={minimumBid}
                         step={50}
                         required
+                        disabled={timeRemaining === 0}
                       />
                     </div>
                     <div className={styles.bidInfo}>
                       <span className={styles.bidRequirement}>
                         <span className={styles.requirementIcon}>🛡️</span>
-                        Minimum bid: {formatCurrency(2150)}
+                        Minimum bid: {formatCurrency(minimumBid)}
                       </span>
                       <span className={styles.bidIncrement}>
                         +{formatCurrency(50)} increments
                       </span>
                     </div>
                   </div>
-                  <button type="submit" className={styles.placeBidButton}>
-                    Place Bid Now
+                  <button 
+                    type="submit" 
+                    className={styles.placeBidButton}
+                    disabled={isSubmitting || timeRemaining === 0}
+                  >
+                    {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Place Bid Now'}
                     <FaGavel className={styles.buttonIcon} />
                   </button>
                   <div className={styles.terms}>
@@ -309,48 +519,19 @@ const ProductDetailPage = () => {
                 <div className={styles.quickBidSection}>
                   <h3>Quick Bid Options</h3>
                   <div className={styles.quickBidOptions}>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2150 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2150)}
-                    >
-                      {formatCurrency(2150)}
-                      <span className={styles.quickBidLabel}>Minimum</span>
-                    </button>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2200 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2200)}
-                    >
-                      {formatCurrency(2200)}
-                    </button>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2250 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2250)}
-                    >
-                      {formatCurrency(2250)}
-                    </button>
-                    <button
-                      className={`${styles.quickBidButton} ${bidAmount === 2600 ? styles.selected : ""}`}
-                      onClick={() => handleQuickBid(2600)}
-                    >
-                      {formatCurrency(2600)}
-                      <span className={styles.quickBidLabel}>Recommended</span>
-                    </button>
+                    {quickBidOptions.map((option, index) => (
+                      <button
+                        key={index}
+                        className={`${styles.quickBidButton} ${bidAmount === option.amount ? styles.selected : ""}`}
+                        onClick={() => handleQuickBid(option.amount)}
+                        disabled={timeRemaining === 0}
+                      >
+                        {formatCurrency(option.amount)}
+                        {option.label && <span className={styles.quickBidLabel}>{option.label}</span>}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                {/* <div className={styles.assurances}>
-                  <div className={styles.assuranceItem}>
-                    <span className={styles.assuranceIcon}>✅</span>
-                    Secure bidding process
-                  </div>
-                  <div className={styles.assuranceItem}>
-                    <span className={styles.assuranceIcon}>🛡️</span>
-                    Buyer protection available
-                  </div>
-                  <div className={styles.assuranceItem}>
-                    <span className={styles.assuranceIcon}>😊</span>
-                    Satisfaction guaranteed
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
@@ -385,20 +566,14 @@ const ProductDetailPage = () => {
           <div className={styles.tabContent}>
             {activeTab === "description" && (
               <div className={styles.description}>
-                <p>
-                  This auction includes 51 units of used kitchen and laundry
-                  appliances in good condition. The lot includes refrigerators,
-                  dishwashers, ranges, and other major appliances.
-                </p>
-                <p>
-                  All items have been inspected and are in working condition.
-                  Minor cosmetic imperfections may be present.
-                </p>
+                <p>{productData.description}</p>
               </div>
             )}
             {activeTab === "shipping" && (
               <div className={styles.shippingInfo}>
                 <h4>Shipping Information</h4>
+                <p>Shipping: {productData.shipping}</p>
+                <p>Location: {productData.location}</p>
                 <p>Standard Shipping only</p>
                 <p>Transport Mode: Firelight - TL</p>
                 <p>Number of Shipments: 1</p>
@@ -471,11 +646,11 @@ const ProductDetailPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {bidHistory.map((bid, index) => (
+                      {productData.bids.map((bid, index) => (
                         <tr key={index}>
-                          <td>{bid.bidder}</td>
-                          <td>{formatCurrency(bid.amount)}</td>
-                          <td>{bid.time}</td>
+                          <td>{bid.user_name}</td>
+                          <td>{formatCurrency(bid.bid_amount)}</td>
+                          <td>{new Date(bid.bid_time).toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -488,7 +663,7 @@ const ProductDetailPage = () => {
                 <h3>Seller Information</h3>
                 <div className={styles.sellerDetails}>
                   <div className={styles.sellerNameRating}>
-                    <span className={styles.sellerName}>Sales Bid</span>
+                    <span className={styles.sellerName}>{productData.seller}</span>
                     <span className={styles.sellerRating}>
                       {Array.from({ length: 5 }).map((_, i) => (
                         <span
@@ -544,15 +719,13 @@ const ProductDetailPage = () => {
               >
                 {tab === "description" && (
                   <div className={styles.description}>
-                    <p>
-                      This auction includes 51 units of used kitchen and laundry
-                      appliances in good condition.
-                    </p>
+                    <p>{productData.description}</p>
                   </div>
                 )}
                 {tab === "shipping" && (
                   <div className={styles.shippingInfo}>
-                    <p>Standard Shipping only</p>
+                    <p>Shipping: {productData.shipping}</p>
+                    <p>Location: {productData.location}</p>
                   </div>
                 )}
                 {tab === "returns" && (
@@ -604,10 +777,10 @@ const ProductDetailPage = () => {
                     <div className={styles.historyTable}>
                       <table>
                         <tbody>
-                          {bidHistory.slice(0, 2).map((bid, index) => (
+                          {productData.bids.slice(0, 3).map((bid, index) => (
                             <tr key={index}>
-                              <td>{bid.bidder}</td>
-                              <td>{formatCurrency(bid.amount)}</td>
+                              <td>{bid.user_name}</td>
+                              <td>{formatCurrency(bid.bid_amount)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -619,7 +792,7 @@ const ProductDetailPage = () => {
                   <div className={styles.sellerInfo}>
                     <div className={styles.sellerDetails}>
                       <div className={styles.sellerNameRating}>
-                        <span className={styles.sellerName}>Sales Bid</span>
+                        <span className={styles.sellerName}>{productData.seller}</span>
                         <span className={styles.sellerRating}>
                           {Array.from({ length: 5 }).map((_, i) => (
                             <span

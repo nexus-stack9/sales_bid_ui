@@ -141,3 +141,36 @@ export const getProfileDetails = async (userId: string) => {
 
 
 };
+
+export const placeBid = async (productId: string, bidAmount: number) => {
+  try {
+    const bidderId = getUserIdFromToken();
+    
+    if (!bidderId) {
+      throw new Error('User not authenticated');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/bids/placeBid`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Cookies.get('authToken')}`
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        bidder_id: bidderId,
+        bid_amount: bidAmount
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to place bid');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error placing bid:', error);
+    throw error;
+  }
+};
