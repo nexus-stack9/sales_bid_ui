@@ -4,9 +4,12 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { addToWishlist, removeFromWishlist, isInWishlist } from '@/services/productService';
+import { useToast } from '@/hooks/use-toast';
+import Cookies from 'js-cookie';
 
 interface AuctionCardProps {
-  id: string;
+  id: string | number;
   title: string;
   imageUrl: string;
   currentBid?: number;
@@ -20,6 +23,7 @@ interface AuctionCardProps {
   bidsPlaced?: number;
   startDate: string; // ISO date
   endDate: string;   // ISO date
+  tags?: string[];
 }
 
 const AuctionCard = ({
@@ -38,6 +42,10 @@ const AuctionCard = ({
   endDate,
 }: AuctionCardProps) => {
   const [now, setNow] = useState(new Date());
+  const [inWishlist, setInWishlist] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const { toast } = useToast();
+  const isAuthenticated = !!Cookies.get('authToken');
 
   // India timezone logic
   const getISTDate = (date: string) =>
@@ -58,6 +66,67 @@ const AuctionCard = ({
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Check if product is in wishlist on component mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      const checkWishlist = async () => {
+        try {
+          const result = await isInWishlist(Number(id));
+          setInWishlist(result);
+        } catch (error) {
+          console.error('Error checking wishlist status:', error);
+        }
+      };
+      
+      checkWishlist();
+    }
+  }, [id, isAuthenticated]);
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to add items to your wishlist.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setIsWishlistLoading(true);
+    
+    try {
+      if (inWishlist) {
+        await removeFromWishlist(Number(id));
+        setInWishlist(false);
+        toast({
+          title: 'Removed from wishlist',
+          description: 'The item has been removed from your wishlist.',
+          variant: 'default',
+        });
+      } else {
+        await addToWishlist(Number(id));
+        setInWishlist(true);
+        toast({
+          title: 'Added to wishlist',
+          description: 'The item has been added to your wishlist.',
+          variant: 'default',
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update wishlist. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
 
   return (
     <Link to={`/auctions/${id}`}>
@@ -80,6 +149,20 @@ const AuctionCard = ({
             <Badge className="bg-gray-200 text-gray-700">Upcoming</Badge>
           )}
         </div>
+
+        {/* Wishlist Button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className={cn(
+            "absolute top-3 right-3 z-10 bg-white/80 backdrop-blur-sm hover:bg-white",
+            inWishlist ? "text-red-500 border-red-500" : "text-gray-500 border-gray-300"
+          )}
+          onClick={handleWishlistToggle}
+          disabled={isWishlistLoading}
+        >
+          <Heart className={cn("h-4 w-4", inWishlist && "fill-red-500")} />
+        </Button>
 
         {/* Image */}
         <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100">

@@ -20,14 +20,21 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Auction {
-  id: string;
+  id: string | number;
   title: string;
   imageUrl: string;
   currentBid: number;
-  timeLeft: string;
+  msrp?: number;
+  timeLeft?: string;
   watchers: number;
   featured: boolean;
   category: string;
+  location?: string;
+  condition?: string;
+  bidsPlaced: number;
+  startDate: string;
+  endDate: string;
+  tags?: string[];
 }
 
 interface AuctionGridProps {
@@ -108,7 +115,9 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       // Filter by search term
       if (searchTerm) {
         results = results.filter(auction => 
-          auction.title.toLowerCase().includes(searchTerm.toLowerCase())
+          auction.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (auction.condition && auction.condition.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (auction.category && auction.category.toLowerCase().includes(searchTerm.toLowerCase()))
         );
       }
       
@@ -126,11 +135,14 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       
       // Filter by condition
       if (selectedConditions.length > 0) {
-        // In a real app, you would have condition property on auctions
-        // This is just a placeholder since our mock data doesn't have conditions
-        results = results.filter(auction => 
-          auction.id.length > 0 // Always true, just a placeholder
-        );
+        results = results.filter(auction => {
+          if (!auction.condition) return false;
+          
+          // Check if any of the selected conditions are in the auction's condition
+          return selectedConditions.some(condition => 
+            auction.condition?.includes(condition)
+          );
+        });
       }
       
       // Filter featured only
@@ -141,39 +153,20 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       // Sort results
       switch(sortBy) {
         case 'Ending Soon':
-          // Parse time left in a more robust way
+          // Sort by end date
           results.sort((a, b) => {
-            // Helper function to convert timeLeft to hours
-            const getHours = (timeStr: string) => {
-              let totalHours = 0;
-              
-              // Check for days
-              if (timeStr.includes('d')) {
-                const days = parseInt(timeStr.split('d')[0].trim());
-                totalHours += days * 24;
-                
-                // Check for hours after days
-                if (timeStr.includes('h')) {
-                  const hours = parseInt(timeStr.split('d')[1].split('h')[0].trim());
-                  totalHours += hours;
-                }
-              } 
-              // Only hours, no days
-              else if (timeStr.includes('h')) {
-                const hours = parseInt(timeStr.split('h')[0].trim());
-                totalHours += hours;
-              }
-              
-              return totalHours;
-            };
-            
-            return getHours(a.timeLeft) - getHours(b.timeLeft);
+            const aEnd = new Date(a.endDate).getTime();
+            const bEnd = new Date(b.endDate).getTime();
+            return aEnd - bEnd;
           });
           break;
         case 'Newest':
-          // In a real app, you would sort by date added
-          // Here we're just reversing the array as a placeholder
-          results.reverse();
+          // Sort by start date (newest first)
+          results.sort((a, b) => {
+            const aStart = new Date(a.startDate).getTime();
+            const bStart = new Date(b.startDate).getTime();
+            return bStart - aStart;
+          });
           break;
         case 'Price: Low to High':
           results.sort((a, b) => a.currentBid - b.currentBid);

@@ -1,10 +1,12 @@
 
 import { Link } from 'react-router-dom';
-import { Home, Package, Heart, User } from 'lucide-react';
+import { Home, Package, Heart, User, LogIn } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import Cookies from 'js-cookie';
 
 const BottomNav = () => {
   const isMobile = useIsMobile();
+  const isAuthenticated = !!Cookies.get('authToken');
   
   if (!isMobile) return null;
   
@@ -18,13 +20,33 @@ const BottomNav = () => {
         <Package className="h-5 w-5" />
         <span className="text-xs mt-1">Auctions</span>
       </Link>
-      <Link to="/user/watchlist" className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary">
-        <Heart className="h-5 w-5" />
-        <span className="text-xs mt-1">Watchlist</span>
+      <Link 
+        to={isAuthenticated ? "/user/wishlist" : "/signin"} 
+        className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary"
+      >
+        <div className="relative">
+          <Heart className={`h-5 w-5 ${isAuthenticated ? "text-primary" : ""}`} />
+          {isAuthenticated && (
+            <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[10px] text-white"></span>
+          )}
+        </div>
+        <span className="text-xs mt-1">Wishlist</span>
       </Link>
-      <Link to="/user/profile" className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary">
-        <User className="h-5 w-5" />
-        <span className="text-xs mt-1">Profile</span>
+      <Link 
+        to={isAuthenticated ? "/user/profile" : "/signin"} 
+        className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary"
+      >
+        {isAuthenticated ? (
+          <>
+            <User className="h-5 w-5" />
+            <span className="text-xs mt-1">Profile</span>
+          </>
+        ) : (
+          <>
+            <LogIn className="h-5 w-5" />
+            <span className="text-xs mt-1">Sign In</span>
+          </>
+        )}
       </Link>
     </div>
   );

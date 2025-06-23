@@ -9,7 +9,7 @@ import AuctionsPage from "./pages/AuctionsPage";
 import AuctionDetail from "./pages/ProductDetailPage";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/user/Profile";
-import Watchlist from "./pages/user/Watchlist";
+import WishlistPage from "./pages/user/WishlistPage";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import Cart from "./pages/cart/Cart";
@@ -30,7 +30,7 @@ const App = () => (
             <Route path="/auctions" element={<AuctionsPage />} />
             <Route path="/auctions/:id" element={<AuctionDetail />} />
             <Route path="/user/profile" element={<Profile />} />
-            <Route path="/user/watchlist" element={<Watchlist />} />
+            <Route path="/user/wishlist" element={<WishlistPage />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/cart" element={<Cart />} />

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useWishlist } from "@/hooks/use-wishlist";
 import salesBidLogo from "@/assets/logo.png";
 import {
   Search,
@@ -11,6 +12,7 @@ import {
   Bell,
   User,
   ChevronDown,
+  Heart,
 } from "lucide-react";
 import {
   Sheet,
@@ -25,6 +27,7 @@ import Cookies from "js-cookie";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { wishlistCount } = useWishlist();
 
   // Check for token in cookies
   const token = Cookies.get("authToken");
@@ -123,6 +126,16 @@ const Navbar = () => {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
+            <Link to={token ? "/user/wishlist" : "/signin"}>
+              <Button variant="ghost" size="icon" className="relative">
+                <Heart className={`h-5 w-5 ${token ? "text-primary fill-primary" : ""}`} />
+                {token && wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                    {wishlistCount > 9 ? '9+' : wishlistCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
             <Link to="/cart">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
@@ -174,10 +187,11 @@ const Navbar = () => {
                     <ShoppingCart className="mr-2 h-5 w-5" /> Cart
                   </Link>
                   <Link
-                    to="/user/watchlist"
+                    to={token ? "/user/wishlist" : "/signin"}
                     className="text-lg font-medium flex items-center"
                   >
-                    <Bell className="mr-2 h-5 w-5" /> Watchlist
+                    <Heart className={`mr-2 h-5 w-5 ${token ? "text-primary fill-primary" : ""}`} /> 
+                    Wishlist {!token && "(Sign in required)"}
                   </Link>
                   {token ? (
                     <Link
