@@ -174,3 +174,115 @@ export const placeBid = async (productId: string, bidAmount: number) => {
     throw error;
   }
 };
+
+
+/**
+ * Adds a product to the user's wishlist
+ * @param productId The ID of the product to add to wishlist
+ * @param bidderId The ID of the user adding to wishlist
+ * @returns The response data from the API
+ */
+export const addToWishlist = async (productId: string, bidderId: string) => {
+  try {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      throw new Error('User not authenticated');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/wishlist/addToWishlist`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        bidder_id: bidderId
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add to wishlist');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding to wishlist:', error);
+    throw error;
+  }
+};
+
+/**
+ * Removes a product from the user's wishlist
+ * @param productId The ID of the product to remove from wishlist
+ * @param bidderId The ID of the user removing from wishlist
+ * @returns The response data from the API
+ */
+export const removeFromWishlist = async (productId: string, bidderId: string) => {
+  try {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      throw new Error('User not authenticated');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/wishlist/removeFromWishlist`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        bidder_id: bidderId
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to remove from wishlist');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing from wishlist:', error);
+    throw error;
+  }
+};
+
+/**
+ * Checks if a product is in the user's wishlist
+ * @param productId The ID of the product to check
+ * @param userId The ID of the user
+ * @returns Promise<boolean> True if the item is in the wishlist, false otherwise
+ */
+export const checkWishlistItem = async (productId: string, userId: string): Promise<boolean> => {
+  try {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      return false;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/wishlist/checkWishlistItem`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        bidder_id: userId
+      })
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.exists || false;
+  } catch (error) {
+    console.error('Error checking wishlist item:', error);
+    return false;
+  }
+};

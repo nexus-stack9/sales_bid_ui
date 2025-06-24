@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Cookies from 'js-cookie';
 import { getUserIdFromToken } from './crudService';
 
@@ -12,7 +13,7 @@ export interface Product {
   starting_price: string | number;
   category_id: string | number;
   auction_start: string;
-  auction_end: string;
+  auction_end: string ;
   status: string;
   created_at: string;
   retail_value: string | number;
@@ -170,7 +171,7 @@ export const getWishlist = async (): Promise<Product[]> => {
       throw new Error('User not authenticated');
     }
 
-    const response = await fetch(`${API_BASE_URL}/wishlist/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/wishlist/getWishlist/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
