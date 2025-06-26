@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { addToWishlist, removeFromWishlist, isInWishlist } from '@/services/productService';
 import { useToast } from '@/hooks/use-toast';
 import Cookies from 'js-cookie';
+import { checkWishlistItem, getUserIdFromToken } from '@/services/crudService';
 
 interface AuctionCardProps {
   id: string | number;
@@ -72,7 +73,7 @@ const AuctionCard = ({
     if (isAuthenticated) {
       const checkWishlist = async () => {
         try {
-          const result = await isInWishlist(Number(id));
+          const result = await checkWishlistItem(String(id), getUserIdFromToken());
           setInWishlist(result);
         } catch (error) {
           console.error('Error checking wishlist status:', error);

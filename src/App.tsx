@@ -15,6 +15,7 @@ import SignUp from "./pages/auth/SignUp";
 import Cart from "./pages/cart/Cart";
 import SellersPage from "./pages/SellersPage";
 import ForgotPassword from './pages/ForgotPassword';
+import MyBids from "./pages/user/MyBids";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/my-bids" element={<MyBids />} />
             <Route path="/sellers" element={<SellersPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
