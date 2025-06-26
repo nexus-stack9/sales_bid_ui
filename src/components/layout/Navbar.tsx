@@ -106,7 +106,7 @@ const Navbar = () => {
               <Button variant="ghost" size="icon">
                 <Search className="h-5 w-5" />
               </Button>
-              <Link to="/cart">
+              <Link to="/my-bids">
                 <Button variant="ghost" size="icon">
                   <ShoppingCart className="h-5 w-5" />
                 </Button>
@@ -136,7 +136,7 @@ const Navbar = () => {
                 )}
               </Button>
             </Link>
-            <Link to="/cart">
+            <Link to="/my-bids">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
               </Button>
@@ -181,10 +181,10 @@ const Navbar = () => {
                   </Link>
                   <hr className="my-2" />
                   <Link
-                    to="/cart"
+                    to="/my-bids"
                     className="text-lg font-medium flex items-center"
                   >
-                    <ShoppingCart className="mr-2 h-5 w-5" /> Cart
+                    <ShoppingCart className="mr-2 h-5 w-5" /> My Bids
                   </Link>
                   <Link
                     to={token ? "/user/wishlist" : "/signin"}
