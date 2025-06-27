@@ -138,7 +138,7 @@ const MyBids = () => {
         <img 
           src={item.image} 
           alt={item.title} 
-          className="w-full h-48 sm:h-	resource://home/0x7f5c2d4a8000/0x7f5c2d4a8000/52 object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-48 sm:h-52 object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute top-4 right-4 z-10">
@@ -263,50 +263,85 @@ const MyBids = () => {
           </div>
           
           <Tabs defaultValue="active" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8 bg-gradient-to-b from-gray-50 to-gray-100 rounded-2xl p-1.5 shadow-sm border border-gray-100">
+            <TabsList className="grid grid-cols-4 w-full mb-8 sm:mb-10 bg-transparent p-0 border-b border-gray-200">
               <TabsTrigger 
                 value="active" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 transition-all duration-300 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md text-gray-600 hover:bg-gray-200/50 hover:text-primary font-semibold"
+                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                  text-gray-500 hover:text-primary data-[state=active]:text-primary data-[state=active]:font-semibold
+                  group flex flex-col items-center justify-center"
               >
-                <Clock className="w-4 h-4" />
-                <span className="hidden sm:inline">Active Bids</span>
-                <span className="sm:hidden">Active</span>
-                <Badge variant="secondary" className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-700">
-                  {activeBids.length}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>Active</span>
+                  <span className={cn(
+                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "group-data-[state=active]:bg-primary/10 group-data-[state=active]:text-primary",
+                    "group-hover:bg-gray-200"
+                  )}>
+                    {activeBids.length}
+                  </span>
+                </div>
+                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-primary group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
+              
               <TabsTrigger 
                 value="winning" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 transition-all duration-300 data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-md text-gray-600 hover:bg-gray-200/50 hover:text-emerald-600 font-semibold"
+                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                  text-gray-500 hover:text-emerald-600 data-[state=active]:text-emerald-600
+                  data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
-                <TrendingUp className="w-4 h-4" />
-                <span className="hidden sm:inline">Winning</span>
-                <span className="sm:hidden">Win</span>
-                <Badge variant="secondary" className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-700">
-                  {winningBids.length}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>Winning</span>
+                  <span className={cn(
+                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "group-data-[state=active]:bg-emerald-50 group-data-[state=active]:text-emerald-700",
+                    "group-hover:bg-gray-200"
+                  )}>
+                    {winningBids.length}
+                  </span>
+                </div>
+                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-emerald-500 group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
+              
               <TabsTrigger 
                 value="losing" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 transition-all duration-300 data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-md text-gray-600 hover:bg-gray-200/50 hover:text-red-600 font-semibold"
+                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                  text-gray-500 hover:text-red-600 data-[state=active]:text-red-600
+                  data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
-                <TrendingDown className="w-4 h-4" />
-                <span className="hidden sm:inline">Losing</span>
-                <span className="sm:hidden">Lose</span>
-                <Badge variant="secondary" className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-700">
-                  {losingBids.length}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <TrendingDown className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>Losing</span>
+                  <span className={cn(
+                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "group-data-[state=active]:bg-red-50 group-data-[state=active]:text-red-700",
+                    "group-hover:bg-gray-200"
+                  )}>
+                    {losingBids.length}
+                  </span>
+                </div>
+                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-red-500 group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
+              
               <TabsTrigger 
                 value="ended" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 transition-all duration-300 data-[state=active]:bg-white data-[state=active]:text-slate-600 data-[state=active]:shadow-md text-gray-600 hover:bg-gray-200/50 hover:text-slate-600 font-semibold"
+                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                  text-gray-500 hover:text-gray-700 data-[state=active]:text-gray-800
+                  data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
-                <Gavel className="w-4 h-4" />
-                <span className="hidden sm:inline">Ended</span>
-                <span className="sm:hidden">End</span>
-                <Badge variant="secondary" className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-700">
-                  {endedBids.length}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Gavel className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>Ended</span>
+                  <span className={cn(
+                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "group-data-[state=active]:bg-gray-200 group-data-[state=active]:text-gray-800",
+                    "group-hover:bg-gray-200"
+                  )}>
+                    {endedBids.length}
+                  </span>
+                </div>
+                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-gray-600 group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
             </TabsList>
             
