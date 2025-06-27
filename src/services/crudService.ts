@@ -286,3 +286,54 @@ export const checkWishlistItem = async (productId: string, userId: string): Prom
     return false;
   }
 };
+
+export interface Bid {
+  bid_id: number;
+  bidder_id: number;
+  product_id: number;
+  bid_amount: string;
+  bid_time: string;
+  is_auto_bid: boolean;
+  product_name: string;
+  description: string;
+  starting_price: string;
+  auction_start: string;
+  auction_end: string;
+  status: 'active' | 'won' | 'lost' | 'outbid' | 'ended';
+  image_path: string;
+  location: string;
+  quantity: number;
+  tags: string;
+  max_bid_amount: string;
+}
+
+/**
+ * Fetches all bids for a specific user
+ * @param bidderId The ID of the user whose bids to fetch
+ * @returns Promise<Bid[]> Array of bid objects with product details
+ */
+export const getUserBids = async (bidderId: string): Promise<Bid[]> => {
+  try {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/bids/userBids/${bidderId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error fetching user bids: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user bids:', error);
+    throw error;
+  }
+};
