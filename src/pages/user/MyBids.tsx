@@ -1,88 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Clock, TrendingUp, TrendingDown, Eye, Gavel, ArrowRight, Zap, Award, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { getUserBids, placeBid } from '@/services/crudService';
 
-// Mock data for bid items
-const bidItems = [
-  {
-    id: 1,
-    title: "Apple MacBook Pro 16\" 2023 (M3 Max, 48GB RAM, 2TB SSD)",
-    image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-    myBid: 1299.00,
-    highestBid: 1350.00,
-    endDate: "2025-06-28T14:30:00Z",
-    status: "losing",
-    watchers: 24,
-    totalBids: 18,
-    timeLeft: "1d 4h",
-    auctionId: "AU-2023-MBP16"
-  },
-  {
-    id: 2,
-    title: "Canon EOS R5 Mirrorless Camera with RF 24-70mm Lens",
-    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-    myBid: 2899.00,
-    highestBid: 2899.00,
-    endDate: "2025-06-27T18:45:00Z",
-    status: "winning",
-    watchers: 37,
-    totalBids: 25,
-    timeLeft: "6h 22m",
-    auctionId: "AU-2023-EOSR5"
-  },
-  {
-    id: 3,
-    title: "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
-    image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-    myBid: 249.99,
-    highestBid: 275.00,
-    endDate: "2025-06-29T12:15:00Z",
-    status: "losing",
-    watchers: 18,
-    totalBids: 12,
-    timeLeft: "2d 1h",
-    auctionId: "AU-2023-SONYXM4"
-  },
-  {
-    id: 4,
-    title: "Samsung 65\" QN90B Neo QLED 4K Smart TV (2023 Model)",
-    image: "https://images.unsplash.com/photo-1593784991095-a205069470b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-    myBid: 1499.00,
-    highestBid: 1499.00,
-    endDate: "2025-07-01T20:00:00Z",
-    status: "winning",
-    watchers: 11,
-    totalBids: 8,
-    timeLeft: "4d 5h",
-    auctionId: "AU-2023-SAM65QN90"
-  },
-  {
-    id: 5,
-    title: "Nintendo Switch OLED Console with 5 Games Bundle",
-    image: "https://images.unsplash.com/photo-1607853202273-797f1c22a38e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-    myBid: 299.99,
-    highestBid: 325.00,
-    endDate: "2025-06-26T23:59:00Z",
-    status: "ended",
-    watchers: 45,
-    totalBids: 31,
-    timeLeft: "Ended",
-    auctionId: "AU-2023-NSWOLED"
-  }
-];
+interface Bid {
+  bid_id: number;
+  bidder_id: number;
+  product_id: number;
+  bid_amount: string;
+  bid_time: string;
+  is_auto_bid: boolean;
+  product_name: string;
+  description: string;
+  starting_price: string;
+  auction_start: string;
+  auction_end: string;
+  status: string;
+  image_path: string;
+  location: string;
+  quantity: number;
+  tags: string;
+  max_bid_amount: string;
+}
 
 const MyBids = () => {
   const { toast } = useToast();
-  const [items] = useState(bidItems);
+  const [items, setItems] = useState<Bid[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
+  const [newBidAmount, setNewBidAmount] = useState('');
   const isMobile = useIsMobile();
-  
+
+  useEffect(() => {
+    const fetchBids = async () => {
+      try {
+        setIsLoading(true);
+        const bidderId = '13'; // Replace with actual bidder ID from auth context
+        const bids = await getUserBids(bidderId);
+        setItems(bids);
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to fetch your bids. Please try again later.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBids();
+  }, [toast]);
+
   const getTimeLeft = (endDate: string) => {
     const now = new Date();
     const end = new Date(endDate);
@@ -99,8 +79,11 @@ const MyBids = () => {
     return `${minutes}m`;
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (status: string, bidAmount: string, maxBidAmount: string) => {
+    const isWinning = parseFloat(bidAmount) >= parseFloat(maxBidAmount);
+    const computedStatus = status === 'active' ? (isWinning ? 'winning' : 'losing') : status;
+
+    switch (computedStatus) {
       case 'winning':
         return (
           <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border-0 font-medium shadow-sm">
@@ -127,34 +110,73 @@ const MyBids = () => {
     }
   };
 
-  const activeBids = items.filter(item => item.status !== 'ended');
-  const endedBids = items.filter(item => item.status === 'ended');
-  const winningBids = items.filter(item => item.status === 'winning');
-  const losingBids = items.filter(item => item.status === 'losing');
+  const handlePlaceBidClick = (item: Bid) => {
+    setSelectedBid(item);
+    setNewBidAmount((parseFloat(item.max_bid_amount) + 50).toFixed(2));
+    setIsModalOpen(true);
+  };
 
-  const BidCard = ({ item }: { item: typeof bidItems[0] }) => (
+  const handlePlaceBid = async () => {
+    if (!selectedBid || !newBidAmount) return;
+
+    const minimumBid = parseFloat(selectedBid.max_bid_amount) + 50;
+    if (parseFloat(newBidAmount) < minimumBid) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Bid',
+        description: `Bid amount must be at least $${minimumBid.toFixed(2)}`,
+      });
+      return;
+    }
+
+    try {
+      const response = await placeBid(
+        selectedBid.product_id.toString(),
+        parseFloat(newBidAmount)
+      );
+      
+      toast({
+        title: 'Success',
+        description: `Bid of $${newBidAmount} placed successfully!`,
+      });
+
+      // Refresh bids after successful bid placement
+      const bidderId = '13'; // Replace with actual bidder ID
+      const bids = await getUserBids(bidderId);
+      setItems(bids);
+      
+      setIsModalOpen(false);
+      setNewBidAmount('');
+      setSelectedBid(null);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to place bid. Please try again.',
+      });
+    }
+  };
+
+  const activeBids = items.filter(item => item.status === 'active');
+  const endedBids = items.filter(item => item.status === 'ended');
+  const winningBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount));
+  const losingBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) < parseFloat(item.max_bid_amount));
+
+  const BidCard = ({ item }: { item: Bid }) => (
     <Card className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary/20 rounded-xl">
       <div className="relative overflow-hidden">
         <img 
-          src={item.image} 
-          alt={item.title} 
+          src={item.image_path.split(',')[0]} 
+          alt={item.product_name} 
           className="w-full h-48 sm:h-52 object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute top-4 right-4 z-10">
-          {getStatusBadge(item.status)}
+          {getStatusBadge(item.status, item.bid_amount, item.max_bid_amount)}
         </div>
         <div className="absolute bottom-4 left-4 right-4 z-10">
           <div className="flex items-center justify-between text-white text-sm">
             <div className="flex items-center space-x-4 backdrop-blur-sm bg-black/30 px-3 py-1.5 rounded-full">
-              {/* <div className="flex items-center">
-                <Eye className="w-4 h-4 mr-1.5" />
-                <span className="font-medium">{item.watchers}</span>
-              </div>
-              <div className="flex items-center">
-                <Gavel className="w-4 h-4 mr-1.5" />
-                <span className="font-medium">{item.totalBids}</span>
-              </div> */}
             </div>
           </div>
         </div>
@@ -163,23 +185,23 @@ const MyBids = () => {
       <CardContent className="p-6 space-y-5">
         <div className="space-y-2">
           <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-            {item.title}
+            {item.product_name}
           </h3>
-          <p className="text-xs font-medium text-gray-500">Auction ID: {item.auctionId}</p>
+          <p className="text-xs font-medium text-gray-500">Auction ID: AU-{item.product_id}</p>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">My Bid</p>
-            <p className="font-bold text-xl text-primary">${item.myBid.toFixed(2)}</p>
+            <p className="font-bold text-xl text-primary">${parseFloat(item.bid_amount).toFixed(2)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Highest Bid</p>
             <p className={cn(
               "font-bold text-xl",
-              item.status === 'winning' ? "text-emerald-600" : "text-red-600"
+              parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "text-emerald-600" : "text-red-600"
             )}>
-              ${item.highestBid.toFixed(2)}
+              ${parseFloat(item.max_bid_amount).toFixed(2)}
             </p>
           </div>
         </div>
@@ -187,12 +209,12 @@ const MyBids = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-100">
           <div className={cn(
             "flex items-center px-3 py-2 rounded-lg",
-            item.status === 'winning' ? "bg-emerald-50 text-emerald-700" : 
+            parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "bg-emerald-50 text-emerald-700" : 
             item.status === 'ended' ? "bg-gray-50 text-gray-700" : "bg-red-50 text-red-700"
           )}>
             <Clock className="w-4 h-4 mr-2" />
-            <span className="text-sm font-medium">{getTimeLeft(item.endDate)}</span>
-            {item.status === 'winning' && (
+            <span className="text-sm font-medium">{getTimeLeft(item.auction_end)}</span>
+            {parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) && item.status === 'active' && (
               <Zap className="w-4 h-4 ml-2 animate-pulse text-emerald-600" />
             )}
           </div>
@@ -205,6 +227,7 @@ const MyBids = () => {
                 ? "text-gray-700 border-gray-300 hover:bg-gray-50 hover:shadow-sm" 
                 : "bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white shadow-sm hover:shadow-md"
             )}
+            onClick={() => item.status !== 'ended' && handlePlaceBidClick(item)}
           >
             {item.status === 'ended' ? (
               <>
@@ -246,6 +269,20 @@ const MyBids = () => {
       )}
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+          <div className="container py-8 px-4 sm:px-6 max-w-7xl mx-auto">
+            <div className="text-center py-16">
+              <p className="text-gray-600">Loading your bids...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -349,7 +386,7 @@ const MyBids = () => {
               {activeBids.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {activeBids.map(item => (
-                    <BidCard key={item.id} item={item} />
+                    <BidCard key={item.bid_id} item={item} />
                   ))}
                 </div>
               ) : (
@@ -373,7 +410,7 @@ const MyBids = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {winningBids.map(item => (
-                      <BidCard key={item.id} item={item} />
+                      <BidCard key={item.bid_id} item={item} />
                     ))}
                   </div>
                 </div>
@@ -397,7 +434,7 @@ const MyBids = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {losingBids.map(item => (
-                      <BidCard key={item.id} item={item} />
+                      <BidCard key={item.bid_id} item={item} />
                     ))}
                   </div>
                 </div>
@@ -414,7 +451,7 @@ const MyBids = () => {
               {endedBids.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {endedBids.map(item => (
-                    <BidCard key={item.id} item={item} />
+                    <BidCard key={item.bid_id} item={item} />
                   ))}
                 </div>
               ) : (
@@ -428,6 +465,51 @@ const MyBids = () => {
           </Tabs>
         </div>
       </div>
+
+      {selectedBid && (
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Place a Higher Bid</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="bid-amount">Bid Amount</Label>
+                <Input
+                  id="bid-amount"
+                  type="number"
+                  step="0.01"
+                  min={parseFloat(selectedBid.max_bid_amount) + 50}
+                  value={newBidAmount}
+                  onChange={(e) => setNewBidAmount(e.target.value)}
+                  placeholder={`Minimum bid: $${(parseFloat(selectedBid.max_bid_amount) + 50).toFixed(2)}`}
+                />
+                <p className="text-sm text-gray-500">
+                  Your bid must be at least ${(parseFloat(selectedBid.max_bid_amount) + 50).toFixed(2)}
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setNewBidAmount('');
+                  setSelectedBid(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePlaceBid}
+                className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white"
+              >
+                Place Bid
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Layout>
   );
 };
