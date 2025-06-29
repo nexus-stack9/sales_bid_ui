@@ -201,10 +201,22 @@ const Profile = () => {
 
   // Get user initials for avatar
   const getUserInitials = () => {
-    if (profileDetails) {
-      return `${profileDetails.profile.user.firstName.charAt(0)}${profileDetails.profile.user.lastName.charAt(0)}`.toUpperCase();
+    try {
+      // Safely get the first letters of first and last name
+      const firstNameInitial = profileDetails?.profile?.user?.firstName?.charAt(0) || '';
+      const lastNameInitial = profileDetails?.profile?.user?.lastName?.charAt(0) || '';
+      
+      // If we have both initials, return them in uppercase
+      if (firstNameInitial || lastNameInitial) {
+        return `${firstNameInitial}${lastNameInitial}`.toUpperCase();
+      }
+      
+      // Default fallback
+      return 'JD';
+    } catch (error) {
+      console.error('Error getting user initials:', error);
+      return 'JD';
     }
-    return 'JD';
   };
 
   // Return blue gradient background for avatar
