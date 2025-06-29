@@ -123,9 +123,7 @@ const Navbar = () => {
             </div>
           )}
           <div className="hidden md:flex items-center space-x-2">
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
+
             <Link to={token ? "/user/wishlist" : "/signin"}>
               <Button variant="ghost" size="icon" className="relative">
                 <Heart className={`h-5 w-5 ${token ? "text-primary fill-primary" : ""}`} />

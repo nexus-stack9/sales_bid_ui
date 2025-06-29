@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { Clock, TrendingUp, TrendingDown, Eye, Gavel, ArrowRight, Zap, Award, Ch
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { getUserBids, placeBid } from '@/services/crudService';
+import { getUserBids, placeBid, getUserIdFromToken } from '@/services/crudService';
 
 interface Bid {
   bid_id: number;
@@ -46,7 +47,7 @@ const MyBids = () => {
     const fetchBids = async () => {
       try {
         setIsLoading(true);
-        const bidderId = '13'; // Replace with actual bidder ID from auth context
+        const bidderId = getUserIdFromToken(); // Replace with actual bidder ID from auth context
         const bids = await getUserBids(bidderId);
         setItems(bids);
       } catch (error) {
@@ -162,13 +163,27 @@ const MyBids = () => {
   const winningBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount));
   const losingBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) < parseFloat(item.max_bid_amount));
 
+  const navigate = useNavigate();
+
+  const handleCardClick = (productId: number, e: React.MouseEvent) => {
+    // Prevent navigation if the click was on a button or link inside the card
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a')) {
+      return;
+    }
+    navigate(`/auctions/${productId}`);
+  };
+
   const BidCard = ({ item }: { item: Bid }) => (
-    <Card className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary/20 rounded-xl">
+    <Card 
+      className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary/20 rounded-xl cursor-pointer"
+      onClick={(e) => handleCardClick(item.product_id, e)}
+    >
       <div className="relative overflow-hidden">
         <img 
           src={item.image_path.split(',')[0]} 
           alt={item.product_name} 
-          className="w-full h-48 sm:h-52 object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-48 sm:h-52 object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute top-4 right-4 z-10">
