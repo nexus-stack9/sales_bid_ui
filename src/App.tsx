@@ -9,13 +9,13 @@ import AuctionsPage from "./pages/AuctionsPage";
 import AuctionDetail from "./pages/ProductDetailPage";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/user/Profile";
-import WishlistPage from "./pages/user/WishlistPage";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import Cart from "./pages/cart/Cart";
 import SellersPage from "./pages/SellersPage";
 import ForgotPassword from './pages/ForgotPassword';
 import MyBids from "./pages/user/MyBids";
+import Wishlist from "./pages/user/Wishlist";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +31,7 @@ const App = () => (
             <Route path="/auctions" element={<AuctionsPage />} />
             <Route path="/auctions/:id" element={<AuctionDetail />} />
             <Route path="/user/profile" element={<Profile />} />
-            <Route path="/user/wishlist" element={<WishlistPage />} />
+            <Route path="/user/wishlist" element={<Wishlist />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/cart" element={<Cart />} />

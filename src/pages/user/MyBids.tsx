@@ -266,24 +266,31 @@ const MyBids = () => {
     title: string;
     description: string;
     showButton?: boolean;
-  }) => (
-    <div className="text-center py-16 px-4">
-      <div className="w-20 h-20 mx-auto bg-gradient-to-br from-gray-100 to-gray-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
-        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
-          {icon}
+  }) => {
+    const navigate = useNavigate();
+    
+    return (
+      <div className="text-center py-16 px-4">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-gray-100 to-gray-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
+            {icon}
+          </div>
         </div>
+        <h3 className="text-2xl font-bold mb-3 text-gray-900">{title}</h3>
+        <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+          {description}
+        </p>
+        {showButton && (
+          <Button 
+            className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-medium px-8 shadow-md hover:shadow-lg"
+            onClick={() => navigate('/auctions')}
+          >
+            Browse Auctions
+          </Button>
+        )}
       </div>
-      <h3 className="text-2xl font-bold mb-3 text-gray-900">{title}</h3>
-      <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-        {description}
-      </p>
-      {showButton && (
-        <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-medium px-8 shadow-md hover:shadow-lg">
-          Browse Auctions
-        </Button>
-      )}
-    </div>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -308,9 +315,6 @@ const MyBids = () => {
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
                 My Bids
               </h1>
-              <p className="text-gray-600 max-w-lg">
-                Track and manage all your auction bids in one place. Stay updated on your winning bids and outbid notifications.
-              </p>
             </div>
           </div>
           
