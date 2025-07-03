@@ -45,7 +45,7 @@ interface ProfileDetails {
       postalCode: string;
       country: string;
       isPrimary: boolean;
-    };
+    } | null;
     addresses?: Array<{
       addressId: number;
       label: string;
@@ -59,7 +59,7 @@ interface ProfileDetails {
     paymentMethod: {
       cardNumber: string;
       expiryDate: string;
-    };
+    } | null;
   };
   message: string;
 }
@@ -89,45 +89,57 @@ const Profile = () => {
         const userId = getUserIdFromToken();
         const data = await getProfileDetails(userId);
         
-        // Add mock addresses array if it doesn't exist
+        // Initialize addresses array
         if (!data.profile.addresses) {
-          data.profile.addresses = [
-            {
+          data.profile.addresses = [];
+          
+          // If there's an address in the root, add it as the primary
+          if (data.profile.address) {
+            data.profile.addresses.push({
               addressId: 1,
               label: "Home",
-              street: data.profile.address.street,
-              city: data.profile.address.city,
-              state: data.profile.address.state,
-              postalCode: data.profile.address.postalCode,
-              country: data.profile.address.country,
+              street: data.profile.address.street || "",
+              city: data.profile.address.city || "",
+              state: data.profile.address.state || "",
+              postalCode: data.profile.address.postalCode || "",
+              country: data.profile.address.country || "",
               isPrimary: true
-            },
-            {
-              addressId: 2,
-              label: "Work",
-              street: "123 Office Street",
-              city: "Business City",
-              state: "BZ",
-              postalCode: "54321",
-              country: "USA",
-              isPrimary: false
-            }
-          ];
+            });
+          }
+          
+          // Add a default work address if needed
+          data.profile.addresses.push({
+            addressId: data.profile.addresses.length + 1,
+            label: "Work",
+            street: "123 Office Street",
+            city: "Business City",
+            state: "BZ",
+            postalCode: "54321",
+            country: "USA",
+            isPrimary: data.profile.addresses.length === 0 // Make primary if no other addresses
+          });
         }
         
         setProfileDetails(data);
         
+        // Get primary address or first address
+        const primaryAddress = data.profile.addresses.find(addr => addr.isPrimary) || 
+                             data.profile.addresses[0];
+        
         // Update the form data with the fetched details
         setProfileData({
-          firstName: data.profile.user.firstName,
-          lastName: data.profile.user.lastName,
-          email: data.profile.user.email,
-          phone: data.profile.user.phone,
-          address: data.profile.address.street + 
-                  (data.profile.address.city ? `, ${data.profile.address.city}` : '') + 
-                  (data.profile.address.state ? `, ${data.profile.address.state}` : '') + 
-                  (data.profile.address.postalCode ? ` ${data.profile.address.postalCode}` : '') +
-                  (data.profile.address.country ? `, ${data.profile.address.country}` : '')
+          firstName: data.profile.user.firstName || "",
+          lastName: data.profile.user.lastName || "",
+          email: data.profile.user.email || "",
+          phone: data.profile.user.phone || "",
+          address: primaryAddress ? 
+            [
+              primaryAddress.street,
+              primaryAddress.city,
+              primaryAddress.state,
+              primaryAddress.postalCode,
+              primaryAddress.country
+            ].filter(Boolean).join(", ") : ""
         });
       } catch (error) {
         console.error('Error fetching profile details:', error);
@@ -189,33 +201,27 @@ const Profile = () => {
 
   // Get user initials for avatar
   const getUserInitials = () => {
-    if (profileDetails) {
-      return `${profileDetails.profile.user.firstName.charAt(0)}${profileDetails.profile.user.lastName.charAt(0)}`.toUpperCase();
+    try {
+      // Safely get the first letters of first and last name
+      const firstNameInitial = profileDetails?.profile?.user?.firstName?.charAt(0) || '';
+      const lastNameInitial = profileDetails?.profile?.user?.lastName?.charAt(0) || '';
+      
+      // If we have both initials, return them in uppercase
+      if (firstNameInitial || lastNameInitial) {
+        return `${firstNameInitial}${lastNameInitial}`.toUpperCase();
+      }
+      
+      // Default fallback
+      return 'JD';
+    } catch (error) {
+      console.error('Error getting user initials:', error);
+      return 'JD';
     }
-    return 'JD';
   };
 
-  // Generate a background color based on user name
+  // Return blue gradient background for avatar
   const getAvatarColor = () => {
-    if (!profileDetails) return 'bg-gradient-to-br from-blue-500 to-indigo-600';
-    
-    const name = `${profileDetails.profile.user.firstName}${profileDetails.profile.user.lastName}`;
-    const colors = [
-      'bg-gradient-to-br from-blue-500 to-indigo-600',
-      'bg-gradient-to-br from-purple-500 to-pink-600',
-      'bg-gradient-to-br from-green-500 to-emerald-600',
-      'bg-gradient-to-br from-amber-500 to-orange-600',
-      'bg-gradient-to-br from-rose-500 to-red-600',
-      'bg-gradient-to-br from-cyan-500 to-blue-600',
-    ];
-    
-    // Simple hash function to pick a color
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    return colors[Math.abs(hash) % colors.length];
+    return 'bg-gradient-to-br from-blue-500 to-indigo-600';
   };
 
   // Profile content component
@@ -475,18 +481,6 @@ const Profile = () => {
             />
           </div>
 
-          <div className="space-y-4 pt-6 mt-2 border-t">
-            <h3 className="font-medium text-lg">Two-factor Authentication</h3>
-            <div className="flex items-center justify-between bg-slate-50 p-4 rounded-lg">
-              <div className="space-y-0.5">
-                <Label htmlFor="2fa" className="font-medium">Enable 2FA</Label>
-                <p className="text-sm text-muted-foreground">
-                  Add an extra layer of security to your account
-                </p>
-              </div>
-              <Switch id="2fa" />
-            </div>
-          </div>
         </CardContent>
         <CardFooter className="bg-gradient-to-r from-slate-100 to-slate-50 border-t py-4">
           <Button 
@@ -572,11 +566,9 @@ const Profile = () => {
           {/* Desktop sidebar */}
           <div className="hidden md:block w-72 space-y-6">
             <div className="flex flex-col items-center p-6 bg-white border rounded-xl shadow-sm">
-              <Avatar className={`h-28 w-28 mb-4 text-2xl font-bold shadow-md ${getAvatarColor()}`}>
-                <AvatarFallback className="text-white">
-                  {getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
+              <div className={`h-28 w-28 mb-4 rounded-full flex items-center justify-center text-2xl font-bold shadow-md ${getAvatarColor()} text-white`}>
+                {getUserInitials()}
+              </div>
               <h3 className="text-xl font-bold">
                 {profileDetails ? 
                   `${profileDetails.profile.user.firstName} ${profileDetails.profile.user.lastName}` : 
@@ -628,11 +620,9 @@ const Profile = () => {
             {isMobile ? (
               <div className="md:hidden mb-6">
                 <div className="flex flex-col items-center p-6 bg-white border rounded-xl shadow-sm mb-6">
-                  <Avatar className={`h-24 w-24 mb-4 text-xl font-bold shadow-md ${getAvatarColor()}`}>
-                    <AvatarFallback className="text-white">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className={`h-24 w-24 mb-4 rounded-full flex items-center justify-center text-xl font-bold shadow-md ${getAvatarColor()} text-white`}>
+                    {getUserInitials()}
+                  </div>
                   <h3 className="text-xl font-bold">
                     {profileDetails ? 
                       `${profileDetails.profile.user.firstName} ${profileDetails.profile.user.lastName}` : 

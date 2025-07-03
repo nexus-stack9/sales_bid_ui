@@ -1,6 +1,6 @@
 /* eslint-disable no-useless-catch */
 import CryptoJS from 'crypto-js';
-
+import Cookies from "js-cookie"; 
 interface RegisterUserData {
   firstName: string;
   lastName: string;
@@ -131,3 +131,35 @@ export const resetPassword = async (data: ResetPasswordData) => {
   }
 };
 
+export const loginWithGoogle = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login/google`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Ensure the Content-Type header is set
+      },
+      body: JSON.stringify({ token }), // Send the Google token in the request body
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Login failed");
+    }
+
+    const data = await response.json();
+    
+    // Set tokens in cookies if they exist in the response
+    if (data.accessToken) {
+      Cookies.set('accessToken', data.accessToken, { expires: 7 });
+    }
+    if (data.refreshToken) {
+      Cookies.set('refreshToken', data.refreshToken, { expires: 14 });
+    }
+    
+    return data;
+
+  } catch (error) {
+    console.error("Error during Google Login:", error);
+    throw error;
+  }
+}   

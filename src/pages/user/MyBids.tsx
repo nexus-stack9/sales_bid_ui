@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { Clock, TrendingUp, TrendingDown, Eye, Gavel, ArrowRight, Zap, Award, Ch
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { getUserBids, placeBid } from '@/services/crudService';
+import { getUserBids, placeBid, getUserIdFromToken } from '@/services/crudService';
 
 interface Bid {
   bid_id: number;
@@ -46,7 +47,7 @@ const MyBids = () => {
     const fetchBids = async () => {
       try {
         setIsLoading(true);
-        const bidderId = '13'; // Replace with actual bidder ID from auth context
+        const bidderId = getUserIdFromToken(); // Replace with actual bidder ID from auth context
         const bids = await getUserBids(bidderId);
         setItems(bids);
       } catch (error) {
@@ -162,13 +163,27 @@ const MyBids = () => {
   const winningBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount));
   const losingBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) < parseFloat(item.max_bid_amount));
 
+  const navigate = useNavigate();
+
+  const handleCardClick = (productId: number, e: React.MouseEvent) => {
+    // Prevent navigation if the click was on a button or link inside the card
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a')) {
+      return;
+    }
+    navigate(`/auctions/${productId}`);
+  };
+
   const BidCard = ({ item }: { item: Bid }) => (
-    <Card className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary/20 rounded-xl">
+    <Card 
+      className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary/20 rounded-xl cursor-pointer"
+      onClick={(e) => handleCardClick(item.product_id, e)}
+    >
       <div className="relative overflow-hidden">
         <img 
           src={item.image_path.split(',')[0]} 
           alt={item.product_name} 
-          className="w-full h-48 sm:h-52 object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-48 sm:h-52 object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute top-4 right-4 z-10">
@@ -251,24 +266,31 @@ const MyBids = () => {
     title: string;
     description: string;
     showButton?: boolean;
-  }) => (
-    <div className="text-center py-16 px-4">
-      <div className="w-20 h-20 mx-auto bg-gradient-to-br from-gray-100 to-gray-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
-        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
-          {icon}
+  }) => {
+    const navigate = useNavigate();
+    
+    return (
+      <div className="text-center py-16 px-4">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-gray-100 to-gray-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
+            {icon}
+          </div>
         </div>
+        <h3 className="text-2xl font-bold mb-3 text-gray-900">{title}</h3>
+        <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+          {description}
+        </p>
+        {showButton && (
+          <Button 
+            className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-medium px-8 shadow-md hover:shadow-lg"
+            onClick={() => navigate('/auctions')}
+          >
+            Browse Auctions
+          </Button>
+        )}
       </div>
-      <h3 className="text-2xl font-bold mb-3 text-gray-900">{title}</h3>
-      <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-        {description}
-      </p>
-      {showButton && (
-        <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-medium px-8 shadow-md hover:shadow-lg">
-          Browse Auctions
-        </Button>
-      )}
-    </div>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -293,9 +315,6 @@ const MyBids = () => {
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
                 My Bids
               </h1>
-              <p className="text-gray-600 max-w-lg">
-                Track and manage all your auction bids in one place. Stay updated on your winning bids and outbid notifications.
-              </p>
             </div>
           </div>
           

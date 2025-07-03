@@ -214,6 +214,38 @@ export const addToWishlist = async (productId: string, bidderId: string) => {
 };
 
 /**
+ * Fetches the wishlist for a specific user
+ * @param userId The ID of the user whose wishlist to fetch
+ * @returns Promise containing the wishlist items
+ */
+export const getUserWishlist = async (userId: string) => {
+  try {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/wishlist/getWishlist/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch wishlist');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching wishlist:', error);
+    throw error;
+  }
+};
+
+/**
  * Removes a product from the user's wishlist
  * @param productId The ID of the product to remove from wishlist
  * @param bidderId The ID of the user removing from wishlist
