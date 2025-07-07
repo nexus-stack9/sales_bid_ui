@@ -1,35 +1,31 @@
-import { useState, useEffect } from 'react';
-import { getWishlist } from '@/services/productService';
-import Cookies from 'js-cookie';
+import { useContext } from 'react';
+import { WishlistContext } from '@/context/WishlistContext';
+import type { WishlistContextType } from '@/context/wishlist.types';
 
-export const useWishlist = () => {
-  const [wishlistCount, setWishlistCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const isAuthenticated = !!Cookies.get('authToken');
+// Default values when context is not available
+const DEFAULT_CONTEXT: WishlistContextType = {
+  wishlistCount: 0,
+  bidsCount: 0,
+  pathname: '',
+  lastUpdate: 0,
+  updateCounts: async () => {},
+  refreshWishlist: async () => 0,
+  updatePathname: () => {},
+  triggerWishlistUpdate: () => {}
+};
 
-  useEffect(() => {
-    const fetchWishlistCount = async () => {
-      if (!isAuthenticated) {
-        setWishlistCount(0);
-        return;
-      }
+/**
+ * Custom hook to access the wishlist context
+ * @returns Wishlist context with wishlistCount and refreshWishlist
+ */
+export const useWishlist = (): WishlistContextType => {
+  const context = useContext(WishlistContext);
+  
+  // Return default values if context is not available instead of throwing an error
+  if (!context) {
+    console.warn('useWishlist used outside of WishlistProvider - using default values');
+    return DEFAULT_CONTEXT;
+  }
 
-      try {
-        setIsLoading(true);
-        const wishlistItems = await getWishlist();
-        setWishlistCount(wishlistItems.length);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching wishlist:', err);
-        setError('Failed to fetch wishlist');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchWishlistCount();
-  }, [isAuthenticated]);
-
-  return { wishlistCount, isLoading, error };
+  return context;
 };

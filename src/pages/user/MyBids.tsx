@@ -8,11 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, TrendingUp, TrendingDown, Eye, Gavel, ArrowRight, Zap, Award, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { getUserBids, placeBid, getUserIdFromToken } from '@/services/crudService';
+import { BidSkeleton, BidSkeletonMobile } from '@/components/skeletons/BidSkeleton';
 
 interface Bid {
   bid_id: number;
@@ -125,7 +127,7 @@ const MyBids = () => {
       toast({
         variant: 'destructive',
         title: 'Invalid Bid',
-        description: `Bid amount must be at least $${minimumBid.toFixed(2)}`,
+        description: `Bid amount must be at least ₹${minimumBid.toFixed(2)}`,
       });
       return;
     }
@@ -138,7 +140,7 @@ const MyBids = () => {
       
       toast({
         title: 'Success',
-        description: `Bid of $${newBidAmount} placed successfully!`,
+        description: `Bid of ₹${newBidAmount} placed successfully!`,
       });
 
       // Refresh bids after successful bid placement
@@ -208,7 +210,7 @@ const MyBids = () => {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">My Bid</p>
-            <p className="font-bold text-xl text-primary">${parseFloat(item.bid_amount).toFixed(2)}</p>
+            <p className="font-bold text-xl text-primary">₹{parseFloat(item.bid_amount).toFixed(2)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Highest Bid</p>
@@ -216,7 +218,7 @@ const MyBids = () => {
               "font-bold text-xl",
               parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "text-emerald-600" : "text-red-600"
             )}>
-              ${parseFloat(item.max_bid_amount).toFixed(2)}
+              ₹{parseFloat(item.max_bid_amount).toFixed(2)}
             </p>
           </div>
         </div>
@@ -297,8 +299,20 @@ const MyBids = () => {
       <Layout>
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
           <div className="container py-8 px-4 sm:px-6 max-w-7xl mx-auto">
-            <div className="text-center py-16">
-              <p className="text-gray-600">Loading your bids...</p>
+            <div className="flex flex-col space-y-6">
+              <div className="space-y-3">
+                <Skeleton className="h-9 w-64 mx-auto" />
+                <Skeleton className="h-5 w-96 max-w-full mx-auto" />
+              </div>
+              
+              <div className="flex justify-center space-x-2 mb-6">
+                <Skeleton className="h-10 w-24 rounded-md" />
+                <Skeleton className="h-10 w-24 rounded-md" />
+                <Skeleton className="h-10 w-24 rounded-md" />
+                <Skeleton className="h-10 w-24 rounded-md" />
+              </div>
+              
+              {isMobile ? <BidSkeletonMobile /> : <BidSkeleton />}
             </div>
           </div>
         </div>
@@ -487,13 +501,13 @@ const MyBids = () => {
 
       {selectedBid && (
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent>
+          <DialogContent className="text-base">
             <DialogHeader>
-              <DialogTitle>Place a Higher Bid</DialogTitle>
+              <DialogTitle className="text-2xl">Place a Higher Bid</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="bid-amount">Bid Amount</Label>
+              <div className="space-y-3">
+                <Label htmlFor="bid-amount" className="text-base font-medium">Bid Amount</Label>
                 <Input
                   id="bid-amount"
                   type="number"
@@ -503,12 +517,15 @@ const MyBids = () => {
                   onChange={(e) => setNewBidAmount(e.target.value)}
                   placeholder={`Minimum bid: $${(parseFloat(selectedBid.max_bid_amount) + 50).toFixed(2)}`}
                 />
-                <p className="text-sm text-gray-500">
-                  Your bid must be at least ${(parseFloat(selectedBid.max_bid_amount) + 50).toFixed(2)}
+                <p className="text-base text-gray-600">
+                  Your bid must be at least{' '}
+                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
+                    ₹{(parseFloat(selectedBid.max_bid_amount) + 50).toFixed(2)}
+                  </span>
                 </p>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -516,12 +533,13 @@ const MyBids = () => {
                   setNewBidAmount('');
                   setSelectedBid(null);
                 }}
+                className="font-semibold sm:order-1"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePlaceBid}
-                className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white"
+                className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-semibold sm:order-2"
               >
                 Place Bid
               </Button>

@@ -2,6 +2,11 @@
 import Cookies from 'js-cookie';
 import { getUserIdFromToken } from './crudService';
 
+export interface UserProductCounts {
+  wishlist_count: number;
+  bids_count: number;
+}
+
 // Get the API base URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -111,11 +116,18 @@ export const addToWishlist = async (productId: number): Promise<any> => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to add to wishlist');
     }
 
-    return await response.json();
+    const result = await response.json();
+    
+    // Trigger wishlist update
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('wishlist-update'));
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error adding to wishlist:', error);
     throw error;
@@ -135,35 +147,50 @@ export const removeFromWishlist = async (productId: number): Promise<any> => {
       throw new Error('User not authenticated');
     }
 
-    const response = await fetch(`${API_BASE_URL}/wishlist/remove`, {
+    const response = await fetch(`${API_BASE_URL}/wishlist/remove/${userId}/${productId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${Cookies.get('authToken')}`
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        product_id: productId
-      })
+      }
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to remove from wishlist');
     }
 
-    return await response.json();
+    const result = await response.json();
+    
+    // Trigger wishlist update
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('wishlist-update'));
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error removing from wishlist:', error);
     throw error;
   }
 };
 
+interface WishlistResponse {
+  success: boolean;
+  count: number;
+  data: Array<{
+    id: number;
+    user_id: number;
+    product_id: number;
+    created_date_time: string;
+    [key: string]: unknown;
+  }>;
+}
+
 /**
  * Gets the user's wishlist
- * @returns Promise with the list of products in the wishlist
+ * @returns Promise with the wishlist response containing count and data
  */
-export const getWishlist = async (): Promise<Product[]> => {
+export const getWishlist = async (): Promise<WishlistResponse> => {
   try {
     const userId = getUserIdFromToken();
     
@@ -183,8 +210,7 @@ export const getWishlist = async (): Promise<Product[]> => {
       throw new Error('Failed to fetch wishlist');
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error fetching wishlist:', error);
     throw error;
@@ -199,9 +225,43 @@ export const getWishlist = async (): Promise<Product[]> => {
 export const isInWishlist = async (productId: number): Promise<boolean> => {
   try {
     const wishlist = await getWishlist();
-    return wishlist.some(item => item.product_id === productId);
+    if ('data' in wishlist && Array.isArray(wishlist.data)) {
+      return wishlist.data.some(item => item.product_id === productId);
+    }
+    return false;
   } catch (error) {
     console.error('Error checking wishlist:', error);
     return false;
+  }
+};
+
+/**
+ * Fetches product counts for a specific user
+ * @param userId The ID of the user to get counts for
+ * @returns Promise with the user's product counts
+ */
+export const getUserProductCounts = async (userId: string | number): Promise<{ success: boolean; data: UserProductCounts }> => {
+  try {
+    const token = Cookies.get('authToken'); // Changed from 'token' to 'authToken' to match your auth system
+
+    const response = await fetch(`${API_BASE_URL}/profile/userCounts/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to fetch user product counts');
+    }
+    
+    const data = await response.json();
+    console.log('getUserProductCounts response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching user product counts:', error);
+    throw error;
   }
 };
