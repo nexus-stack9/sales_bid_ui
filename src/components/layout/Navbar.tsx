@@ -171,13 +171,13 @@ const Navbar = () => {
               <Button variant="ghost" size="icon">
                 <Search className="h-5 w-5" />
               </Button>
-              <Link to={"/user/wishlist"} className="relative">
+              <Link to="/my-bids" className="relative">
                 <Button variant="ghost" size="icon">
-                  <Heart className="h-5 w-5" />
+                  <ShoppingCart className="h-5 w-5" />
                 </Button>
-                {wishlistCount > 0 && (
+                {bidsCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                    {wishlistCount > 9 ? '9+' : wishlistCount}
+                    {bidsCount > 9 ? '9+' : bidsCount}
                   </span>
                 )}
               </Link>
@@ -198,7 +198,7 @@ const Navbar = () => {
                 <Heart className="h-5 w-5" />
               </Button>
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                <span className="absolute -top-0 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
                   {wishlistCount > 9 ? '9+' : wishlistCount}
                 </span>
               )}
@@ -208,7 +208,7 @@ const Navbar = () => {
                 <ShoppingCart className="h-5 w-5" />
               </Button>
               {bidsCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                <span className="absolute -top-0 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
                   {bidsCount > 9 ? '9+' : bidsCount}
                 </span>
               )}
@@ -252,7 +252,24 @@ const Navbar = () => {
                     How It Works
                   </Link>
                   <hr className="my-2" />
-                  <div className="flex items-center justify-between group/menu-item">
+                  <div className="group/menu-item">
+                    <Link
+                      to={token ? "/user/wishlist" : "/signin"}
+                      className="text-lg font-medium flex items-center relative w-full"
+                    >
+                      <div className="relative">
+                        <Heart className={`mr-2 h-5 w-5 ${token ? "text-primary fill-primary" : ""}`} />
+                        {token && wishlistCount > 0 && (
+                          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                            {wishlistCount > 9 ? '9+' : wishlistCount}
+                          </span>
+                        )}
+                      </div>
+                      <span>Wishlist {!token && "(Sign in required)"}</span>
+                      <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
+                    </Link>
+                  </div>
+                  <div className="group/menu-item">
                     <Link
                       to="/my-bids"
                       className="text-lg font-medium flex items-center relative w-full"

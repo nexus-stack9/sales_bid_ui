@@ -581,7 +581,7 @@ const Profile = () => {
               {/* Logout button for desktop */}
               <Button 
                 variant="outline" 
-                className="mt-6 w-full flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors" 
+                className="mt-6 w-full flex items-center justify-center rounded-md hover:bg-slate-100 hover:text-foreground transition-colors" 
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -633,7 +633,7 @@ const Profile = () => {
                   </p>
                 </div>
                 
-                <Accordion type="single" collapsible defaultValue="profile" className="bg-white border rounded-xl shadow-sm mb-6">
+                <Accordion type="single" collapsible className="bg-white border rounded-xl shadow-sm mb-6">
                   <AccordionItem value="profile" className="border-b">
                     <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-slate-50">
                       <div className="flex items-center">

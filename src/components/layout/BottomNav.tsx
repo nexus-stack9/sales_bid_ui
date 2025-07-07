@@ -39,7 +39,7 @@ const BottomNav = () => {
         </div>
         <span className="text-xs mt-1">Wishlist</span>
       </Link>
-      <Link 
+      {/* <Link 
         to="/my-bids" 
         className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary relative"
       >
@@ -52,7 +52,7 @@ const BottomNav = () => {
           )}
         </div>
         <span className="text-xs mt-1">My Bids</span>
-      </Link>
+      </Link> */}
       <Link 
         to={isAuthenticated ? "/user/profile" : "/signin"} 
         className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary"

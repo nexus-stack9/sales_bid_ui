@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
-import { getWishlist, getUserProductCounts } from '@/services/productService';
-import { getUserIdFromToken } from '@/services/crudService';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode, useMemo } from 'react';
 import Cookies from 'js-cookie';
+import { getUserIdFromToken } from '@/services/crudService';
+import { getWishlist, getUserProductCounts } from '@/services/productService';
+import { handleApiError } from '@/utils/auth';
 import { WishlistContextType, WISHLIST_UPDATE_EVENT } from './wishlist.types';
 import { UserProductCounts } from '@/services/productService';
 
@@ -38,7 +39,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         setBidsCount(response.data.bids_count || 0);
       }
     } catch (error) {
-      console.error('Error updating counts:', error);
+      handleApiError(error);
     }
   }, []);
 
