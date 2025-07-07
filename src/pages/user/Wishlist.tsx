@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Heart, Clock } from 'lucide-react';
-import { placeBid, getUserWishlist, getUserIdFromToken } from '@/services/crudService';
+import { placeBid, getUserWishlist, getUserIdFromToken, removeFromWishlist as removeFromWishlistAPI } from '@/services/crudService';
 import Layout from '@/components/layout/Layout';
 import { useToast } from '@/hooks/use-toast';
 
@@ -271,9 +271,22 @@ const Wishlist: React.FC = () => {
   const removeFromWishlist = async (e: React.MouseEvent, itemId: number) => {
     e.stopPropagation();
     try {
-      // TODO: Implement API call to remove item from wishlist
-      // await removeWishlistItem(itemId);
+      const userId = getUserIdFromToken();
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Find the item to get the product_id
+      const itemToRemove = wishlistItems.find(item => item.id === itemId);
+      if (!itemToRemove) {
+        throw new Error('Item not found in wishlist');
+      }
+      
+      await removeFromWishlistAPI(itemToRemove.product_id.toString(), userId);
+      
+      // Update UI optimistically
       setWishlistItems(prev => prev.filter(item => item.id !== itemId));
+      
       toast({
         title: 'Success',
         description: 'Item removed from wishlist.',
@@ -283,7 +296,7 @@ const Wishlist: React.FC = () => {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to remove item from wishlist.',
+        description: err instanceof Error ? err.message : 'Failed to remove item from wishlist.',
       });
     }
   };

@@ -168,7 +168,14 @@ export const placeBid = async (productId: string, bidAmount: number) => {
       throw new Error(errorData.message || 'Failed to place bid');
     }
     
-    return await response.json();
+    const result = await response.json();
+    
+    // Trigger a wishlist update to refresh the bids count
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('wishlist-update'));
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error placing bid:', error);
     throw error;

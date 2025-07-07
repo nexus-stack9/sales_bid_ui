@@ -20,8 +20,9 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Lato', 'sans-serif'],
-				display: ['Montserrat', 'sans-serif'],
+				sans: ['Proxima Nova', 'sans-serif'],
+				// You can keep other font families for specific use cases
+				display: ['Proxima Nova', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
