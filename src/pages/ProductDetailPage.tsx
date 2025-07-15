@@ -251,13 +251,14 @@ const ProductDetailPage = () => {
 
   // Handle bid submission confirmation
   const confirmBid = async () => {
-    if (!pendingBid) return;
+    if (!pendingBid || isSubmitting) return;
     
-    setShowConfirmDialog(false);
     setIsSubmitting(true);
     
     try {
       const response = await placeBid(productId, pendingBid);
+      setShowConfirmDialog(false);
+      setBidAmount(''); // Clear the bid input
       toast.success('Bid placed successfully!', {
         position: 'top-center',
         autoClose: 3000,
@@ -279,6 +280,7 @@ const ProductDetailPage = () => {
           draggable: true
         });
       }
+      // Don't close the dialog on error so user can retry
       throw error;
     } finally {
       setIsSubmitting(false);

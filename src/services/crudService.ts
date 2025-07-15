@@ -367,12 +367,36 @@ export const getUserBids = async (bidderId: string): Promise<Bid[]> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Error fetching user bids: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Error fetching user bids: ${errorData.message || response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    // Normalize the response to match our Bid interface
+    if (Array.isArray(data)) {
+      return data.map(item => ({
+        bid_id: item.bid_id,
+        bidder_id: item.bidder_id,
+        product_id: item.product_id,
+        bid_amount: item.bid_amount?.toString() || '0',
+        bid_time: item.bid_time,
+        is_auto_bid: item.is_auto_bid || false,
+        product_name: item.product_name || 'Unknown Product',
+        description: item.description || '',
+        starting_price: item.starting_price?.toString() || '0',
+        auction_start: item.auction_start,
+        auction_end: item.auction_end,
+        status: item.status || 'active',
+        image_path: item.image_path || '',
+        location: item.location || '',
+        quantity: item.quantity || 1,
+        tags: item.tags || '',
+        max_bid_amount: item.max_bid_amount?.toString() || '0'
+      }));
+    }
+    return [];
   } catch (error) {
     console.error('Error fetching user bids:', error);
-    throw error;
+    throw new Error('Failed to fetch your bids. Please try again later.');
   }
 };

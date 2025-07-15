@@ -157,7 +157,7 @@ const Navbar = () => {
               For Buyers
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link to="/how-it-works" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
+            <Link to="/sellers" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
               For Sellers
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
@@ -247,6 +247,9 @@ const Navbar = () => {
                   </Link>
                   <Link to="/auctions" className="text-lg font-medium">
                     All Auctions
+                  </Link>
+                  <Link to="/sellers" className="text-lg font-medium">
+                    For Sellers
                   </Link>
                   <Link to="/how-it-works" className="text-lg font-medium">
                     How It Works
