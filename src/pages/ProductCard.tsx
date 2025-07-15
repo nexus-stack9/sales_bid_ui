@@ -85,9 +85,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
 
   return (
     <motion.div className="group relative overflow-hidden">
-      <Card className="relative overflow-hidden group h-[400px]">
+      <Card className="relative overflow-hidden group h-[400px] flex flex-col">
         {viewMode === 'grid' ? (
-          <div>
+          <div className="flex flex-col h-full">
             {/* Image Container */}
             <div className="relative aspect-square overflow-hidden bg-gradient-surface">
               <img
@@ -106,28 +106,46 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-3">
-              {/* Title */}
-              <h3 className="font-semibold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
-                {product.name}
-              </h3>
-
-              {/* Location */}
-              {/* <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                <span>{product.location}</span>
-              </div> */}
-
-              {/* Current Bid and Price */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Current Bid</span>
-                <div className="text-xl font-bold text-black">
-                  {formatPrice(product.currentBid)}
+            <div className="p-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-3">
+                {/* Title with tooltip */}
+                <div className="relative group/title">
+                  <h3 
+                    className="font-semibold text-card-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2 overflow-hidden"
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      lineHeight: '1.4',
+                      maxHeight: '2.8em'
+                    }}
+                    title={product.name}
+                  >
+                    {product.name}
+                  </h3>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-0 mb-2 px-2 py-1 bg-black text-white text-sm rounded opacity-0 group-hover/title:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap max-w-xs">
+                    {product.name}
+                  </div>
                 </div>
-              </div>
 
-              {/* Total Bids and Time Left */}
-              <div className="flex items-center justify-between text-sm">
+                {/* Location */}
+                {/* <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <MapPin className="h-3 w-3" />
+                  <span>{product.location}</span>
+                </div> */}
+
+                {/* Current Bid and Price */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Current Bid</span>
+                  <div className="text-xl font-bold text-black">
+                    {formatPrice(product.currentBid)}
+                  </div>
+                </div>
+
+                {/* Total Bids and Time Left */}
+                <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Gavel className="h-3 w-3" />
                     <span>{product.totalBids} bids</span>
@@ -137,29 +155,32 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                     <span>{timeLeft}</span>
                   </div>
                 </div>
+              </div>
 
-                          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
-            <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white border-0"
-              size="sm"
-            >
-              Place Bid
-            </Button>
-            {product.buyNowPrice && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="px-4 border-gold text-gold hover:bg-gold hover:text-gold-foreground"
-              >
-                Buy {formatPrice(product.buyNowPrice)}
-              </Button>
-            )}
-          </div>
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2 mt-auto">
+                <Button 
+                  className={`bg-blue-600 hover:bg-blue-700 text-white border-0 ${
+                    product.buyNowPrice ? 'flex-1' : 'w-full'
+                  }`}
+                  size="sm"
+                >
+                  Place Bid
+                </Button>
+                {product.buyNowPrice && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="px-4 border-gold text-gold hover:bg-gold hover:text-gold-foreground"
+                  >
+                    Buy {formatPrice(product.buyNowPrice)}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 p-4 h-full flex flex-col">
             <div className="flex items-center gap-4">
               <div className="relative h-24 w-24">
                 <img
@@ -169,7 +190,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold line-clamp-2 overflow-hidden">{product.name}</h3>
+                <div className="relative group/title">
+                  <h3 
+                    className="text-lg font-semibold line-clamp-2 overflow-hidden"
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      lineHeight: '1.4',
+                      maxHeight: '2.8em'
+                    }}
+                    title={product.name}
+                  >
+                    {product.name}
+                  </h3>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-0 mb-2 px-2 py-1 bg-black text-white text-sm rounded opacity-0 group-hover/title:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap max-w-xs">
+                    {product.name}
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">{product.location}</span>
@@ -214,6 +254,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                   <Heart className={`h-5 w-5 ${/* wishlisted ? 'text-gold' : */ 'text-muted-foreground'}`} />
                 </Button>
               </div>
+            </div>
+
+            {/* Action Buttons for List View */}
+            <div className="flex gap-2 pt-2 mt-auto">
+              <Button 
+                className={`bg-blue-600 hover:bg-blue-700 text-white border-0 ${
+                  product.buyNowPrice ? 'flex-1' : 'w-full'
+                }`}
+                size="sm"
+              >
+                Place Bid
+              </Button>
+              {product.buyNowPrice && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="px-4 border-gold text-gold hover:bg-gold hover:text-gold-foreground"
+                >
+                  Buy {formatPrice(product.buyNowPrice)}
+                </Button>
+              )}
             </div>
           </div>
         )}
