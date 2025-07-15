@@ -506,22 +506,25 @@
     justify-content: center;
     gap: 8px;
     padding: 12px 24px;
-    background: linear-gradient(90deg, #FF5733, #FFA833);
+    background: linear-gradient(to right, #f59e0b, #d97706);
     color: #ffffff;
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+    transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .placeBidButton:hover {
-    background: linear-gradient(90deg, #FF5733, #FFA833);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 87, 51, 0.3);
+    background: linear-gradient(to right, #d97706, #b45309);
+}
+
+.placeBidButton:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
 }
 
 .buttonIcon {
@@ -605,22 +608,25 @@
     font-weight: 600;
     color: #1a1a1a;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     text-align: center;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-.quickBidButton:hover {
-    background-color: #e5e7eb;
-    border-color: #9ca3af;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .quickBidButton.selected {
     background: linear-gradient(90deg, #bfdbfe, #dbeafe);
     border-color: #2563eb;
     color: #2563eb;
+}
+
+.quickBidButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.quickBidButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .quickBidLabel {

@@ -8,6 +8,7 @@ import fridge2Png from "@/assets/fridge2.png";
 import { FaGavel, FaMapMarkerAlt } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
 import { placeBid, addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,13 +32,14 @@ const ProductDetailPage = () => {
   // UI state
   const [activeTab, setActiveTab] = useState("description");
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [bidAmount, setBidAmount] = useState(0);
+  const [bidAmount, setBidAmount] = useState<number | ''>('');
   const [mobileAccordionOpen, setMobileAccordionOpen] = useState(null);
   const [selectedImage, setSelectedImage] = useState(fridgeWebp);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [isCheckingWishlist, setIsCheckingWishlist] = useState(true);
+  const { triggerWishlistUpdate } = useWishlist();
   const [images, setImages] = useState([]);
 
   // Static manifest data
@@ -137,10 +139,7 @@ const ProductDetailPage = () => {
           if (message.type === 'product_update' && message.data) {
             setProductData(message.data);
             setLoading(false);
-            
-            const highestBid = getHighestBid(message.data.bids);
-            const minBid = highestBid ? highestBid + 50 : parseFloat(message.data.starting_price);
-            setBidAmount(minBid);
+            // Don't automatically set the bid amount - let it be empty by default
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -252,13 +251,14 @@ const ProductDetailPage = () => {
 
   // Handle bid submission confirmation
   const confirmBid = async () => {
-    if (!pendingBid) return;
+    if (!pendingBid || isSubmitting) return;
     
-    setShowConfirmDialog(false);
     setIsSubmitting(true);
     
     try {
       const response = await placeBid(productId, pendingBid);
+      setShowConfirmDialog(false);
+      setBidAmount(''); // Clear the bid input
       toast.success('Bid placed successfully!', {
         position: 'top-center',
         autoClose: 3000,
@@ -280,6 +280,7 @@ const ProductDetailPage = () => {
           draggable: true
         });
       }
+      // Don't close the dialog on error so user can retry
       throw error;
     } finally {
       setIsSubmitting(false);
@@ -290,7 +291,7 @@ const ProductDetailPage = () => {
   const handleBidSubmit = async (e) => {
     e.preventDefault();
     
-    if (bidAmount <= 0) {
+    if (bidAmount === '' || bidAmount <= 0) {
       toast.error('Please enter a valid bid amount', {
         position: 'top-center',
         autoClose: 3000,
@@ -354,6 +355,8 @@ const ProductDetailPage = () => {
       
       // Toggle the wishlist status
       setIsInWishlist(!isInWishlist);
+      // Trigger wishlist count update in Navbar
+      triggerWishlistUpdate();
     } catch (error) {
       console.error('Error updating wishlist:', error);
       toast.error(error.message || 'Failed to update wishlist');
@@ -430,12 +433,16 @@ const ProductDetailPage = () => {
 
   // Quick bid options based on current bid
   const currentBid = getCurrentBid();
-  const minimumBid = getMinimumBid();
+  const minimumBid = productData && productData.bids && productData.bids.length > 0 
+  ? getHighestBid(productData.bids) 
+  : productData?.starting_price || 0;
+
+  // Quick bid options
   const quickBidOptions = [
-    { amount: minimumBid, label: "Minimum" },
-    { amount: minimumBid + 50, label: "" },
-    { amount: minimumBid + 100, label: "" },
-    { amount: Math.round(currentBid * 1.2), label: "Recommended" }
+    { amount: minimumBid, label: 'Min' },
+    { amount: minimumBid + 100, label: '' },
+    { amount: minimumBid + 250, label: '' },
+    { amount: minimumBid + 500, label: 'Max' },
   ];
 
   return (
@@ -444,13 +451,13 @@ const ProductDetailPage = () => {
         <div className={styles.contentWrapper}>
           {/* Left Column: Image Gallery and Bid Card (Desktop) */}
           <div className={styles.leftColumn}>
-          <div className={styles.imageGallery}>
-  <div className={styles.mainImage}>
-    {selectedImage ? (
-      <img src={selectedImage} alt="Selected Product" />
-    ) : (
-      <div className={styles.imagePlaceholder}>No Image Available</div>
-    )}
+            <div className={styles.imageGallery}>
+              <div className={styles.mainImage}>
+                {selectedImage ? (
+                  <img src={selectedImage} alt="Selected Product" />
+                ) : (
+                  <div className={styles.imagePlaceholder}>No Image Available</div>
+                )}
                 <div className={styles.buttonContainer}>
                   <button 
                     className={`${styles.wishlistButton} ${isInWishlist ? styles.inWishlist : ''}`}
@@ -470,18 +477,18 @@ const ProductDetailPage = () => {
                 </div>
               </div>
               <div className={styles.thumbnailStrip}>
-    {images.map((image, index) => (
-      <div
-        key={index}
-        className={`${styles.thumbnail} ${
-          selectedImage === image.src ? styles.activeThumbnail : ""
-        }`}
-        onClick={() => setSelectedImage(image.src)}
-      >
-        <img src={image.src} alt={image.alt} />
-      </div>
-    ))}
-  </div>
+                {images.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`${styles.thumbnail} ${
+                      selectedImage === image.src ? styles.activeThumbnail : ""
+                    }`}
+                    onClick={() => setSelectedImage(image.src)}
+                  >
+                    <img src={image.src} alt={image.alt} />
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Place Your Bid Card (Desktop Only) */}
@@ -490,7 +497,6 @@ const ProductDetailPage = () => {
                 <div className={styles.bidHeader}>
                   <span className={styles.bidLabel}>Place Your Bid</span>
                   <span className={styles.auctionStatus}>
-                    <span className={styles.statusIcon}>⏰</span>
                     {timeRemaining > 0 ? `Ends in ${formatCountdown(timeRemaining)}` : 'Auction Ended'}
                   </span>
                 </div>
@@ -502,9 +508,13 @@ const ProductDetailPage = () => {
                       <input
                         type="number"
                         value={bidAmount}
-                        onChange={(e) => setBidAmount(parseFloat(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setBidAmount(value === '' ? '' : parseFloat(value));
+                        }}
                         min={minimumBid}
                         step={50}
+                        placeholder="Enter your bid"
                         required
                         disabled={timeRemaining === 0}
                       />

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Heart, Clock } from 'lucide-react';
 import { placeBid, getUserWishlist, getUserIdFromToken, removeFromWishlist as removeFromWishlistAPI } from '@/services/crudService';
+import { useWishlist } from '@/hooks/use-wishlist';
 import Layout from '@/components/layout/Layout';
 import { useToast } from '@/hooks/use-toast';
 
@@ -189,6 +190,7 @@ const Wishlist: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { triggerWishlistUpdate } = useWishlist();
   const [bidModal, setBidModal] = useState({
     isOpen: false,
     productId: 0,
@@ -286,6 +288,9 @@ const Wishlist: React.FC = () => {
       
       // Update UI optimistically
       setWishlistItems(prev => prev.filter(item => item.id !== itemId));
+      
+      // Update wishlist count in Navbar
+      triggerWishlistUpdate();
       
       toast({
         title: 'Success',
@@ -450,7 +455,7 @@ const Wishlist: React.FC = () => {
               {wishlistItems.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+                  className="bg-white rounded-xl border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
                 >
                   <div className="relative">
                     <img
@@ -467,7 +472,7 @@ const Wishlist: React.FC = () => {
                     </button>
                   </div>
 
-                  <div className="p-4">
+                  <div className="p-5 border-t border-gray-50">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                       {item.name}
                     </h3>
