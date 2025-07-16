@@ -2,6 +2,7 @@ export interface Product {
     id: string;
     name: string;
     image: string;
+    description: string;
     currentBid: number;
     totalBids: number;
     timeLeft: string; // ISO string
@@ -10,7 +11,7 @@ export interface Product {
     seller: string;
     startingBid: number;
     buyNowPrice?: number;
-    condition: 'New' | 'Like New' | 'Good' | 'Fair';
+    condition: 'New' | 'Like New' | 'Good' | 'Fair' | 'Used';
     isWishlisted?: boolean;
   }
   

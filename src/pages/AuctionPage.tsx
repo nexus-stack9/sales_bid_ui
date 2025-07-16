@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
-import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as React from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,11 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import ProductCard from './ProductCard';
 import FilterPanel from './FilterPanel';
 import { Product, FilterState, SortOption } from '@/types/auction';
-import { mockProducts } from '@/data/mockProducts';
+import { getProducts } from '@/services/productService';
 // import { useWishlist } from '@/contexts/WishlistContext';
 import dayjs from 'dayjs';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import Layout from '@/components/layout/Layout';
+import { useToast } from '@/components/ui/use-toast';
 
 const AuctionPage: React.FC = () => {
   //   const { wishlist } = useWishlist();
@@ -20,8 +20,12 @@ const AuctionPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('ending-soon');
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [itemsToShow, setItemsToShow] = useState(8);
+  const { toast } = useToast();
   
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
@@ -32,9 +36,97 @@ const AuctionPage: React.FC = () => {
     searchQuery: '',
   });
 
+  // Define API product type
+  interface ApiProduct {
+    product_id: number;
+    name: string;
+    image_path?: string;
+    max_bid_amount?: string;
+    starting_price: string;
+    auction_end: string;
+    total_bids: string;
+    condition?: 'New' | 'Like New' | 'Good' | 'Fair' | 'Used';
+    location?: string;
+    category_name?: string;
+    description?: string;
+    vendor_name?: string;
+  }
+
+  // Map API response to Product type
+  const mapApiProductToProduct = useCallback((apiProduct: ApiProduct): Product => {
+    // Map condition to match Product type
+    const condition = (apiProduct.condition === 'Used' ? 'Fair' : 
+                      apiProduct.condition || 'Fair') as 'New' | 'Like New' | 'Good' | 'Fair' | 'Used';
+    
+    const startingPrice = parseFloat(apiProduct.starting_price || '0');
+    
+    return {
+      id: apiProduct.product_id.toString(),
+      name: apiProduct.name,
+      image: apiProduct.image_path?.split(',')[0] || '/placeholder-product.jpg',
+      description: apiProduct.description || 'No description available',
+      currentBid: parseFloat(apiProduct.max_bid_amount || apiProduct.starting_price || '0'),
+      totalBids: parseInt(apiProduct.total_bids || '0', 10),
+      timeLeft: apiProduct.auction_end,
+      location: apiProduct.location || 'Unknown',
+      category: apiProduct.category_name || 'Uncategorized',
+      seller: apiProduct.vendor_name || 'Unknown Seller',
+      startingBid: startingPrice,
+      buyNowPrice: startingPrice * 1.5,
+      condition,
+      isWishlisted: false,
+    };
+  }, []);
+
+  // Fetch products from API
+  useEffect(() => {
+    // Type guard to check if the response is valid
+    const isValidApiResponse = (data: unknown): data is { success: boolean; data: ApiProduct[] } => {
+      if (!data || typeof data !== 'object') return false;
+      const response = data as Record<string, unknown>;
+      return 'success' in response && 
+             'data' in response && 
+             Array.isArray(response.data);
+    };
+    
+    // Type guard for the error response
+    const isErrorResponse = (data: unknown): data is { message: string } => {
+      return !!data && typeof data === 'object' && 'message' in data && 
+             typeof (data as { message: unknown }).message === 'string';
+    };
+
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getProducts();
+        if (isValidApiResponse(response) && response.success) {
+          const mappedProducts = response.data.map(mapApiProductToProduct);
+          setAllProducts(mappedProducts);
+          setDisplayedProducts(mappedProducts.slice(0, itemsToShow));
+          setError(null);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        const errorMessage = isErrorResponse(err) ? err.message : 'Failed to load auctions. Please try again later.';
+        setError(errorMessage);
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, [toast, itemsToShow, mapApiProductToProduct]);
+
   // Filter and sort products
-  const filteredAndSortedProducts = useMemo(() => {
-    let filtered = mockProducts.filter((product) => {
+  const filteredAndSortedProducts = useMemo((): Product[] => {
+    let filtered = allProducts.filter((product) => {
       // Search query
       if (filters.searchQuery && !product.name.toLowerCase().includes(filters.searchQuery.toLowerCase())) {
         return false;
@@ -101,13 +193,19 @@ const AuctionPage: React.FC = () => {
     });
 
     return filtered;
-  }, [filters, sortBy]);
+  }, [allProducts, filters, sortBy]);
 
-  // Update displayed products when filters change
+  // Update displayed products when filters/sort change or when loading state changes
   useEffect(() => {
-    setDisplayedProducts(filteredAndSortedProducts.slice(0, itemsToShow));
-    setHasMore(filteredAndSortedProducts.length > itemsToShow);
-  }, [filteredAndSortedProducts, itemsToShow]);
+    if (!isLoading) {
+      setDisplayedProducts((prev) => {
+        const newProducts = filteredAndSortedProducts.slice(0, itemsToShow);
+        // Only update if the products have actually changed
+        return JSON.stringify(prev) !== JSON.stringify(newProducts) ? newProducts : prev;
+      });
+      setHasMore(filteredAndSortedProducts.length > itemsToShow);
+    }
+  }, [filteredAndSortedProducts, itemsToShow, isLoading]);
 
   const loadMoreProducts = () => {
     const newItemsToShow = itemsToShow + 8;

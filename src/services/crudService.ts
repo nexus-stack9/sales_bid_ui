@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+import { handleTokenValidation } from '@/utils/authUtils';
 
 // Get the API base URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
@@ -74,7 +75,11 @@ export const updateProfile = async (profileData: ProfileData) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update profile');
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to update profile');
     }
 
     const data = await response.json();
@@ -102,7 +107,11 @@ export const updatePassword = async (passwordData: { currentPassword: string; ne
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update password');
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to update password');
     }
 
     const data = await response.json();
@@ -129,7 +138,11 @@ export const getProfileDetails = async (userId: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch profile details');
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to fetch profile details');
     }
 
     const data = await response.json();
@@ -164,6 +177,9 @@ export const placeBid = async (productId: string, bidAmount: number) => {
     });
     
     if (!response.ok) {
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || 'Failed to place bid');
     }
@@ -209,6 +225,9 @@ export const addToWishlist = async (productId: string, bidderId: string) => {
     });
 
     if (!response.ok) {
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to add to wishlist');
     }
@@ -241,6 +260,9 @@ export const getUserWishlist = async (userId: string) => {
     });
 
     if (!response.ok) {
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to fetch wishlist');
     }
@@ -278,6 +300,9 @@ export const removeFromWishlist = async (productId: string, bidderId: string) =>
     });
 
     if (!response.ok) {
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to remove from wishlist');
     }
@@ -315,6 +340,9 @@ export const checkWishlistItem = async (productId: string, userId: string): Prom
     });
 
     if (!response.ok) {
+      if (handleTokenValidation(response)) {
+        return false;
+      }
       return false;
     }
 

@@ -571,7 +571,7 @@ const Profile = () => {
               </div>
               <h3 className="text-xl font-bold">
                 {profileDetails ? 
-                  `${profileDetails.profile.user.firstName} ${profileDetails.profile.user.lastName}` : 
+                  `${profileDetails.profile.user.firstName}` : 
                   ''}
               </h3>
               <p className="text-sm text-muted-foreground">
