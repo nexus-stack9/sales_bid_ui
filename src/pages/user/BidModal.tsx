@@ -25,7 +25,7 @@ interface BidModalProps {
   onClose: () => void;
   currentBid: number;
   productId: number;
-  onBidSuccess?: () => void; // Optional callback for bid success
+  onBidSuccess?: () => void;
 }
 
 const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, productId, onBidSuccess }) => {
@@ -88,24 +88,30 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-900">Place Your Bid</h3>
+      <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 scale-100">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+          <h3 className="text-2xl font-bold text-gray-900 font-sans">Place Your Bid</h3>
           <button 
             onClick={onClose} 
-            className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+            className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none p-1 rounded-full hover:bg-gray-100"
             aria-label="Close"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
         
-        <div className="bg-amber-50 rounded-lg p-4 mb-6">
+        <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 mb-6 border border-amber-100">
           <div className="flex items-center">
+            <div className="bg-amber-100 p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-amber-800">
-                Minimum bid: {formatPrice(currentBid + 50)}
+                Minimum bid: <span className="font-bold">{formatPrice(currentBid + 50)}</span>
               </p>
+              <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher than current bid</p>
             </div>
           </div>
         </div>
@@ -117,20 +123,23 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
             </label>
             <div className="relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">₹</span>
+                <span className="text-gray-500 font-medium">₹</span>
               </div>
               <input
                 type="text"
                 id="bidAmount"
                 value={bidAmount}
                 onChange={handleInputChange}
-                className="focus:ring-2 focus:ring-amber-500 focus:border-amber-500 block w-full pl-8 pr-12 py-3 sm:text-sm border-gray-300 rounded-lg"
-                placeholder="0.00"
+                className="focus:ring-2 focus:ring-amber-500 focus:border-amber-500 block w-full pl-10 pr-12 py-3 text-base border-gray-300 rounded-lg border transition-all duration-200"
+                placeholder="Enter amount"
                 min={currentBid + 1}
                 step="1"
                 required
                 pattern="\d*\.?\d*"
               />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500 text-sm">INR</span>
+              </div>
             </div>
             {error && (
               <p className="mt-2 text-sm text-red-600 flex items-center">
@@ -142,16 +151,23 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
             )}
           </div>
           
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <div className="flex justify-between mb-2">
-              <span className="text-sm text-gray-500">Current Bid</span>
-              <span className="text-sm font-medium text-gray-900">{formatPrice(currentBid)}</span>
+          <div className="bg-gray-50 p-5 rounded-lg mb-6 border border-gray-200">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Current Bid</p>
+                <p className="text-lg font-bold text-gray-900">{formatPrice(currentBid)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Your Bid</p>
+                <p className="text-lg font-bold text-amber-600">
+                  {bidAmount ? formatPrice(parseFloat(bidAmount)) : '--'}
+                </p>
+              </div>
             </div>
-            <div className="flex justify-between font-semibold">
-              <span className="text-gray-900">Your Bid</span>
-              <span className="text-amber-600">
-                {bidAmount ? formatPrice(parseFloat(bidAmount)) : '--'}
-              </span>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs text-gray-500">
+                By placing a bid, you agree to our Terms of Service.
+              </p>
             </div>
           </div>
           
@@ -160,14 +176,14 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+              className="px-5 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 font-semibold transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+              disabled={loading || !bidAmount}
+              className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 font-medium transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
             >
               {loading ? (
                 <span className="flex items-center justify-center">
@@ -177,7 +193,15 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
                   </svg>
                   Placing Bid...
                 </span>
-              ) : 'Place Bid'}
+              ) : (
+                <span className="flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5 -ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd" />
+                    <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
+                  </svg>
+                  Place Bid
+                </span>
+              )}
             </button>
           </div>
         </form>

@@ -9,12 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, TrendingUp, TrendingDown, Eye, Gavel, ArrowRight, Zap, Award, CheckCircle } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, Eye, Gavel, ArrowRight, Zap, Award, CheckCircle, Trophy, AlertTriangle } from 'lucide-react';
+import BidModal from './BidModal.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { getUserBids, placeBid, getUserIdFromToken } from '@/services/crudService';
 import { BidSkeleton, BidSkeletonMobile } from '@/components/skeletons/BidSkeleton';
+import React from 'react';
 
 interface Bid {
   bid_id: number;
@@ -45,26 +47,37 @@ const MyBids = () => {
   const [newBidAmount, setNewBidAmount] = useState('');
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    const fetchBids = async () => {
-      try {
-        setIsLoading(true);
-        const bidderId = getUserIdFromToken(); // Replace with actual bidder ID from auth context
-        const bids = await getUserBids(bidderId);
-        setItems(bids);
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to fetch your bids. Please try again later.',
-        });
-      } finally {
-        setIsLoading(false);
+  // Memoize the fetchBids function to prevent unnecessary re-renders
+  const fetchBids = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const bidderId = getUserIdFromToken();
+      if (!bidderId) {
+        throw new Error('User not authenticated');
       }
-    };
-
-    fetchBids();
+      const bids = await getUserBids(bidderId);
+      setItems(bids);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to fetch your bids. Please try again later.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, [toast]);
+
+  // Fetch bids on component mount
+  React.useEffect(() => {
+    fetchBids();
+  }, [fetchBids]);
+
+  // Function to handle successful bid placement
+  const handleBidSuccess = React.useCallback(async () => {
+    // Refresh the bids data
+    await fetchBids();
+  }, [fetchBids]);
 
   const getTimeLeft = (endDate: string) => {
     const now = new Date();
@@ -90,14 +103,14 @@ const MyBids = () => {
       case 'winning':
         return (
           <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border-0 font-medium shadow-sm">
-            <TrendingUp className="w-3 h-3 mr-1.5" />
+            <Trophy className="w-3 h-3 mr-1.5" />
             <span>Winning</span>
           </Badge>
         );
       case 'losing':
         return (
           <Badge className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 font-medium shadow-sm">
-            <TrendingDown className="w-3 h-3 mr-1.5" />
+            <AlertTriangle className="w-3 h-3 mr-1.5" />
             <span>Outbid</span>
           </Badge>
         );
@@ -177,90 +190,76 @@ const MyBids = () => {
   };
 
   const BidCard = ({ item }: { item: Bid }) => (
-    <Card 
-      className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-primary/20 rounded-xl cursor-pointer"
-      onClick={(e) => handleCardClick(item.product_id, e)}
-    >
-      <div className="relative overflow-hidden">
+    <div className="w-[320px] sm:w-auto sm:max-w-[280px] mx-auto bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <div className="relative pt-[75%] overflow-hidden">
         <img 
           src={item.image_path.split(',')[0]} 
-          alt={item.product_name} 
-          className="w-full h-48 sm:h-52 object-cover"
+          alt={item.product_name}
+          className="absolute top-0 left-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-2 right-2 z-10">
           {getStatusBadge(item.status, item.bid_amount, item.max_bid_amount)}
-        </div>
-        <div className="absolute bottom-4 left-4 right-4 z-10">
-          <div className="flex items-center justify-between text-white text-sm">
-            <div className="flex items-center space-x-4 backdrop-blur-sm bg-black/30 px-3 py-1.5 rounded-full">
-            </div>
-          </div>
         </div>
       </div>
       
-      <CardContent className="p-6 space-y-5">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-            {item.product_name}
-          </h3>
-          <p className="text-xs font-medium text-gray-500">Auction ID: AU-{item.product_id}</p>
-        </div>
+      <div className="p-4">
+        <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+          {item.product_name}
+        </h3>
         
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">My Bid</p>
-            <p className="font-bold text-xl text-primary">₹{parseFloat(item.bid_amount).toFixed(2)}</p>
+        <div className="space-y-2 mb-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-bold text-gray-600">My Bid</span>
+            <span className="text-sm font-bold text-primary">
+              ₹{parseFloat(item.bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
           </div>
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Highest Bid</p>
-            <p className={cn(
-              "font-bold text-xl",
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-bold text-gray-600">Highest Bid</span>
+            <span className={cn("text-sm font-bold", 
               parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "text-emerald-600" : "text-red-600"
             )}>
-              ₹{parseFloat(item.max_bid_amount).toFixed(2)}
-            </p>
+              ₹{parseFloat(item.max_bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-bold text-gray-600">Time Left</span>
+            <div className="flex items-center gap-1 text-sm">
+              <Clock className="w-4 h-4" />
+              <span className="font-medium text-primary">
+                {getTimeLeft(item.auction_end)}
+              </span>
+            </div>
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-100">
-          <div className={cn(
-            "flex items-center px-3 py-2 rounded-lg",
-            parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "bg-emerald-50 text-emerald-700" : 
-            item.status === 'ended' ? "bg-gray-50 text-gray-700" : "bg-red-50 text-red-700"
-          )}>
-            <Clock className="w-4 h-4 mr-2" />
-            <span className="text-sm font-medium">{getTimeLeft(item.auction_end)}</span>
-            {parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) && item.status === 'active' && (
-              <Zap className="w-4 h-4 ml-2 animate-pulse text-emerald-600" />
-            )}
-          </div>
-          <Button 
-            size={isMobile ? "sm" : "default"}
-            variant={item.status === 'ended' ? 'outline' : 'default'}
-            className={cn(
-              "font-medium transition-all duration-200 w-full sm:w-auto",
-              item.status === 'ended' 
-                ? "text-gray-700 border-gray-300 hover:bg-gray-50 hover:shadow-sm" 
-                : "bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white shadow-sm hover:shadow-md"
-            )}
-            onClick={() => item.status !== 'ended' && handlePlaceBidClick(item)}
+        <div className="flex gap-2 mt-4">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/auctions/${item.product_id}`);
+            }}
+            className="flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm"
           >
-            {item.status === 'ended' ? (
-              <>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                View Result
-              </>
-            ) : (
-              <>
-                <ArrowRight className="w-4 h-4 mr-2" />
-                Place Higher Bid
-              </>
-            )}
-          </Button>
+            View Details
+          </button>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (item.status !== 'ended') handlePlaceBidClick(item);
+            }}
+            className={`px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
+              item.status === 'ended'
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg'
+            }`}
+            disabled={item.status === 'ended'}
+          >
+            {item.status === 'ended' ? 'Ended' : 'Bid Again'}
+          </button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 
   const EmptyState = ({ icon, title, description, showButton = false }: {
@@ -361,7 +360,7 @@ const MyBids = () => {
                   data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
                 <div className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 flex-shrink-0" />
+                  <Trophy className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>Winning</span>
                   <span className={cn(
                     "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
@@ -381,7 +380,7 @@ const MyBids = () => {
                   data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
                 <div className="flex items-center gap-1.5">
-                  <TrendingDown className="w-3.5 h-3.5 flex-shrink-0" />
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>Losing</span>
                   <span className={cn(
                     "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
@@ -417,7 +416,7 @@ const MyBids = () => {
             
             <TabsContent value="active" className="space-y-6">
               {activeBids.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-0">
                   {activeBids.map(item => (
                     <BidCard key={item.bid_id} item={item} />
                   ))}
@@ -441,7 +440,7 @@ const MyBids = () => {
                       You're currently winning {winningBids.length} auction{winningBids.length !== 1 ? 's' : ''}. Keep an eye on the countdown!
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-0">
                     {winningBids.map(item => (
                       <BidCard key={item.bid_id} item={item} />
                     ))}
@@ -465,7 +464,7 @@ const MyBids = () => {
                       You're currently outbid on {losingBids.length} auction{losingBids.length !== 1 ? 's' : ''}. Place a higher bid to get back in the lead!
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-0">
                     {losingBids.map(item => (
                       <BidCard key={item.bid_id} item={item} />
                     ))}
@@ -482,7 +481,7 @@ const MyBids = () => {
             
             <TabsContent value="ended">
               {endedBids.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-0">
                   {endedBids.map(item => (
                     <BidCard key={item.bid_id} item={item} />
                   ))}
@@ -500,52 +499,21 @@ const MyBids = () => {
       </div>
 
       {selectedBid && (
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="text-base">
-            <DialogHeader>
-              <DialogTitle className="text-2xl">Place a Higher Bid</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-3">
-                <Label htmlFor="bid-amount" className="text-base font-medium">Bid Amount</Label>
-                <Input
-                  id="bid-amount"
-                  type="number"
-                  step="0.01"
-                  min={parseFloat(selectedBid.max_bid_amount) + 50}
-                  value={newBidAmount}
-                  onChange={(e) => setNewBidAmount(e.target.value)}
-                  placeholder={`Minimum bid: $${(parseFloat(selectedBid.max_bid_amount) + 50).toFixed(2)}`}
-                />
-                <p className="text-base text-gray-600">
-                  Your bid must be at least{' '}
-                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
-                    ₹{(parseFloat(selectedBid.max_bid_amount) + 50).toFixed(2)}
-                  </span>
-                </p>
-              </div>
-            </div>
-            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setNewBidAmount('');
-                  setSelectedBid(null);
-                }}
-                className="font-semibold sm:order-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handlePlaceBid}
-                className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-semibold sm:order-2"
-              >
-                Place Bid
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <BidModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedBid(null);
+            setNewBidAmount('');
+          }}
+          currentBid={parseFloat(selectedBid.max_bid_amount)}
+          productId={selectedBid.product_id}
+          onBidSuccess={async () => {
+            await handleBidSuccess();
+            setSelectedBid(null);
+            setNewBidAmount('');
+          }}
+        />
       )}
     </Layout>
   );
