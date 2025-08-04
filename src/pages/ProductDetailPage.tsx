@@ -8,6 +8,7 @@ import fridge2Png from "@/assets/fridge2.png";
 import { FaGavel, FaMapMarkerAlt } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
 import { placeBid, addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
+import BidModal from "./user/BidModal";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,7 @@ const ProductDetailPage = () => {
   const [isCheckingWishlist, setIsCheckingWishlist] = useState(true);
   const { triggerWishlistUpdate } = useWishlist();
   const [images, setImages] = useState([]);
+  const [showBidModal, setShowBidModal] = useState(false);
 
   // Static manifest data
   const [manifestData] = useState([
@@ -245,50 +247,14 @@ const ProductDetailPage = () => {
     return currentBid + 50;
   };
 
-  // State for confirmation dialog
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingBid, setPendingBid] = useState(null);
-
-  // Handle bid submission confirmation
-  const confirmBid = async () => {
-    if (!pendingBid || isSubmitting) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      const response = await placeBid(productId, pendingBid);
-      setShowConfirmDialog(false);
-      setBidAmount(''); // Clear the bid input
-      toast.success('Bid placed successfully!', {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true
-      });
-      return response;
-    } catch (error) {
-      console.error('Error placing bid:', error);
-      if (error instanceof Error) {
-        toast.error(error.message, {
-          position: 'top-center',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
-      }
-      // Don't close the dialog on error so user can retry
-      throw error;
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Handle successful bid placement
+  const handleBidSuccess = () => {
+    setBidAmount(''); // Clear the bid input
+    // The WebSocket will automatically update the UI with the new bid
   };
 
-  // Event handlers
-  const handleBidSubmit = async (e) => {
+  // Handle bid submission
+  const handleBidSubmit = (e) => {
     e.preventDefault();
     
     if (bidAmount === '' || bidAmount <= 0) {
@@ -303,11 +269,8 @@ const ProductDetailPage = () => {
       return;
     }
 
-    // Set pending bid and show confirmation dialog
-    setPendingBid(bidAmount);
-    setShowConfirmDialog(true);
-    
-    // The WebSocket will automatically update the UI with the new bid
+    // Show the bid modal
+    setShowBidModal(true);
   };
 
   const handleQuickBid = (amount) => {
@@ -437,12 +400,12 @@ const ProductDetailPage = () => {
   ? getHighestBid(productData.bids) 
   : productData?.starting_price || 0;
 
-  // Quick bid options
+  // Quick bid options - ensure minimum bid is always at least 50 more than current bid
   const quickBidOptions = [
-    { amount: minimumBid, label: 'Min' },
-    { amount: minimumBid + 100, label: '' },
-    { amount: minimumBid + 250, label: '' },
-    { amount: minimumBid + 500, label: 'Max' },
+    { amount: Math.max(minimumBid, getCurrentBid() + 50), label: 'Min' },
+    { amount: Math.max(minimumBid, getCurrentBid() + 150), label: '' },
+    { amount: Math.max(minimumBid + 200, getCurrentBid() + 250), label: '' },
+    { amount: Math.max(minimumBid + 450, getCurrentBid() + 500), label: 'Max' },
   ];
 
   return (
@@ -977,52 +940,15 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* Bid Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className={styles.dialogContent}>
-          <DialogHeader className={styles.dialogHeader}>
-            <DialogTitle className={styles.dialogTitle}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              Confirm Your Bid
-            </DialogTitle>
-            <DialogDescription className={styles.dialogDescription}>
-              You're about to place a bid on this item. Please confirm your bid amount below.
-            </DialogDescription>
-            <div className={styles.bidAmount}>
-              {formatCurrency(pendingBid || 0)}
-            </div>
-          </DialogHeader>
-          <DialogFooter className={styles.dialogFooter}>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowConfirmDialog(false)}
-              disabled={isSubmitting}
-              className={styles.cancelButton}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={confirmBid}
-              disabled={isSubmitting}
-              className={styles.confirmButton}
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Placing Bid...
-                </>
-              ) : (
-                'Place Bid'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Bid Modal */}
+      <BidModal
+        isOpen={showBidModal}
+        onClose={() => setShowBidModal(false)}
+        currentBid={getCurrentBid()}
+        productId={parseInt(productId)}
+        initialBidAmount={typeof bidAmount === 'number' ? bidAmount : undefined}
+        onBidSuccess={handleBidSuccess}
+      />
     </Layout>
   );
 };
