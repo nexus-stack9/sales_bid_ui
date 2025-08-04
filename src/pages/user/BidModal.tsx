@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { placeBid, getUserIdFromToken } from '@/services/crudService';
@@ -25,14 +25,24 @@ interface BidModalProps {
   onClose: () => void;
   currentBid: number;
   productId: number;
+  initialBidAmount?: number;
   onBidSuccess?: () => void;
 }
 
-const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, productId, onBidSuccess }) => {
-  const [bidAmount, setBidAmount] = useState<string>("");
+const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, productId, initialBidAmount = 0, onBidSuccess }) => {
+  const [bidAmount, setBidAmount] = useState<string>(initialBidAmount ? initialBidAmount.toString() : "");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Update bidAmount when initialBidAmount changes and modal is opened
+  useEffect(() => {
+    if (isOpen && initialBidAmount) {
+      setBidAmount(initialBidAmount.toString());
+    } else if (!isOpen) {
+      setBidAmount("");
+    }
+  }, [isOpen, initialBidAmount]);
 
   if (!isOpen) return null;
 

@@ -543,13 +543,13 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    color: #28a745;
+    /* color: #413db0; */
     font-weight: 600;
 }
 
 .requirementIcon {
     font-size: 16px;
-    color: #28a745;
+    /* color: #0f0d34; */
 }
 
 .bidIncrement {
@@ -1145,6 +1145,28 @@ tr:hover {
 }
 
 @media (max-width: 768px) {
+    /* Smaller Bid Card for mobile */
+    .bidCard {
+        padding: 12px;
+        gap: 6px;
+    }
+
+    .bidAmount {
+        font-size: 24px;
+    }
+
+    .bidLabel {
+        font-size: 14px;
+    }
+
+    .bidStats {
+        font-size: 12px;
+    }
+
+    /* Hide elements with this class on mobile */
+    .hideOnMobile {
+        display: none !important;
+    }
     .container {
         padding: 15px;
     }
