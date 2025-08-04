@@ -402,10 +402,10 @@ const ProductDetailPage = () => {
 
   // Quick bid options - ensure minimum bid is always at least 50 more than current bid
   const quickBidOptions = [
-    { amount: Math.max(minimumBid, getCurrentBid() + 50), label: 'Min' },
+    { amount: Math.max(minimumBid, getCurrentBid() + 50), label: '' },
     { amount: Math.max(minimumBid, getCurrentBid() + 150), label: '' },
     { amount: Math.max(minimumBid + 200, getCurrentBid() + 250), label: '' },
-    { amount: Math.max(minimumBid + 450, getCurrentBid() + 500), label: 'Max' },
+    { amount: Math.max(minimumBid + 450, getCurrentBid() + 500), label: '' },
   ];
 
   return (
@@ -484,11 +484,11 @@ const ProductDetailPage = () => {
                     </div>
                     <div className={styles.bidInfo}>
                       <span className={styles.bidRequirement}>
-                        <span className={styles.requirementIcon}>🛡️</span>
+                        <span className={styles.requirementIcon}></span>
                         Minimum bid: {formatCurrency(minimumBid)}
                       </span>
                       <span className={styles.bidIncrement}>
-                        +{formatCurrency(50)} increments
+                        +&nbsp;{formatCurrency(50)} increments
                       </span>
                     </div>
                   </div>
@@ -576,11 +576,11 @@ const ProductDetailPage = () => {
                   <span className={styles.detailLabel}>Starting Bid:</span>
                   <span className={styles.detailValue}>{formatCurrency(productData.starting_price)}</span>
                 </div>
-                <div className={styles.detailItem}>
+                <div className={`${styles.detailItem} ${styles.hideOnMobile}`}> 
                   <span className={styles.detailLabel}>Min Increment:</span>
                   <span className={styles.detailValue}>+{formatCurrency(50)}</span>
                 </div>
-                <div className={styles.detailItem}>
+                <div className={`${styles.detailItem} ${styles.hideOnMobile}`}> 
                   <span className={styles.detailLabel}>Quantity:</span>
                   <span className={styles.detailValue}>{productData.quantity} units</span>
                 </div>
@@ -593,7 +593,7 @@ const ProductDetailPage = () => {
                 <div className={styles.bidHeader}>
                   <span className={styles.bidLabel}>Place Your Bid</span>
                   <span className={styles.auctionStatus}>
-                    <span className={styles.statusIcon}>⏰</span>
+                    <span className={styles.statusIcon}></span>
                     {timeRemaining > 0 ? `Ends in ${formatCountdown(timeRemaining)}` : 'Auction Ended'}
                   </span>
                 </div>
