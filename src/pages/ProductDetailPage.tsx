@@ -41,7 +41,7 @@ const ProductDetailPage = () => {
   const [isCheckingWishlist, setIsCheckingWishlist] = useState(true);
   const { triggerWishlistUpdate } = useWishlist();
   const [images, setImages] = useState([]);
-const API_BASE_URL = import.meta.env.WEBSOCKET_URL || 'localhost:3000';
+const API_BASE_URL = import.meta.env.WEBSOCKET_URL;
   // Static manifest data
   const [manifestData] = useState([
     {
