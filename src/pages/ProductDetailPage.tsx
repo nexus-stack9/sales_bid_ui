@@ -42,7 +42,11 @@ const ProductDetailPage = () => {
   const [isCheckingWishlist, setIsCheckingWishlist] = useState(true);
   const { triggerWishlistUpdate } = useWishlist();
   const [images, setImages] = useState([]);
+
   const [showBidModal, setShowBidModal] = useState(false);
+
+=======
+const API_BASE_URL = "srv935459.hstgr.cloud:3000";
 
   // Static manifest data
   const [manifestData] = useState([
@@ -127,7 +131,7 @@ const ProductDetailPage = () => {
         websocket.close();
       }
 
-      websocket = new WebSocket(`ws://localhost:3000/ws/product?product_id=${productId}`);
+      websocket = new WebSocket(`ws://${API_BASE_URL}/ws/product?product_id=${productId}`);
       
       websocket.onopen = () => {
         console.log(`WebSocket connected for product ${productId}`);
