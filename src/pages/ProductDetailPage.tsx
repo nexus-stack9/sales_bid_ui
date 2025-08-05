@@ -44,8 +44,6 @@ const ProductDetailPage = () => {
   const [images, setImages] = useState([]);
 
   const [showBidModal, setShowBidModal] = useState(false);
-
-=======
 const API_BASE_URL = "srv935459.hstgr.cloud:3000";
 
   // Static manifest data
