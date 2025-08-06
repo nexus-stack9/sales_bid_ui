@@ -2,23 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styles from "./ProductDetailPage.module.css";
+import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
 import fridgeWebp from "@/assets/fridge.webp";
-import fridge2Png from "@/assets/fridge2.png";
-import { FaGavel, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
-import { placeBid, addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
+import { addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
 import BidModal from "./user/BidModal";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 const ProductDetailPage = () => {
   const { id: productId } = useParams();
@@ -44,7 +35,9 @@ const ProductDetailPage = () => {
   const [images, setImages] = useState([]);
 
   const [showBidModal, setShowBidModal] = useState(false);
-const API_BASE_URL = "srv935459.hstgr.cloud:3000";
+// Get the API base URL from environment variables and extract the host:port part for WebSocket
+// Prefer explicit websocket URL if provided, else derive from API base URL
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//, '');
 
   // Static manifest data
   const [manifestData] = useState([
@@ -532,19 +525,72 @@ const API_BASE_URL = "srv935459.hstgr.cloud:3000";
           {/* Right Column: Product Header and Bid Info */}
           <div className={styles.rightColumn}>
             <div className={styles.productHeader}>
-              <h1>{productData.name}</h1>
-              <div className={styles.headerMeta}>
-                <span className={`${styles.conditionBadge} ${styles.condition}`}>
-                  {productData.status}
-                </span>
-                <span className={`${styles.conditionBadge} ${styles.category}`}>
-                  {productData.category}
-                </span>
+              <h1 className={styles.productTitle}>{productData.name}</h1>
+              
+              <div className={styles.metaGrid}>
+                <div className={`${styles.metaItem} ${styles.categoryItem}`}>
+                  <span className={styles.metaLabel}><FaTag className={styles.metaIcon} /> Category</span>
+                  <span className={styles.metaValue}>
+                    {/* <span className={styles.categoryIcon}><Tag size={14} /></span> */}
+                    {productData.category}
+                  </span>
+                </div>
+                <div className={`${styles.metaItem} ${styles.conditionItem}`}>
+                  <span className={styles.metaLabel}><FaShieldAlt className={styles.metaIcon} /> Condition</span>
+                  <span className={`${styles.metaValue}`}>
+                    {/* <span className={styles.conditionIcon}><Award size={14} /></span> */}
+                    {productData.condition || 'Used'}
+                  </span>
+                </div>
+                <div className={`${styles.metaItem} ${styles.locationItem}`}>
+                  <span className={styles.metaLabel}><FaMapMarkerAlt className={styles.metaIcon} /> Location</span>
+                  <div className={styles.metaValue}>
+                    {/* <FaMapMarkerAlt className={styles.locationIcon} /> */}
+                    <span>{productData.location}</span>
+                  </div>
+                </div>
               </div>
-              <span className={styles.location}>
-                <FaMapMarkerAlt className={styles.locationIcon} />
-                {productData.location}
-              </span>
+              
+              <div className={styles.priceInfo}>
+                <div className={styles.priceItem}>
+                  {/* <div className={styles.priceIcon}>
+                    <DollarSign size={16} />
+                  </div> */}
+                  <div>
+                    <span className={styles.priceLabel}>Floor Price</span>
+                    <span className={styles.priceValue}>{formatCurrency(productData.starting_price)}</span>
+                  </div>
+                </div>
+                <div className={styles.priceItem}>
+                  {/* <div className={styles.priceIcon} style={{ color: '#10b981' }}>
+                    <Award size={16} />
+                  </div> */}
+                  <div>
+                    <span className={styles.priceLabel}>MSRP</span>
+                    <span className={styles.priceValue}>{formatCurrency(productData.retail_value)}</span>
+                  </div>
+                </div>
+                <div className={styles.priceItem}>
+                  {/* <div className={styles.priceIcon} style={{ color: '#3b82f6' }}>
+                    <FaBoxOpen size={16} />
+                  </div> */}
+                  <div>
+                    <span className={styles.priceLabel}>Quantity</span>
+                    <span className={styles.priceValue}>
+                      {productData.quantity} {productData.quantity === 1 ? 'unit' : 'units'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={styles.descriptionPreview}>
+                <h3>Description</h3>
+                <Tooltip content={productData.description}>
+                  <p className={styles.descriptionText}>
+                    {productData.description}
+                  </p>
+                </Tooltip>
+              </div>
             </div>
 
             <div className={styles.topBox}>

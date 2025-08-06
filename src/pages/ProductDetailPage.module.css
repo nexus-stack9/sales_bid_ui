@@ -161,60 +161,238 @@
 }
 
 .productHeader {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     padding: 20px;
     width: 100%;
     max-width: 450px;
-    background-color: white;
-    border: 1px solid #ddd;
+    background-color: #ffffff;
     border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
 }
 
-.productHeader h1 {
-    font-size: 22px;
-    margin: 0 0 12px 0;
-    color: #1a1a1a;
-    line-height: 1.3;
-    font-weight: 700;
+.productTitle {
+    font-size: 20px;
+    margin: 0 0 16px 0;
+    color: #111827;
+    font-weight: 600;
+    line-height: 1.4;
 }
 
-.headerMeta {
+.metaGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.metaItem {
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 5px;
-    margin-top: 8px;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 10px 8px 8px;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    transition: all 0.1s ease;
+}
+
+.metaLabel {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: #5f6571;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.metaIcon {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.metaValue {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #111827;
+    font-weight: 650;
+    line-height: 1.2;
+}
+
+/* Category Item */
+.categoryItem {
+    border-left: 2px solid #8b5cf6;
+}
+
+.categoryItem .metaIcon {
+    color: #8b5cf6;
+}
+
+/* Condition Item */
+.conditionItem {
+    border-left: 2px solid #10b981;
+}
+
+.conditionItem .metaIcon {
+    color: #10b981;
 }
 
 .conditionBadge {
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.condition {
-    background-color: #e0f7fa;
-    color: #006064;
-}
-
-.category {
-    background-color: #e6c999;
-    color: #36220a;
-}
-
-.location {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: #ecfdf5;
+    color: #065f46;
     font-size: 12px;
-    color: #4b5563;
     font-weight: 500;
+    text-transform: capitalize;
+}
+
+.conditionIcon {
+    color: #10b981;
+    font-size: 12px;
+}
+
+/* Location Item */
+.locationItem {
+    border-left: 2px solid #3b82f6;
+}
+
+.locationItem .metaIcon {
+    color: #3b82f6;
+}
+
+.location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #4b5563;
+    font-size: 13px;
 }
 
 .locationIcon {
+    color: #3b82f6;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #666;
+    font-size: 13px;
+}
+
+.locationIcon {
+    color: #ff4d4f;
     font-size: 14px;
-    color: inherit;
+}
+
+/* Price Info Section */
+.priceInfo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 12px 0;
+    margin: 8px 0 16px;
+}
+
+.priceItem {
+    padding: 8px 12px;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.priceItem:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background-color: #e5e7eb;
+}
+
+.priceIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: #f0f9ff;
+    color: #0ea5e9;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.priceLabel {
+    display: block;
+    font-size: 11px;
+    color: #606671;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 650;
+}
+
+.priceValue {
+    font-weight: 700;
+    color: #111827;
+    font-size: 14px;
+    line-height: 1.2;
+    display: block;
+}
+
+.retailValue {
+    color: #6b7280;
+    font-weight: 400;
+    font-size: 11px;
+    margin-top: 1px;
+    display: block;
+    line-height: 1.3;
+}
+
+.quantityValue {
+    font-weight: 600;
+    color: #111827;
+    font-size: 14px;
+    line-height: 1.2;
+    display: block;
+}
+
+/* Description Section */
+.descriptionPreview {
+    margin-top: 16px;
+}
+
+.descriptionPreview h3 {
+    font-size: 16px;
+    margin: 0 0 8px 0;
+    color: #333;
+    font-weight: 600;
+}
+
+.descriptionPreview p {
+    font-size: 14px;
+    color: #4a4a4a;
+    line-height: 1.6;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .actionButtons {
