@@ -18,6 +18,9 @@ import SellersPage from "./pages/sellers/SellersPage";
 import ForgotPassword from './pages/ForgotPassword';
 import MyBids from "./pages/user/MyBids";
 import Wishlist from "./pages/user/Wishlist";
+import BuyersPage from "./pages/buyers/BuyersPage"
+import allSellersPage from "./pages/sellers/allSellersPage";
+import AllSellersPage from "./pages/sellers/allSellersPage";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,9 @@ const App = () => (
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/my-bids" element={<MyBids />} />
                 <Route path="/sellers" element={<SellersPage />} />
+                                <Route path="/allSellersPage" element={<AllSellersPage />} />
+
+                <Route path="/buyers" element={<BuyersPage />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
