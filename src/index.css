@@ -187,4 +187,10 @@
   .hover\:animation-play-state-paused:hover {
     animation-play-state: paused;
   }
+
+  /* Hide bottom nav when filter panel is open on mobile */
+  body.filter-open .bottom-nav,
+  body.bid-open .bottom-nav {
+    display: none !important;
+  }
 }

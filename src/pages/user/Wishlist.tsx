@@ -4,6 +4,7 @@ import { Heart, Clock, X as XIcon } from 'lucide-react';
 import { placeBid, getUserWishlist, getUserIdFromToken, removeFromWishlist as removeFromWishlistAPI } from '@/services/crudService';
 import { useWishlist } from '@/hooks/use-wishlist';
 import Layout from '@/components/layout/Layout';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
 interface WishlistItem {
@@ -241,21 +242,31 @@ const Wishlist: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array(6).fill(0).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
-                <div className="bg-gray-200 w-full h-48 rounded-lg mb-4"></div>
-                <div className="space-y-2">
-                  <div className="bg-gray-200 h-4 rounded w-3/4"></div>
-                  <div className="bg-gray-200 h-4 rounded w-1/2"></div>
+      <Layout>
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-6">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64 mt-2" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-sm p-4">
+                  <Skeleton className="w-full h-48 rounded-lg" />
+                  <div className="mt-4 space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <div className="flex items-center justify-between pt-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-8 w-24" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 

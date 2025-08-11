@@ -44,6 +44,18 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
     }
   }, [isOpen, initialBidAmount]);
 
+  // Hide bottom navbar when BidModal is open (mobile)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('bid-open');
+    } else {
+      document.body.classList.remove('bid-open');
+    }
+    return () => {
+      document.body.classList.remove('bid-open');
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {

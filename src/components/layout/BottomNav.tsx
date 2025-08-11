@@ -13,7 +13,7 @@ const BottomNav = () => {
   if (!isMobile) return null;
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-white border-t border-border flex items-center justify-around">
+    <div className="bottom-nav fixed bottom-0 left-0 right-0 z-50 h-16 bg-white border-t border-border flex items-center justify-around">
       <Link to="/" className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary">
         <Home className="h-5 w-5" />
         <span className="text-xs mt-1">Home</span>
