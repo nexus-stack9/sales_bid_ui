@@ -114,7 +114,7 @@ const Navbar = () => {
               <div className="absolute top-full left-0 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 antialiased">
                 <div className="py-1" role="menu" aria-orientation="vertical">
                   <Link
-                    to="/categories/electronics"
+                    to="/allSellersPage"
                     className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
                     role="menuitem"
                   >
@@ -153,7 +153,7 @@ const Navbar = () => {
                 </div>
               </div>
             </div>
-            <Link to="/how-it-works" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
+            <Link to="/buyers" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
               For Buyers
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
