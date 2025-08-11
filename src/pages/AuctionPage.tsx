@@ -13,6 +13,7 @@ import { getProducts } from '@/services/productService';
 import dayjs from 'dayjs';
 import Layout from '@/components/layout/Layout';
 import { useToast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AuctionPage: React.FC = () => {
   //   const { wishlist } = useWishlist();
@@ -36,6 +37,18 @@ const AuctionPage: React.FC = () => {
     searchQuery: '',
   });
 
+  // Hide bottom navbar on mobile when filters are open
+  useEffect(() => {
+    if (isFilterOpen) {
+      document.body.classList.add('filter-open');
+    } else {
+      document.body.classList.remove('filter-open');
+    }
+    return () => {
+      document.body.classList.remove('filter-open');
+    };
+  }, [isFilterOpen]);
+
   // Define API product type
   interface ApiProduct {
     product_id: number;
@@ -50,6 +63,7 @@ const AuctionPage: React.FC = () => {
     category_name?: string;
     description?: string;
     vendor_name?: string;
+    retail_value?: string;
   }
 
   // Map API response to Product type
@@ -59,6 +73,9 @@ const AuctionPage: React.FC = () => {
                       apiProduct.condition || 'Fair') as 'New' | 'Like New' | 'Good' | 'Fair' | 'Used';
     
     const startingPrice = parseFloat(apiProduct.starting_price || '0');
+    const retailValue = apiProduct.retail_value ? parseFloat(apiProduct.retail_value) : undefined;
+    
+    const categoryName = apiProduct.category_name || 'Uncategorized';
     
     return {
       id: apiProduct.product_id.toString(),
@@ -69,12 +86,14 @@ const AuctionPage: React.FC = () => {
       totalBids: parseInt(apiProduct.total_bids || '0', 10),
       timeLeft: apiProduct.auction_end,
       location: apiProduct.location || 'Unknown',
-      category: apiProduct.category_name || 'Uncategorized',
+      category: categoryName,
+      category_name: categoryName,
       seller: apiProduct.vendor_name || 'Unknown Seller',
       startingBid: startingPrice,
       buyNowPrice: startingPrice * 1.5,
       condition,
       isWishlisted: false,
+      retail_value: retailValue,
     };
   }, []);
 
@@ -207,6 +226,56 @@ const AuctionPage: React.FC = () => {
     }
   }, [filteredAndSortedProducts, itemsToShow, isLoading]);
 
+  // Skeleton while loading
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex gap-6">
+            {/* Desktop Filter Sidebar Skeleton */}
+            <div className="hidden lg:block w-80 flex-shrink-0">
+              <div className="sticky top-24 space-y-4">
+                <Skeleton className="h-8 w-2/3" />
+                <div className="space-y-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-5 w-1/2" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-5/6" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Skeleton */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-6 lg:hidden">
+                <Skeleton className="h-10 w-28" />
+                <Skeleton className="h-10 w-40" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-sm p-4">
+                    <Skeleton className="w-full h-48 rounded-lg" />
+                    <div className="mt-4 space-y-2">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                      <div className="flex items-center justify-between pt-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-5 w-16" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   const loadMoreProducts = () => {
     const newItemsToShow = itemsToShow + 8;
     setItemsToShow(newItemsToShow);
@@ -248,6 +317,7 @@ const AuctionPage: React.FC = () => {
                 isOpen={true}
                 onClose={() => {}}
                 filters={filters}
+                products={allProducts}
                 onFiltersChange={setFilters}
                 onClearFilters={clearFilters}
               />
@@ -323,6 +393,7 @@ const AuctionPage: React.FC = () => {
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         filters={filters}
+        products={allProducts}
         onFiltersChange={setFilters}
         onClearFilters={clearFilters}
       />

@@ -129,7 +129,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
 
                 {/* Current Bid and Price */}
                 <div className="flex items-center justify-between pt-1"> 
-                  <span className="text-base font-medium text-foreground">Current Bid</span>
+                  {product.retail_value !== undefined ? (
+                    <span className="text-sm text-muted-foreground line-through">
+                      {formatPrice(product.retail_value)}
+                    </span>
+                  ) : (
+                    <span className="text-base font-medium text-foreground">Current Bid</span>
+                  )}
                   <div className="text-base font-semibold text-primary">
                     {formatPrice(product.currentBid)}
                   </div>
@@ -192,7 +198,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
             <div className="flex items-center justify-between pt-1"> {/* Added pt-1 for tighter spacing */}
               <div className="flex items-center gap-2">
                 <span className="text-base font-semibold text-foreground">{formatPrice(product.currentBid)}</span>
-                <span className="text-sm text-muted-foreground">Current bid</span>
+                {product.retail_value !== undefined ? (
+                  <span className="text-sm text-muted-foreground line-through">
+                    {formatPrice(product.retail_value)}
+                  </span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">Current bid</span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Hourglass className="h-3 w-3 text-primary" />

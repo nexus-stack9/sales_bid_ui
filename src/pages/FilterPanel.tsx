@@ -9,13 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FilterState } from '@/types/auction';
-import { categories, locations, conditions } from '@/data/mockProducts';
+import { FilterState, Product } from '@/types/auction';
 
 interface FilterPanelProps {
   isOpen: boolean;
   onClose: () => void;
   filters: FilterState;
+  products: Product[];
   onFiltersChange: (filters: FilterState) => void;
   onClearFilters: () => void;
 }
@@ -24,9 +24,41 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   isOpen,
   onClose,
   filters,
+  products,
   onFiltersChange,
   onClearFilters,
 }) => {
+  // Extract unique categories, conditions, and locations from products
+  const uniqueCategories = React.useMemo(() => {
+    const categories = new Set<string>();
+    products.forEach(product => {
+      if (product.category_name) {
+        categories.add(product.category_name);
+      }
+    });
+    return Array.from(categories).sort();
+  }, [products]);
+
+  const uniqueConditions = React.useMemo(() => {
+    const conditions = new Set<string>();
+    products.forEach(product => {
+      if (product.condition) {
+        conditions.add(product.condition);
+      }
+    });
+    return Array.from(conditions).sort();
+  }, [products]);
+
+  const uniqueLocations = React.useMemo(() => {
+    const locations = new Set<string>();
+    products.forEach(product => {
+      if (product.location) {
+        locations.add(product.location);
+      }
+    });
+    return Array.from(locations).sort();
+  }, [products]);
+
   const timeLeftOptions = [
     { label: 'Less than 1 hour', value: '1h' },
     { label: 'Less than 12 hours', value: '12h' },
@@ -150,7 +182,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   {/* Price Range */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">
-                      Price Range: ${filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}
+                      Price Range: ₹{filters.priceRange[0].toLocaleString('en-IN')} - ₹{filters.priceRange[1].toLocaleString('en-IN')}
                     </Label>
                     <Slider
                       value={filters.priceRange}
@@ -166,23 +198,27 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Categories</Label>
                     <div className="space-y-2">
-                      {categories.map((category) => (
-                        <div key={category} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={category}
-                            checked={filters.categories.includes(category)}
-                            onCheckedChange={(checked) =>
-                              handleCheckboxChange('categories', category, checked as boolean)
-                            }
-                          />
-                          <label
-                            htmlFor={category}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {category}
-                          </label>
-                        </div>
-                      ))}
+                      {uniqueCategories.length > 0 ? (
+                        uniqueCategories.map((category) => (
+                          <div key={category} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`category-${category}`}
+                              checked={filters.categories.includes(category)}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange('categories', category, checked as boolean)
+                              }
+                            />
+                            <label
+                              htmlFor={`category-${category}`}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {category}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No categories available</p>
+                      )}
                     </div>
                   </div>
 
@@ -214,23 +250,27 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Locations</Label>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {locations.map((location) => (
-                        <div key={location} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={location}
-                            checked={filters.locations.includes(location)}
-                            onCheckedChange={(checked) =>
-                              handleCheckboxChange('locations', location, checked as boolean)
-                            }
-                          />
-                          <label
-                            htmlFor={location}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {location}
-                          </label>
-                        </div>
-                      ))}
+                      {uniqueLocations.length > 0 ? (
+                        uniqueLocations.map((location) => (
+                          <div key={location} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`location-${location}`}
+                              checked={filters.locations.includes(location)}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange('locations', location, checked as boolean)
+                              }
+                            />
+                            <label
+                              htmlFor={`location-${location}`}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {location}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No locations available</p>
+                      )}
                     </div>
                   </div>
 
@@ -238,23 +278,27 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Condition</Label>
                     <div className="space-y-2">
-                      {conditions.map((condition) => (
-                        <div key={condition} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={condition}
-                            checked={filters.condition.includes(condition)}
-                            onCheckedChange={(checked) =>
-                              handleCheckboxChange('condition', condition, checked as boolean)
-                            }
-                          />
-                          <label
-                            htmlFor={condition}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {condition}
-                          </label>
-                        </div>
-                      ))}
+                      {uniqueConditions.length > 0 ? (
+                        uniqueConditions.map((condition) => (
+                          <div key={condition} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`condition-${condition}`}
+                              checked={filters.condition.includes(condition)}
+                              onCheckedChange={(checked) =>
+                                handleCheckboxChange('condition', condition, checked as boolean)
+                              }
+                            />
+                            <label
+                              htmlFor={`condition-${condition}`}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {condition}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No conditions available</p>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import styles from "./ProductDetailPage.module.css";
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
+import { Skeleton } from "@/components/ui/skeleton";
 import fridgeWebp from "@/assets/fridge.webp";
 import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
@@ -35,6 +36,18 @@ const ProductDetailPage = () => {
   const [images, setImages] = useState([]);
 
   const [showBidModal, setShowBidModal] = useState(false);
+  
+  // Hide bottom navbar on mobile when BidModal is open
+  useEffect(() => {
+    if (showBidModal) {
+      document.body.classList.add('bid-open');
+    } else {
+      document.body.classList.remove('bid-open');
+    }
+    return () => {
+      document.body.classList.remove('bid-open');
+    };
+  }, [showBidModal]);
 // Get the API base URL from environment variables and extract the host:port part for WebSocket
 // Prefer explicit websocket URL if provided, else derive from API base URL
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//, '');
@@ -363,14 +376,105 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
     return (
       <Layout>
         <div className={styles.container}>
-          <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <p>Loading product details...</p>
-            {connectionError && (
-              <p style={{ color: 'red' }}>
-                Connection error. Attempting to reconnect...
-              </p>
-            )}
+          <div className={styles.contentWrapper}>
+            {/* Left Column Skeleton */}
+            <div className={styles.leftColumn}>
+              <div className={styles.imageGallery}>
+                <div className={styles.mainImage}>
+                  <Skeleton className="w-full h-[360px] md:h-[440px] rounded-lg" />
+                </div>
+                <div className={styles.thumbnailStrip}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className={styles.thumbnail}>
+                      <Skeleton className="h-16 w-16 rounded" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.desktopPlaceBidCard}>
+                <div className={styles.placeBidCard}>
+                  <div className="space-y-3">
+                    <Skeleton className="h-6 w-40" />
+                    <Skeleton className="h-10 w-full" />
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <Skeleton className="h-11 w-full" />
+                    <div className="grid grid-cols-2 gap-2">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-9 w-full" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column Skeleton */}
+            <div className={styles.rightColumn}>
+              <div className={styles.productHeader}>
+                <Skeleton className="h-8 w-3/4 mb-4" />
+                <div className={styles.metaGrid}>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className={styles.metaItem}>
+                      <Skeleton className="h-4 w-28 mb-1" />
+                      <Skeleton className="h-5 w-40" />
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.priceInfo}>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className={styles.priceItem}>
+                      <Skeleton className="h-4 w-24 mb-1" />
+                      <Skeleton className="h-6 w-32" />
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.descriptionPreview}>
+                  <Skeleton className="h-5 w-28 mb-2" />
+                  <Skeleton className="h-4 w-full mb-1" />
+                  <Skeleton className="h-4 w-5/6" />
+                </div>
+              </div>
+
+              <div className={styles.topBox}>
+                <div className={styles.bidCard}>
+                  <Skeleton className="h-5 w-28 mb-3" />
+                  <Skeleton className="h-8 w-40 mb-3" />
+                  <Skeleton className="h-2 w-full mb-3" />
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                </div>
+                <div className={styles.auctionDetails}>
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className={styles.detailItem}>
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-5 w-32" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Tab headers skeleton */}
+          <div className={styles.tabbedInfoDesktop}>
+            <div className={styles.tabHeaders}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-28 mr-3 inline-block" />
+              ))}
+            </div>
+          </div>
+
+          {connectionError && (
+            <div style={{ textAlign: 'center', padding: '1rem' }}>
+              <p style={{ color: 'red' }}>Connection issue. Trying to reconnect…</p>
+            </div>
+          )}
         </div>
       </Layout>
     );
