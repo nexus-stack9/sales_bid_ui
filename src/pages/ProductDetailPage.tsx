@@ -6,9 +6,10 @@ import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import fridgeWebp from "@/assets/fridge.webp";
-import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt } from 'react-icons/fa';
+import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
 import { addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
+import WebSocketService, { WebSocketMessage } from "@/services/WebsocketService";
 import BidModal from "./user/BidModal";
 import { useWishlist } from "@/hooks/use-wishlist";
 
@@ -16,11 +17,11 @@ const ProductDetailPage = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
   
-  // WebSocket and product data state
-  const [ws, setWs] = useState(null);
+  // Product data state
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
+  const webSocketService = React.useMemo(() => WebSocketService, []);
   
   // UI state
   const [activeTab, setActiveTab] = useState("description");
@@ -125,70 +126,23 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       return;
     }
 
-    let websocket;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-
-    const connectWebSocket = () => {
-      // Close any existing connection
-      if (websocket) {
-        websocket.close();
-      }
-
-      websocket = new WebSocket(`ws://${API_BASE_URL}/ws/product?product_id=${productId}`);
-      
-      websocket.onopen = () => {
-        console.log(`WebSocket connected for product ${productId}`);
-        reconnectAttempts = 0;
+    const handleWebSocketMessage = (message: WebSocketMessage) => {
+      if (message.type === 'product_update' && message.data) {
+        setProductData(message.data);
+        setLoading(false);
         setConnectionError(false);
-      };
-      
-      websocket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          if (message.type === 'product_update' && message.data) {
-            setProductData(message.data);
-            setLoading(false);
-            // Don't automatically set the bid amount - let it be empty by default
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-      
-      websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setConnectionError(true);
-      };
-      
-      websocket.onclose = () => {
-        console.log(`WebSocket disconnected for product ${productId}`);
-        setConnectionError(true);
-        
-        // Only attempt to reconnect if we're still on the same product
-        if (websocket === ws && reconnectAttempts < maxReconnectAttempts) {
-          reconnectAttempts++;
-          setTimeout(() => {
-            if (!websocket || websocket.readyState === WebSocket.CLOSED) {
-              connectWebSocket();
-            }
-          }, 3000);
-        }
-      };
-      
-      setWs(websocket);
+      }
     };
 
-    connectWebSocket();
+    // Connect to WebSocket
+    webSocketService.connect(productId, handleWebSocketMessage);
 
     // Cleanup on component unmount or productId change
     return () => {
-      if (websocket) {
-        websocket.close();
-        console.log(`Cleaning up WebSocket for product ${productId}`);
-      }
+      webSocketService.disconnect();
+      console.log(`Cleaning up WebSocket for product ${productId}`);
     };
-  }, [productId]);
+  }, [productId, navigate, webSocketService]);
 
   // Timer for auction countdown
   useEffect(() => {
@@ -221,12 +175,43 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
     }).format(amount);
   };
 
-  const formatCountdown = (seconds) => {
+  const formatCountdown = (seconds: number): JSX.Element => {
     const days = Math.floor(seconds / (3600 * 24));
     const hours = Math.floor((seconds % (3600 * 24)) / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${days}d ${hours}h ${mins}m ${secs}s`;
+    
+    return (
+      <div className="flex items-center space-x-1">
+        <div className="flex flex-col items-center">
+          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
+            {days.toString().padStart(2, '0')}
+          </div>
+          <span className="text-xs text-gray-500 mt-1">Days</span>
+        </div>
+        <div className="text-gray-500 font-bold">:</div>
+        <div className="flex flex-col items-center">
+          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
+            {hours.toString().padStart(2, '0')}
+          </div>
+          <span className="text-xs text-gray-500 mt-1">Hours</span>
+        </div>
+        <div className="text-gray-500 font-bold">:</div>
+        <div className="flex flex-col items-center">
+          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
+            {mins.toString().padStart(2, '0')}
+          </div>
+          <span className="text-xs text-gray-500 mt-1">Mins</span>
+        </div>
+        <div className="text-gray-500 font-bold">:</div>
+        <div className="flex flex-col items-center">
+          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
+            {secs.toString().padStart(2, '0')}
+          </div>
+          <span className="text-xs text-gray-500 mt-1">Secs</span>
+        </div>
+      </div>
+    );
   };
 
   const getHighestBid = (bids) => {
@@ -558,13 +543,35 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
               <div className={styles.placeBidCard}>
                 <div className={styles.bidHeader}>
                   <span className={styles.bidLabel}>Place Your Bid</span>
-                  <span className={styles.auctionStatus}>
-                    {timeRemaining > 0 ? `Ends in ${formatCountdown(timeRemaining)}` : 'Auction Ended'}
-                  </span>
+                  {/* <div className="flex items-center">
+                    <span className="text-sm text-gray-600 mr-2">Ends in</span>
+                    {timeRemaining > 0 ? (
+                      <div className={styles.auctionStatus}>
+                        {formatCountdown(timeRemaining)}
+                      </div>
+                    ) : (
+                      <span>Auction Ended</span>
+                    )}
+                  </div> */}
+                </div>
+                <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 mb-2 border border-amber-100">
+                  <div className="flex items-center">
+                    <div className="bg-amber-100 p-2 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-amber-800">
+                        Next minimum bid: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
+                      </p>
+                      <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher than current bid</p>
+                    </div>
+                  </div>
                 </div>
                 <form onSubmit={handleBidSubmit} className={styles.bidForm}>
                   <div className={styles.bidInputGroup}>
-                    <label className={styles.inputLabel}>YOUR BID (INR)</label>
+                    {/* <label className={styles.inputLabel}>YOUR BID (INR)</label> */}
                     <div className={styles.inputWrapper}>
                       <span className={styles.currencySymbol}>₹</span>
                       <input
@@ -581,7 +588,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                         disabled={timeRemaining === 0}
                       />
                     </div>
-                    <div className={styles.bidInfo}>
+                    {/* <div className={styles.bidInfo}>
                       <span className={styles.bidRequirement}>
                         <span className={styles.requirementIcon}></span>
                         Minimum bid: {formatCurrency(minimumBid)}
@@ -589,7 +596,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                       <span className={styles.bidIncrement}>
                         +&nbsp;{formatCurrency(50)} increments
                       </span>
-                    </div>
+                    </div> */}
                   </div>
                   <button 
                     type="submit" 
@@ -629,7 +636,9 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
           {/* Right Column: Product Header and Bid Info */}
           <div className={styles.rightColumn}>
             <div className={styles.productHeader}>
-              <h1 className={styles.productTitle}>{productData.name}</h1>
+              <div className="flex justify-between items-start w-full">
+                <h1 className={styles.productTitle}>{productData.name}</h1>
+              </div>
               
               <div className={styles.metaGrid}>
                 <div className={`${styles.metaItem} ${styles.categoryItem}`}>
@@ -686,6 +695,45 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                   </div>
                 </div>
               </div>
+              <div className={styles.countdownContainer}>
+                <div className={styles.countdownLabel}>
+                  <FaClock className={styles.clockIcon} />
+                  <span className={styles.endsInText}>Time Remaining</span>
+                </div>
+                {timeRemaining > 0 ? (
+                  <div className={styles.auctionStatus}>
+                    <div className={styles.timeUnit}>
+                      <span className={styles.timeValue}>
+                        {Math.floor(timeRemaining / 86400).toString().padStart(2, '0')}
+                      </span>
+                      <span className={styles.timeLabel}>Days</span>
+                    </div>
+                    <span className={styles.separator}>:</span>
+                    <div className={styles.timeUnit}>
+                      <span className={styles.timeValue}>
+                        {Math.floor((timeRemaining % 86400) / 3600).toString().padStart(2, '0')}
+                      </span>
+                      <span className={styles.timeLabel}>Hrs</span>
+                    </div>
+                    <span className={styles.separator}>:</span>
+                    <div className={styles.timeUnit}>
+                      <span className={styles.timeValue}>
+                        {Math.floor((timeRemaining % 3600) / 60).toString().padStart(2, '0')}
+                      </span>
+                      <span className={styles.timeLabel}>Mins</span>
+                    </div>
+                    <span className={styles.separator}>:</span>
+                    <div className={styles.timeUnit}>
+                      <span className={styles.timeValue}>
+                        {(timeRemaining % 60).toString().padStart(2, '0')}
+                      </span>
+                      <span className={styles.timeLabel}>Secs</span>
+                    </div>
+                  </div>
+                ) : (
+                  <span className={styles.endsInText}>Auction Ended</span>
+                )}
+              </div>
               
               <div className={styles.descriptionPreview}>
                 <h3>Description</h3>
@@ -714,7 +762,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                     {getBidCount()} bids
                   </div>
                   <div className={styles.retailPercentage}>
-                    {getRetailPercentage()}% of retail
+                    {getRetailPercentage()}% of MSRP
                   </div>
                 </div>
               </div>
@@ -744,14 +792,10 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
               <div className={styles.placeBidCard}>
                 <div className={styles.bidHeader}>
                   <span className={styles.bidLabel}>Place Your Bid</span>
-                  <span className={styles.auctionStatus}>
-                    <span className={styles.statusIcon}></span>
-                    {timeRemaining > 0 ? `Ends in ${formatCountdown(timeRemaining)}` : 'Auction Ended'}
-                  </span>
                 </div>
                 <form onSubmit={handleBidSubmit} className={styles.bidForm}>
                   <div className={styles.bidInputGroup}>
-                    <label className={styles.inputLabel}>YOUR BID (INR)</label>
+                    {/* <label className={styles.inputLabel}>YOUR BID (INR)</label> */}
                     <div className={styles.inputWrapper}>
                       <span className={styles.currencySymbol}>₹</span>
                       <input

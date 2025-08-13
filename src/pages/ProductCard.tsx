@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MapPin, Tag, Clock, Gavel, Hourglass } from 'lucide-react';
+import { FaClock as FaClockIcon } from 'react-icons/fa';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ const formatPrice = (amount: number): string => {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' }) => {
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState('');
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const [isUrgent, setIsUrgent] = useState(false);
   
   const handleCardClick = (e: React.MouseEvent) => {
@@ -44,30 +45,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
     const updateTimeLeft = () => {
       const now = dayjs();
       const endTime = dayjs(product.timeLeft);
-      const diff = endTime.diff(now);
-
-      if (diff <= 0) {
-        setTimeLeft('Ended');
-        return;
-      }
-
-      const duration = dayjs.duration(diff);
-      const days = Math.floor(duration.asDays());
-      const hours = duration.hours();
-      const minutes = duration.minutes();
-      const seconds = duration.seconds();
-
-      if (days > 0) {
-        setTimeLeft(`${days}d ${hours}h`);
-      } else if (hours > 0) {
-        setTimeLeft(`${hours}h ${minutes}m`);
-      } else if (minutes > 0) {
-        setTimeLeft(`${minutes}m ${seconds}s`);
-      } else {
-        setTimeLeft(`${seconds}s`);
-      }
-
-      setIsUrgent(diff <= 3600000); // Less than 1 hour
+      const diffInSeconds = Math.max(0, Math.floor(endTime.diff(now) / 1000));
+      
+      setTimeRemaining(diffInSeconds);
+      setIsUrgent(diffInSeconds <= 3600); // Less than 1 hour
     };
 
     updateTimeLeft();
@@ -121,10 +102,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                   </div>
                 </div>
 
-                {/* Location - Added below title */}
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3" />
-                  <span className="truncate">{product.location}</span>
+                {/* Location Tag */}
+                <div className="inline-flex items-center gap-1.5 bg-blue-100 hover:bg-blue-200 transition-colors duration-200 rounded-full px-3 py-1 max-w-full border border-blue-200">
+                  <MapPin className="h-3 w-3 text-blue-700 flex-shrink-0" />
+                  <span className="text-xs font-semibold text-blue-900 truncate" title={product.location}>
+                    {product.location}
+                  </span>
                 </div>
 
                 {/* Current Bid and Price */}
@@ -142,15 +125,40 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 </div>
 
                 {/* Total Bids and Time Left */}
-                <div className="flex items-center justify-between text-sm text-muted-foreground pt-1"> {/* Added pt-1 for tighter spacing */}
+                <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
                   <div className="flex items-center gap-1 text-primary">
                     <Gavel className="h-3 w-3" />
                     <span>{product.totalBids} bids</span>
                   </div>
-                  <div className="flex items-center gap-1 text-primary">
-                    <Hourglass className="h-3 w-3" />
-                    <span className="font-medium">{timeLeft}</span>
-                  </div>
+                  {timeRemaining > 0 ? (
+                    <div className="flex items-center gap-1 text-primary">
+                      <div className="flex items-center gap-1 text-xs bg-blue-50 px-2 py-1 rounded">
+                        <FaClockIcon className="h-3 w-3" />
+                        <div className="flex items-center">
+                          {timeRemaining >= 86400 && (
+                            <>
+                              <span className="font-semibold">
+                                {Math.floor(timeRemaining / 86400).toString().padStart(2, '0')}
+                              </span>
+                              <span className="font-semibold text-gray-600 ml-0.5">d</span>
+                              <span className="mx-0.5 text-gray-400">:</span>
+                            </>
+                          )}
+                          <span className="font-semibold">
+                            {Math.floor((timeRemaining % 86400) / 3600).toString().padStart(2, '0')}
+                          </span>
+                          <span className="font-semibold text-gray-600 ml-0.5">h</span>
+                          <span className="mx-0.5 text-gray-400">:</span>
+                          <span className="font-semibold">
+                            {Math.floor((timeRemaining % 3600) / 60).toString().padStart(2, '0')}
+                          </span>
+                          <span className="font-semibold text-gray-600 ml-0.5">m</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">Ended</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -188,9 +196,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                     {product.name}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground truncate">{product.location}</span>
+                <div className="mt-1">
+                  <div className="inline-flex items-center gap-1.5 bg-blue-100 hover:bg-blue-200 transition-colors duration-200 rounded-full px-3 py-1 max-w-full border border-blue-200">
+                    <MapPin className="h-3 w-3 text-blue-700 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-blue-900 truncate" title={product.location}>
+                      {product.location}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -206,10 +218,33 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                   <span className="text-sm text-muted-foreground">Current bid</span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <Hourglass className="h-3 w-3 text-primary" />
-                <span className={`text-sm ${isUrgent ? 'text-red-500' : 'text-primary'} font-medium`}>{timeLeft}</span>
-              </div>
+              {timeRemaining > 0 ? (
+                <div className="flex items-center gap-1 text-xs bg-blue-50 px-2 py-1 rounded">
+                  <FaClockIcon className="h-3 w-3" />
+                  <div className="flex items-center">
+                    {timeRemaining >= 86400 && (
+                      <>
+                        <span className="font-semibold">
+                          {Math.floor(timeRemaining / 86400).toString().padStart(2, '0')}
+                        </span>
+                        <span className="font-semibold text-gray-600 ml-0.5">d</span>
+                        <span className="mx-0.5 text-gray-400">:</span>
+                      </>
+                    )}
+                    <span className="font-semibold">
+                      {Math.floor((timeRemaining % 86400) / 3600).toString().padStart(2, '0')}
+                    </span>
+                    <span className="font-semibold text-gray-600 ml-0.5">h</span>
+                    <span className="mx-0.5 text-gray-400">:</span>
+                    <span className="font-semibold">
+                      {Math.floor((timeRemaining % 3600) / 60).toString().padStart(2, '0')}
+                    </span>
+                    <span className="font-semibold text-gray-600 ml-0.5">m</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">Ended</div>
+              )}
             </div>
 
             <div className="flex items-center justify-between pt-1"> {/* Added pt-1 for tighter spacing */}
