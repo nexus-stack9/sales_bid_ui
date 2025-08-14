@@ -5,6 +5,7 @@ import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import ProductCard from './ProductCard';
 import FilterPanel from './FilterPanel';
 import { Product, FilterState, SortOption } from '@/types/auction';
@@ -14,6 +15,7 @@ import dayjs from 'dayjs';
 import Layout from '@/components/layout/Layout';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMediaQuery } from '../hooks/use-media-query';
 
 const AuctionPage: React.FC = () => {
   //   const { wishlist } = useWishlist();
@@ -25,8 +27,10 @@ const AuctionPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [itemsToShow, setItemsToShow] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
   const { toast } = useToast();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
@@ -121,7 +125,7 @@ const AuctionPage: React.FC = () => {
         if (isValidApiResponse(response) && response.success) {
           const mappedProducts = response.data.map(mapApiProductToProduct);
           setAllProducts(mappedProducts);
-          setDisplayedProducts(mappedProducts.slice(0, itemsToShow));
+          setDisplayedProducts(mappedProducts.slice(0, isMobile ? itemsPerPage * currentPage : itemsPerPage));
           setError(null);
         } else {
           throw new Error('Invalid response format');
@@ -141,7 +145,7 @@ const AuctionPage: React.FC = () => {
     };
     
     fetchProducts();
-  }, [toast, itemsToShow, mapApiProductToProduct]);
+  }, [toast, itemsPerPage, currentPage, mapApiProductToProduct, isMobile]);
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo((): Product[] => {
@@ -217,14 +221,75 @@ const AuctionPage: React.FC = () => {
   // Update displayed products when filters/sort change or when loading state changes
   useEffect(() => {
     if (!isLoading) {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const newProducts = filteredAndSortedProducts.slice(0, isMobile ? itemsPerPage * currentPage : endIndex);
+      
       setDisplayedProducts((prev) => {
-        const newProducts = filteredAndSortedProducts.slice(0, itemsToShow);
         // Only update if the products have actually changed
         return JSON.stringify(prev) !== JSON.stringify(newProducts) ? newProducts : prev;
       });
-      setHasMore(filteredAndSortedProducts.length > itemsToShow);
+      
+      setHasMore(filteredAndSortedProducts.length > (isMobile ? itemsPerPage * currentPage : endIndex));
     }
-  }, [filteredAndSortedProducts, itemsToShow, isLoading]);
+  }, [filteredAndSortedProducts, currentPage, itemsPerPage, isLoading, isMobile]);
+  
+  // Reset to first page when filters or sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, sortBy]);
+  
+  // Calculate total pages for pagination
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
+  
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5; // Show max 5 page numbers at a time
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total pages is less than max visible pages
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      // Calculate start and end page
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust if we're near the start or end
+      if (currentPage <= 3) {
+        endPage = 4;
+      } else if (currentPage >= totalPages - 2) {
+        startPage = totalPages - 3;
+      }
+      
+      // Add ellipsis if needed
+      if (startPage > 2) {
+        pages.push('...');
+      }
+      
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis if needed
+      if (endPage < totalPages - 1) {
+        pages.push('...');
+      }
+      
+      // Always show last page
+      if (totalPages > 1) {
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
 
   // Skeleton while loading
   if (isLoading) {
@@ -277,10 +342,7 @@ const AuctionPage: React.FC = () => {
   }
 
   const loadMoreProducts = () => {
-    const newItemsToShow = itemsToShow + 8;
-    setItemsToShow(newItemsToShow);
-    setDisplayedProducts(filteredAndSortedProducts.slice(0, newItemsToShow));
-    setHasMore(filteredAndSortedProducts.length > newItemsToShow);
+    setCurrentPage(prev => prev + 1);
   };
 
   const clearFilters = () => {
@@ -292,7 +354,7 @@ const AuctionPage: React.FC = () => {
       condition: [],
       searchQuery: '',
     });
-    setItemsToShow(8);
+    setCurrentPage(1);
   };
 
   const getActiveFiltersCount = () => {
@@ -373,15 +435,55 @@ const AuctionPage: React.FC = () => {
                 </div>
               )}
 
-              {hasMore && (
-                <div className="flex justify-center">
-                  <Button
-                    onClick={loadMoreProducts}
-                    className="w-full md:w-auto"
-                  >
-                    Load More
-                  </Button>
-                </div>
+              {isMobile ? (
+                hasMore && (
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={loadMoreProducts}
+                      className="w-full md:w-auto"
+                    >
+                      Load More
+                    </Button>
+                  </div>
+                )
+              ) : (
+                totalPages > 1 && (
+                  <div className="mt-8 flex justify-center">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                        
+                        {getPageNumbers().map((page, index) => (
+                          <PaginationItem key={index}>
+                            {page === '...' ? (
+                              <span className="px-3 py-1">...</span>
+                            ) : (
+                              <PaginationLink
+                                onClick={() => setCurrentPage(page as number)}
+                                isActive={currentPage === page}
+                                className={`cursor-pointer ${currentPage === page ? 'bg-primary text-white hover:text-white' : ''}`}
+                              >
+                                {page}
+                              </PaginationLink>
+                            )}
+                          </PaginationItem>
+                        ))}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )
               )}
             </div>
           </div>
