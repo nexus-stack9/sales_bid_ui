@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/ui/use-toast'; // Updated import
 import styles from "./ProductDetailPage.module.css";
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
@@ -16,13 +16,11 @@ import { useWishlist } from "@/hooks/use-wishlist";
 const ProductDetailPage = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
-  
   // Product data state
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
   const webSocketService = React.useMemo(() => WebSocketService, []);
-  
   // UI state
   const [activeTab, setActiveTab] = useState("description");
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -35,9 +33,12 @@ const ProductDetailPage = () => {
   const [isCheckingWishlist, setIsCheckingWishlist] = useState(true);
   const { triggerWishlistUpdate } = useWishlist();
   const [images, setImages] = useState([]);
-
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // Swipe functionality refs
+  const imageRef = useRef(null);
   const [showBidModal, setShowBidModal] = useState(false);
-  
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   // Hide bottom navbar on mobile when BidModal is open
   useEffect(() => {
     if (showBidModal) {
@@ -49,10 +50,9 @@ const ProductDetailPage = () => {
       document.body.classList.remove('bid-open');
     };
   }, [showBidModal]);
-// Get the API base URL from environment variables and extract the host:port part for WebSocket
-// Prefer explicit websocket URL if provided, else derive from API base URL
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//, '');
-
+  // Get the API base URL from environment variables and extract the host:port part for WebSocket
+  // Prefer explicit websocket URL if provided, else derive from API base URL
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//, '');
   // Static manifest data
   const [manifestData] = useState([
     {
@@ -80,7 +80,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       category: "Electronics"
     },
   ]);
-
   useEffect(() => {
     if (productData?.image_path) {
       const imageUrls = productData.image_path.split(',').map(url => url.trim());
@@ -88,14 +87,12 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
         src: url,
         alt: `${productData.name} Image ${index + 1}`
       }));
-      
       setImages(formattedImages);
       if (formattedImages.length > 0) {
         setSelectedImage(formattedImages[0].src);
       }
     }
   }, [productData]);
-
   // Check wishlist status on component mount
   useEffect(() => {
     const checkWishlistStatus = async () => {
@@ -105,7 +102,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
           setIsCheckingWishlist(false);
           return;
         }
-
         const isInWishlist = await checkWishlistItem(productId, userId);
         setIsInWishlist(isInWishlist);
       } catch (error) {
@@ -114,18 +110,20 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
         setIsCheckingWishlist(false);
       }
     };
-
     checkWishlistStatus();
   }, [productId]);
-
   // WebSocket connection setup with proper cleanup
   useEffect(() => {
     if (!productId) {
-      toast.error('Product ID not found');
+      toast({
+        variant: 'default',
+        title: 'Error',
+        description: 'Product ID not found',
+        className: 'bg-white border border-red-200 text-foreground shadow-lg'
+      });
       navigate('/');
       return;
     }
-
     const handleWebSocketMessage = (message: WebSocketMessage) => {
       if (message.type === 'product_update' && message.data) {
         setProductData(message.data);
@@ -133,39 +131,62 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
         setConnectionError(false);
       }
     };
-
     // Connect to WebSocket
     webSocketService.connect(productId, handleWebSocketMessage);
-
     // Cleanup on component unmount or productId change
     return () => {
       webSocketService.disconnect();
       console.log(`Cleaning up WebSocket for product ${productId}`);
     };
   }, [productId, navigate, webSocketService]);
-
   // Timer for auction countdown
   useEffect(() => {
     if (!productData?.auction_end) return;
-
     const updateTimer = () => {
       const now = new Date().getTime();
       const endTime = new Date(productData.auction_end).getTime();
       const difference = endTime - now;
-      
       if (difference > 0) {
         setTimeRemaining(Math.floor(difference / 1000));
       } else {
         setTimeRemaining(0);
       }
     };
-
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
-    
     return () => clearInterval(timer);
   }, [productData?.auction_end]);
-
+  // Handle swipe events for mobile
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 50) {
+      // Swipe left - next image
+      nextImage();
+    }
+    if (touchStart - touchEnd < -50) {
+      // Swipe right - previous image
+      prevImage();
+    }
+  };
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) => {
+      const newIndex = (prevIndex + 1) % images.length;
+      setSelectedImage(images[newIndex].src);
+      return newIndex;
+    });
+  };
+  const prevImage = () => {
+    setCurrentImageIndex((prevIndex) => {
+      const newIndex = (prevIndex - 1 + images.length) % images.length;
+      setSelectedImage(images[newIndex].src);
+      return newIndex;
+    });
+  };
   // Helper functions
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
@@ -174,13 +195,11 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       minimumFractionDigits: 2,
     }).format(amount);
   };
-
   const formatCountdown = (seconds: number): JSX.Element => {
     const days = Math.floor(seconds / (3600 * 24));
     const hours = Math.floor((seconds % (3600 * 24)) / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
     return (
       <div className="flex items-center space-x-1">
         <div className="flex flex-col items-center">
@@ -213,59 +232,47 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       </div>
     );
   };
-
   const getHighestBid = (bids) => {
     if (!bids || bids.length === 0) return null;
     return Math.max(...bids.map(bid => bid.bid_amount));
   };
-
   const getBidCount = () => {
     return productData?.bids?.length || 0;
   };
-
   const getRetailPercentage = () => {
     if (!productData) return 0;
     const highestBid = getHighestBid(productData.bids) || parseFloat(productData.starting_price);
     const retailValue = parseFloat(productData.retail_value);
     return Math.round((highestBid / retailValue) * 100);
   };
-
   const getCurrentBid = () => {
     if (!productData) return 0;
     return getHighestBid(productData.bids) || parseFloat(productData.starting_price);
   };
-
   const getMinimumBid = () => {
     const currentBid = getCurrentBid();
     return currentBid + 50;
   };
-
   // Handle successful bid placement
   const handleBidSuccess = () => {
     setBidAmount(''); // Clear the bid input
     // The WebSocket will automatically update the UI with the new bid
   };
-
   // Handle bid submission
   const handleBidSubmit = (e) => {
     e.preventDefault();
-    
     if (bidAmount === '' || bidAmount <= 0) {
-      toast.error('Please enter a valid bid amount', {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true
+      toast({
+        variant: 'default',
+        title: 'Error',
+        description: 'Please enter a valid bid amount',
+        className: 'bg-white border border-red-200 text-foreground shadow-lg'
       });
       return;
     }
-
     // Show the bid modal
     setShowBidModal(true);
   };
-
   const handleQuickBid = (amount) => {
     if (timeRemaining > 0) {
       setBidAmount(amount);
@@ -276,46 +283,68 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       }
     }
   };
-
   const toggleMobileAccordion = (tab) => {
     setMobileAccordionOpen(mobileAccordionOpen === tab ? null : tab);
   };
-
-  const handleImageClick = (imageSrc) => {
+  const handleImageClick = (imageSrc, index) => {
     setSelectedImage(imageSrc);
+    setCurrentImageIndex(index);
   };
-
   const handleWishlistToggle = async () => {
     try {
       setIsWishlistLoading(true);
       const userId = getUserIdFromToken();
       
       if (!userId) {
-        toast.error('Please log in to manage your wishlist');
-        navigate('/login');
+        // Use the same toast style as in ProductCard
+        toast({
+          variant: 'default',
+          title: 'Sign in required',
+          description: 'Please sign in to add to wishlist',
+          className: 'bg-white border border-gray-200 text-foreground shadow-lg'
+        });
+        // Optionally navigate to login
+        // navigate('/login');
         return;
       }
 
       if (!productId) {
-        toast.error('Product not found');
+        toast({
+          variant: 'default',
+          title: 'Error',
+          description: 'Product not found',
+          className: 'bg-white border border-red-200 text-foreground shadow-lg'
+        });
         return;
       }
 
       if (isInWishlist) {
         await removeFromWishlist(productId, userId);
-        toast.success('Removed from wishlist');
+        setIsInWishlist(false);
+        await triggerWishlistUpdate();
+        toast({
+          title: 'Success',
+          description: 'Removed from wishlist',
+          className: 'bg-white border border-green-200 text-foreground shadow-lg'
+        });
       } else {
         await addToWishlist(productId, userId);
-        toast.success('Added to wishlist');
+        setIsInWishlist(true);
+        await triggerWishlistUpdate();
+        toast({
+          title: 'Success',
+          description: 'Added to wishlist',
+          className: 'bg-white border border-green-200 text-foreground shadow-lg'
+        });
       }
-      
-      // Toggle the wishlist status
-      setIsInWishlist(!isInWishlist);
-      // Trigger wishlist count update in Navbar
-      triggerWishlistUpdate();
     } catch (error) {
       console.error('Error updating wishlist:', error);
-      toast.error(error.message || 'Failed to update wishlist');
+      toast({
+        variant: 'default',
+        title: 'Error',
+        description: error.message || 'Failed to update wishlist',
+        className: 'bg-white border border-red-200 text-foreground shadow-lg'
+      });
     } finally {
       setIsWishlistLoading(false);
     }
@@ -328,34 +357,44 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       text: `Check out this product: ${productData?.name}`,
       url: shareUrl,
     };
-
     try {
+      // Check if Web Share API is supported
       if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success('Product URL copied to clipboard!', {
-          position: 'top-center',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
+        try {
+          await navigator.share(shareData);
+          // Share was successful
+          return;
+        } catch (err) {
+          // User cancelled the share or there was an error
+          console.log('Share was not completed', err);
+        }
       }
+      // Fallback for browsers that don't support Web Share API
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          toast({
+            title: 'Success',
+            description: 'Product link copied to clipboard!',
+            className: 'bg-white border border-green-200 text-foreground shadow-lg'
+          });
+          return;
+        } catch (err) {
+          console.error('Failed to copy to clipboard:', err);
+        }
+      }
+      // Final fallback - show the URL in an alert
+      alert(`Share this product: ${shareUrl}`);
     } catch (error) {
       console.error('Error sharing product:', error);
-      toast.error('Failed to share product', {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true
+      toast({
+        variant: 'default',
+        title: 'Error',
+        description: 'Failed to share product',
+        className: 'bg-white border border-red-200 text-foreground shadow-lg'
       });
     }
   };
-
   // Loading and error states
   if (loading) {
     return (
@@ -395,7 +434,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                 </div>
               </div>
             </div>
-
             {/* Right Column Skeleton */}
             <div className={styles.rightColumn}>
               <div className={styles.productHeader}>
@@ -422,7 +460,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                   <Skeleton className="h-4 w-5/6" />
                 </div>
               </div>
-
               <div className={styles.topBox}>
                 <div className={styles.bidCard}>
                   <Skeleton className="h-5 w-28 mb-3" />
@@ -445,7 +482,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
               </div>
             </div>
           </div>
-
           {/* Tab headers skeleton */}
           <div className={styles.tabbedInfoDesktop}>
             <div className={styles.tabHeaders}>
@@ -454,7 +490,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
               ))}
             </div>
           </div>
-
           {connectionError && (
             <div style={{ textAlign: 'center', padding: '1rem' }}>
               <p style={{ color: 'red' }}>Connection issue. Trying to reconnect…</p>
@@ -464,7 +499,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       </Layout>
     );
   }
-
   if (!productData) {
     return (
       <Layout>
@@ -477,13 +511,11 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
       </Layout>
     );
   }
-
   // Quick bid options based on current bid
   const currentBid = getCurrentBid();
   const minimumBid = productData && productData.bids && productData.bids.length > 0 
   ? getHighestBid(productData.bids) 
   : productData?.starting_price || 0;
-
   // Quick bid options - ensure minimum bid is always at least 50 more than current bid
   const quickBidOptions = [
     { amount: Math.max(minimumBid, getCurrentBid() + 50), label: '' },
@@ -491,7 +523,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
     { amount: Math.max(minimumBid + 200, getCurrentBid() + 250), label: '' },
     { amount: Math.max(minimumBid + 450, getCurrentBid() + 500), label: '' },
   ];
-
   return (
     <Layout>
       <div className={styles.container}>
@@ -499,7 +530,13 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
           {/* Left Column: Image Gallery and Bid Card (Desktop) */}
           <div className={styles.leftColumn}>
             <div className={styles.imageGallery}>
-              <div className={styles.mainImage}>
+              <div 
+                className={styles.mainImage}
+                ref={imageRef}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
                 {selectedImage ? (
                   <img src={selectedImage} alt="Selected Product" />
                 ) : (
@@ -523,36 +560,41 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                   </button>
                 </div>
               </div>
-              <div className={styles.thumbnailStrip}>
+              {/* Desktop thumbnails */}
+              <div className={`${styles.thumbnailStrip} ${styles.desktopThumbnails}`}>
                 {images.map((image, index) => (
                   <div
                     key={index}
                     className={`${styles.thumbnail} ${
                       selectedImage === image.src ? styles.activeThumbnail : ""
                     }`}
-                    onClick={() => setSelectedImage(image.src)}
+                    onClick={() => handleImageClick(image.src, index)}
                   >
                     <img src={image.src} alt={image.alt} />
                   </div>
                 ))}
               </div>
+              {/* Mobile dots indicator */}
+              <div className={`${styles.dotsIndicator} ${styles.mobileDots}`}>
+                {images.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`${styles.dot} ${
+                      currentImageIndex === index ? styles.activeDot : ""
+                    }`}
+                    onClick={() => {
+                      setSelectedImage(images[index].src);
+                      setCurrentImageIndex(index);
+                    }}
+                  />
+                ))}
+              </div>
             </div>
-
             {/* Place Your Bid Card (Desktop Only) */}
             <div className={styles.desktopPlaceBidCard}>
               <div className={styles.placeBidCard}>
                 <div className={styles.bidHeader}>
                   <span className={styles.bidLabel}>Place Your Bid</span>
-                  {/* <div className="flex items-center">
-                    <span className="text-sm text-gray-600 mr-2">Ends in</span>
-                    {timeRemaining > 0 ? (
-                      <div className={styles.auctionStatus}>
-                        {formatCountdown(timeRemaining)}
-                      </div>
-                    ) : (
-                      <span>Auction Ended</span>
-                    )}
-                  </div> */}
                 </div>
                 <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 mb-2 border border-amber-100">
                   <div className="flex items-center">
@@ -571,7 +613,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                 </div>
                 <form onSubmit={handleBidSubmit} className={styles.bidForm}>
                   <div className={styles.bidInputGroup}>
-                    {/* <label className={styles.inputLabel}>YOUR BID (INR)</label> */}
                     <div className={styles.inputWrapper}>
                       <span className={styles.currencySymbol}>₹</span>
                       <input
@@ -588,15 +629,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                         disabled={timeRemaining === 0}
                       />
                     </div>
-                    {/* <div className={styles.bidInfo}>
-                      <span className={styles.bidRequirement}>
-                        <span className={styles.requirementIcon}></span>
-                        Minimum bid: {formatCurrency(minimumBid)}
-                      </span>
-                      <span className={styles.bidIncrement}>
-                        +&nbsp;{formatCurrency(50)} increments
-                      </span>
-                    </div> */}
                   </div>
                   <button 
                     type="submit" 
@@ -632,61 +664,46 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
               </div>
             </div>
           </div>
-
           {/* Right Column: Product Header and Bid Info */}
           <div className={styles.rightColumn}>
             <div className={styles.productHeader}>
               <div className="flex justify-between items-start w-full">
                 <h1 className={styles.productTitle}>{productData.name}</h1>
               </div>
-              
               <div className={styles.metaGrid}>
                 <div className={`${styles.metaItem} ${styles.categoryItem}`}>
                   <span className={styles.metaLabel}><FaTag className={styles.metaIcon} /> Category</span>
                   <span className={styles.metaValue}>
-                    {/* <span className={styles.categoryIcon}><Tag size={14} /></span> */}
                     {productData.category}
                   </span>
                 </div>
                 <div className={`${styles.metaItem} ${styles.conditionItem}`}>
                   <span className={styles.metaLabel}><FaShieldAlt className={styles.metaIcon} /> Condition</span>
                   <span className={`${styles.metaValue}`}>
-                    {/* <span className={styles.conditionIcon}><Award size={14} /></span> */}
                     {productData.condition || 'Used'}
                   </span>
                 </div>
                 <div className={`${styles.metaItem} ${styles.locationItem}`}>
                   <span className={styles.metaLabel}><FaMapMarkerAlt className={styles.metaIcon} /> Location</span>
                   <div className={styles.metaValue}>
-                    {/* <FaMapMarkerAlt className={styles.locationIcon} /> */}
                     <span>{productData.location}</span>
                   </div>
                 </div>
               </div>
-              
               <div className={styles.priceInfo}>
                 <div className={styles.priceItem}>
-                  {/* <div className={styles.priceIcon}>
-                    <DollarSign size={16} />
-                  </div> */}
                   <div>
                     <span className={styles.priceLabel}>Floor Price</span>
                     <span className={styles.priceValue}>{formatCurrency(productData.starting_price)}</span>
                   </div>
                 </div>
                 <div className={styles.priceItem}>
-                  {/* <div className={styles.priceIcon} style={{ color: '#10b981' }}>
-                    <Award size={16} />
-                  </div> */}
                   <div>
                     <span className={styles.priceLabel}>MSRP</span>
                     <span className={styles.priceValue}>{formatCurrency(productData.retail_value)}</span>
                   </div>
                 </div>
                 <div className={styles.priceItem}>
-                  {/* <div className={styles.priceIcon} style={{ color: '#3b82f6' }}>
-                    <FaBoxOpen size={16} />
-                  </div> */}
                   <div>
                     <span className={styles.priceLabel}>Quantity</span>
                     <span className={styles.priceValue}>
@@ -734,7 +751,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                   <span className={styles.endsInText}>Auction Ended</span>
                 )}
               </div>
-              
               <div className={styles.descriptionPreview}>
                 <h3>Description</h3>
                 <Tooltip content={productData.description}>
@@ -744,7 +760,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                 </Tooltip>
               </div>
             </div>
-
             <div className={styles.topBox}>
               <div className={styles.bidCard}>
                 <div className={styles.bidHeader}>
@@ -769,7 +784,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
               <div className={styles.auctionDetails}>
                 <h3>Auction Details</h3>
                 <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Retail Value:</span>
+                  <span className={styles.detailLabel}>MSRP:</span>
                   <span className={styles.detailValue}>{formatCurrency(productData.retail_value)}</span>
                 </div>
                 <div className={styles.detailItem}>
@@ -786,7 +801,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                 </div>
               </div>
             </div>
-
             {/* Place Your Bid Card (Mobile Only) */}
             <div className={styles.mobilePlaceBidCard}>
               <div className={styles.placeBidCard}>
@@ -795,7 +809,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
                 </div>
                 <form onSubmit={handleBidSubmit} className={styles.bidForm}>
                   <div className={styles.bidInputGroup}>
-                    {/* <label className={styles.inputLabel}>YOUR BID (INR)</label> */}
                     <div className={styles.inputWrapper}>
                       <span className={styles.currencySymbol}>₹</span>
                       <input
@@ -854,7 +867,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
           </div>
         </div>
         <div className={styles.mobileSpacer}></div>
-
         {/* Tabbed Info Desktop */}
         <div className={styles.tabbedInfoDesktop}>
           <div className={styles.tabHeaders}>
@@ -1003,7 +1015,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
             )}
           </div>
         </div>
-
         {/* Tabbed Info Mobile */}
         <div className={styles.tabbedInfoMobile}>
           {[
@@ -1135,7 +1146,6 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
           ))}
         </div>
       </div>
-
       {/* Bid Modal */}
       <BidModal
         isOpen={showBidModal}
@@ -1148,5 +1158,4 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//,
     </Layout>
   );
 };
-
 export default ProductDetailPage;

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Cookies from 'js-cookie';
+import { useState } from 'react';
 import { getUserIdFromToken } from './crudService';
 
 export interface UserProductCounts {
@@ -37,30 +38,165 @@ export interface Product {
   max_bid_amount: string | number;
 }
 
+// Pagination types
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalRecords: number;
+  recordsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  nextPage: number | null;
+  prevPage: number | null;
+}
+
+interface PaginatedProductResponse {
+  success: boolean;
+  data: Product[];
+  pagination: PaginationInfo;
+}
+
+// Legacy response type for backward compatibility
+interface LegacyProductResponse {
+  success: boolean;
+  count: number;
+  data: Product[];
+}
+
 /**
- * Fetches all products from the API
- * @returns Promise with the list of products
+ * Fetches all products from the API with pagination
+ * @param page The page number (default: 1)
+ * @param limit The number of records per page (default: 20)
+ * @returns Promise with the paginated list of products
  */
-export const getProducts = async (): Promise<{success: boolean, count: number, data: Product[]}> => {
+export const getProducts = async (
+  page: number = 1, 
+  limit: number = 20
+): Promise<PaginatedProductResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/products`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Cookies.get('authToken')}`
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/products?page=${page}&limit=${limit}`, 
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Cookies.get('authToken')}`
+        }
       }
-    });
+    );
 
     if (!response.ok) {
       throw new Error('Failed to fetch products');
     }
 
-    const data = await response.json();
+    const data: PaginatedProductResponse = await response.json();
     return data;
   } catch (error) {
     console.error('Error fetching products:', error);
     throw error;
   }
+};
+
+/**
+ * Legacy function for backward compatibility
+ * Fetches all products without pagination (returns first 1000 records)
+ * @deprecated Use getProducts() with pagination instead
+ * @returns Promise with all products
+ */
+export const getAllProducts = async (): Promise<LegacyProductResponse> => {
+  try {
+    const response = await getProducts(1, 1000); // Get first 1000 records
+    return {
+      success: response.success,
+      count: response.data.length,
+      data: response.data
+    };
+  } catch (error) {
+    console.error('Error fetching all products:', error);
+    throw error;
+  }
+};
+
+// Additional utility functions for easier pagination handling
+export const getFirstPage = async (limit: number = 20): Promise<PaginatedProductResponse> => {
+  return getProducts(1, limit);
+};
+
+export const getNextPage = async (currentPage: number, limit: number = 20): Promise<PaginatedProductResponse> => {
+  return getProducts(currentPage + 1, limit);
+};
+
+export const getPrevPage = async (currentPage: number, limit: number = 20): Promise<PaginatedProductResponse> => {
+  return getProducts(currentPage - 1, limit);
+};
+
+export const getSpecificPage = async (page: number, limit: number = 20): Promise<PaginatedProductResponse> => {
+  return getProducts(page, limit);
+};
+
+/**
+ * Hook for managing paginated products state
+ */
+export const usePaginatedProducts = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadProducts = async (page: number = 1, limit: number = 20) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await getProducts(page, limit);
+      
+      if (response.success) {
+        setProducts(response.data);
+        setPagination(response.pagination);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load products');
+      console.error('Error loading products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadNextPage = async () => {
+    if (pagination?.hasNextPage) {
+      await loadProducts(pagination.nextPage!, pagination.recordsPerPage);
+    }
+  };
+
+  const loadPrevPage = async () => {
+    if (pagination?.hasPrevPage) {
+      await loadProducts(pagination.prevPage!, pagination.recordsPerPage);
+    }
+  };
+
+  const loadSpecificPage = async (page: number) => {
+    if (pagination) {
+      await loadProducts(page, pagination.recordsPerPage);
+    }
+  };
+
+  const refreshCurrentPage = async () => {
+    if (pagination) {
+      await loadProducts(pagination.currentPage, pagination.recordsPerPage);
+    }
+  };
+
+  return {
+    products,
+    pagination,
+    loading,
+    error,
+    loadProducts,
+    loadNextPage,
+    loadPrevPage,
+    loadSpecificPage,
+    refreshCurrentPage
+  };
 };
 
 /**

@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
 import { addToWishlist, removeFromWishlist, checkWishlistItem, getUserIdFromToken } from "@/services/crudService";
-import { toast } from 'react-toastify';
+import { toast } from '@/components/ui/use-toast';
 import { useWishlist } from '@/hooks/use-wishlist';
 
 dayjs.extend(relativeTime);
@@ -73,7 +73,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
       const userId = getUserIdFromToken();
       
       if (!userId) {
-        navigate('/login');
+        toast({
+          variant: 'default',
+          title: 'Sign in required',
+          description: 'Please sign in to add to wishlist',
+          className: 'bg-white border border-gray-200 text-foreground shadow-lg'
+        });
         return;
       }
 
@@ -81,16 +86,29 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
         await removeFromWishlist(product.id.toString(), userId);
         setIsInWishlist(false);
         await triggerWishlistUpdate();
-        toast.success('Removed from wishlist');
+        toast({
+          title: 'Success',
+          description: 'Removed from wishlist',
+          className: 'bg-white border border-green-200 text-foreground shadow-lg'
+        });
       } else {
         await addToWishlist(product.id.toString(), userId);
         setIsInWishlist(true);
         await triggerWishlistUpdate();
-        toast.success('Added to wishlist');
+        toast({
+          title: 'Success',
+          description: 'Added to wishlist',
+          className: 'bg-white border border-green-200 text-foreground shadow-lg'
+        });
       }
     } catch (error) {
       console.error('Error updating wishlist:', error);
-      toast.error('Failed to update wishlist');
+      toast({
+        variant: 'default',
+        title: 'Error',
+        description: 'Failed to update wishlist',
+        className: 'bg-white border border-red-200 text-foreground shadow-lg'
+      });
     } finally {
       setIsWishlistLoading(false);
     }
@@ -113,10 +131,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
   }, [product.timeLeft]);
 
   return (
-    <motion.div className="group relative overflow-hidden">
+    <motion.div className="group relative overflow-hidden w-full">
       <Card 
         onClick={handleCardClick}
-        className="relative overflow-hidden group h-full w-full max-w-[280px] flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 hover:border-primary/20 hover:shadow-primary/10"
+        className="relative overflow-hidden group h-full w-full max-w-none sm:max-w-[280px] flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 hover:border-primary/20 hover:shadow-primary/10"
       >
         {viewMode === 'grid' ? (
           <div className="flex flex-col h-full">
@@ -179,11 +197,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                   
                   {/* Location Tag */}
                   <div className="flex items-center gap-1 text-[12px] text-gray-800 bg-gray-200 px-2 py-0.5 rounded-md border border-gray-300">
-  <MapPin className="h-2.5 w-2.5 text-gray-900" />
-  <span className="truncate max-w-[90px] font-bold" title={product.location}>
-    {product.location}
-  </span>
-</div>
+                    <MapPin className="h-2.5 w-2.5 text-gray-900" />
+                    <span className="truncate max-w-[90px] font-bold" title={product.location}>
+                      {product.location}
+                    </span>
+                  </div>
                 </div>
               </div>
 
