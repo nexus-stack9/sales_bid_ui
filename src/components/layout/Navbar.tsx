@@ -255,69 +255,7 @@ const Navbar = () => {
                     How It Works
                   </Link>
                   <hr className="my-2" />
-                  <div className="group/menu-item">
-                    <Link
-                      to={token ? "/user/wishlist" : "/signin"}
-                      className="text-lg font-medium flex items-center relative w-full"
-                    >
-                      <div className="relative">
-                        <Heart className={`mr-2 h-5 w-5 ${token ? "text-primary fill-primary" : ""}`} />
-                        {token && wishlistCount > 0 && (
-                          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                            {wishlistCount > 9 ? '9+' : wishlistCount}
-                          </span>
-                        )}
-                      </div>
-                      <span>Wishlist {!token && "(Sign in required)"}</span>
-                      <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
-                    </Link>
-                  </div>
-                  <div className="group/menu-item">
-                    <Link
-                      to="/my-bids"
-                      className="text-lg font-medium flex items-center relative w-full"
-                    >
-                      <div className="relative">
-                        <ShoppingCart className="h-5 w-5 mr-2" />
-                        {bidsCount > 0 && (
-                          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                            {bidsCount > 9 ? '9+' : bidsCount}
-                          </span>
-                        )}
-                      </div>
-                      <span>My Bids</span>
-                      <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
-                    </Link>
-                  </div>
-                  <div className="group/menu-item">
-                    <Link
-                      to={token ? "/user/wishlist" : "/signin"}
-                      className="text-lg font-medium flex items-center relative w-full"
-                    >
-                      <div className="relative">
-                        <Heart className={`mr-2 h-5 w-5 ${token ? "text-primary fill-primary" : ""}`} />
-                        {token && wishlistCount > 0 && (
-                          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                            {wishlistCount > 9 ? '9+' : wishlistCount}
-                          </span>
-                        )}
-                      </div>
-                      <span>Wishlist {!token && "(Sign in required)"}</span>
-                      <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
-                    </Link>
-                  </div>
-                  {token ? (
-                    <div className="group/menu-item">
-                      <Link
-                        to="/user/profile"
-                        className="text-lg font-medium flex items-center relative"
-                      >
-                        <User className="mr-2 h-5 w-5" />
-                        <span>Profile</span>
-                        <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
-                      </Link>
-                    </div>
-                  ) : (
+                  {!token && (
                     <div className="group/menu-item">
                       <Link
                         to="/signin"

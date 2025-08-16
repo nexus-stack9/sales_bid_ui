@@ -705,7 +705,7 @@ const ProductDetailPage = () => {
                   <span className={styles.bidLabel}>CURRENT BID</span>
                 </div>
                 <div className={styles.bidAmount}>
-                  {formatCurrency(getCurrentBid())}
+                {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
                 </div>
                 <div className={styles.progressBar}>
                   <div className={styles.progressFill} style={{ width: `${(getCurrentBid() / productData.retail_value) * 100}%` }}></div>
@@ -724,20 +724,22 @@ const ProductDetailPage = () => {
                 <h3>Auction Details</h3>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>MSRP:</span>
-                  <span className={styles.detailValue}>{formatCurrency(productData.retail_value)}</span>
+                  <span className={styles.detailValue}>
+                  {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
+                  </span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Starting Bid:</span>
                   <span className={styles.detailValue}>{formatCurrency(productData.starting_price)}</span>
                 </div>
-                <div className={`${styles.detailItem} ${styles.hideOnMobile}`}> 
+                {/* <div className={`${styles.detailItem} ${styles.hideOnMobile}`}> 
                   <span className={styles.detailLabel}>Min Increment:</span>
                   <span className={styles.detailValue}>+{formatCurrency(50)}</span>
                 </div>
                 <div className={`${styles.detailItem} ${styles.hideOnMobile}`}> 
                   <span className={styles.detailLabel}>Quantity:</span>
                   <span className={styles.detailValue}>{productData.quantity} units</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
