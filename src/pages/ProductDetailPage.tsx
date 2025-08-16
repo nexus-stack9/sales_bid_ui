@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast'; // Updated import
+import { toast } from '@/components/ui/use-toast';
 import styles from "./ProductDetailPage.module.css";
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
@@ -16,12 +16,10 @@ import { useWishlist } from "@/hooks/use-wishlist";
 const ProductDetailPage = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
-  // Product data state
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
   const webSocketService = React.useMemo(() => WebSocketService, []);
-  // UI state
   const [activeTab, setActiveTab] = useState("description");
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [bidAmount, setBidAmount] = useState<number | ''>('');
@@ -34,12 +32,35 @@ const ProductDetailPage = () => {
   const { triggerWishlistUpdate } = useWishlist();
   const [images, setImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  // Swipe functionality refs
   const imageRef = useRef(null);
   const [showBidModal, setShowBidModal] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  // Hide bottom navbar on mobile when BidModal is open
+
+  // Calculate per unit price
+  const getPerUnitPrice = (price) => {
+    if (!productData?.quantity || price === 0) return 0;
+    return price / productData.quantity;
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const getHighestBid = (bids) => {
+    if (!bids || bids.length === 0) return null;
+    return Math.max(...bids.map(bid => bid.bid_amount));
+  };
+
+  const getCurrentBid = () => {
+    if (!productData) return 0;
+    return getHighestBid(productData.bids) || parseFloat(productData.starting_price);
+  };
+
   useEffect(() => {
     if (showBidModal) {
       document.body.classList.add('bid-open');
@@ -50,36 +71,7 @@ const ProductDetailPage = () => {
       document.body.classList.remove('bid-open');
     };
   }, [showBidModal]);
-  // Get the API base URL from environment variables and extract the host:port part for WebSocket
-  // Prefer explicit websocket URL if provided, else derive from API base URL
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/^https?:\/\//, '');
-  // Static manifest data
-  const [manifestData] = useState([
-    {
-      lotId: "3284U",
-      manufacturer: "Mirooka",
-      model: "E1ET2/200MV",
-      itemNumber: "485104276",
-      description: "27 inch electric vertical laundry...",
-      quantity: 1,
-      unitRetail: 2349.0 * 85,
-      unitWeight: "346 lbs",
-      condition: "Used Good",
-      category: "Electronics"
-    },
-    {
-      lotId: "3284U",
-      manufacturer: "Mirooka",
-      model: "E1ET2/400MT",
-      itemNumber: "485107514",
-      description: "27 inch electric vertical laundry...",
-      quantity: 1,
-      unitRetail: 3049.0 * 85,
-      unitWeight: "346 lbs",
-      condition: "Used Good",
-      category: "Electronics"
-    },
-  ]);
+
   useEffect(() => {
     if (productData?.image_path) {
       const imageUrls = productData.image_path.split(',').map(url => url.trim());
@@ -93,7 +85,7 @@ const ProductDetailPage = () => {
       }
     }
   }, [productData]);
-  // Check wishlist status on component mount
+
   useEffect(() => {
     const checkWishlistStatus = async () => {
       try {
@@ -112,7 +104,7 @@ const ProductDetailPage = () => {
     };
     checkWishlistStatus();
   }, [productId]);
-  // WebSocket connection setup with proper cleanup
+
   useEffect(() => {
     if (!productId) {
       toast({
@@ -124,6 +116,7 @@ const ProductDetailPage = () => {
       navigate('/');
       return;
     }
+
     const handleWebSocketMessage = (message: WebSocketMessage) => {
       if (message.type === 'product_update' && message.data) {
         setProductData(message.data);
@@ -131,15 +124,13 @@ const ProductDetailPage = () => {
         setConnectionError(false);
       }
     };
-    // Connect to WebSocket
+
     webSocketService.connect(productId, handleWebSocketMessage);
-    // Cleanup on component unmount or productId change
     return () => {
       webSocketService.disconnect();
-      console.log(`Cleaning up WebSocket for product ${productId}`);
     };
   }, [productId, navigate, webSocketService]);
-  // Timer for auction countdown
+
   useEffect(() => {
     if (!productData?.auction_end) return;
     const updateTimer = () => {
@@ -156,23 +147,24 @@ const ProductDetailPage = () => {
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, [productData?.auction_end]);
-  // Handle swipe events for mobile
+
   const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
+
   const handleTouchMove = (e) => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
+
   const handleTouchEnd = () => {
     if (touchStart - touchEnd > 50) {
-      // Swipe left - next image
       nextImage();
     }
     if (touchStart - touchEnd < -50) {
-      // Swipe right - previous image
       prevImage();
     }
   };
+
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) => {
       const newIndex = (prevIndex + 1) % images.length;
@@ -180,6 +172,7 @@ const ProductDetailPage = () => {
       return newIndex;
     });
   };
+
   const prevImage = () => {
     setCurrentImageIndex((prevIndex) => {
       const newIndex = (prevIndex - 1 + images.length) % images.length;
@@ -187,78 +180,11 @@ const ProductDetailPage = () => {
       return newIndex;
     });
   };
-  // Helper functions
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
-  const formatCountdown = (seconds: number): JSX.Element => {
-    const days = Math.floor(seconds / (3600 * 24));
-    const hours = Math.floor((seconds % (3600 * 24)) / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return (
-      <div className="flex items-center space-x-1">
-        <div className="flex flex-col items-center">
-          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
-            {days.toString().padStart(2, '0')}
-          </div>
-          <span className="text-xs text-gray-500 mt-1">Days</span>
-        </div>
-        <div className="text-gray-500 font-bold">:</div>
-        <div className="flex flex-col items-center">
-          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
-            {hours.toString().padStart(2, '0')}
-          </div>
-          <span className="text-xs text-gray-500 mt-1">Hours</span>
-        </div>
-        <div className="text-gray-500 font-bold">:</div>
-        <div className="flex flex-col items-center">
-          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
-            {mins.toString().padStart(2, '0')}
-          </div>
-          <span className="text-xs text-gray-500 mt-1">Mins</span>
-        </div>
-        <div className="text-gray-500 font-bold">:</div>
-        <div className="flex flex-col items-center">
-          <div className="bg-white text-gray-800 font-bold rounded-lg p-2 min-w-[40px] text-center shadow-sm">
-            {secs.toString().padStart(2, '0')}
-          </div>
-          <span className="text-xs text-gray-500 mt-1">Secs</span>
-        </div>
-      </div>
-    );
-  };
-  const getHighestBid = (bids) => {
-    if (!bids || bids.length === 0) return null;
-    return Math.max(...bids.map(bid => bid.bid_amount));
-  };
-  const getBidCount = () => {
-    return productData?.bids?.length || 0;
-  };
-  const getRetailPercentage = () => {
-    if (!productData) return 0;
-    const highestBid = getHighestBid(productData.bids) || parseFloat(productData.starting_price);
-    const retailValue = parseFloat(productData.retail_value);
-    return Math.round((highestBid / retailValue) * 100);
-  };
-  const getCurrentBid = () => {
-    if (!productData) return 0;
-    return getHighestBid(productData.bids) || parseFloat(productData.starting_price);
-  };
-  const getMinimumBid = () => {
-    const currentBid = getCurrentBid();
-    return currentBid + 50;
-  };
-  // Handle successful bid placement
+
   const handleBidSuccess = () => {
-    setBidAmount(''); // Clear the bid input
-    // The WebSocket will automatically update the UI with the new bid
+    setBidAmount('');
   };
-  // Handle bid submission
+
   const handleBidSubmit = (e) => {
     e.preventDefault();
     if (bidAmount === '' || bidAmount <= 0) {
@@ -270,41 +196,40 @@ const ProductDetailPage = () => {
       });
       return;
     }
-    // Show the bid modal
     setShowBidModal(true);
   };
+
   const handleQuickBid = (amount) => {
     if (timeRemaining > 0) {
       setBidAmount(amount);
-      // Optional: Scroll the bid input into view
       const bidInput = document.querySelector(`.${styles.bidInputGroup} input`);
       if (bidInput) {
         bidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   };
+
   const toggleMobileAccordion = (tab) => {
     setMobileAccordionOpen(mobileAccordionOpen === tab ? null : tab);
   };
+
   const handleImageClick = (imageSrc, index) => {
     setSelectedImage(imageSrc);
     setCurrentImageIndex(index);
   };
+
   const handleWishlistToggle = async () => {
     try {
       setIsWishlistLoading(true);
       const userId = getUserIdFromToken();
       
       if (!userId) {
-        // Use the same toast style as in ProductCard
         toast({
           variant: 'default',
           title: 'Sign in required',
           description: 'Please sign in to add to wishlist',
           className: 'bg-white border border-gray-200 text-foreground shadow-lg'
         });
-        // Optionally navigate to login
-        // navigate('/login');
         return;
       }
 
@@ -358,18 +283,14 @@ const ProductDetailPage = () => {
       url: shareUrl,
     };
     try {
-      // Check if Web Share API is supported
       if (navigator.share) {
         try {
           await navigator.share(shareData);
-          // Share was successful
           return;
         } catch (err) {
-          // User cancelled the share or there was an error
           console.log('Share was not completed', err);
         }
       }
-      // Fallback for browsers that don't support Web Share API
       if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(shareUrl);
@@ -383,7 +304,6 @@ const ProductDetailPage = () => {
           console.error('Failed to copy to clipboard:', err);
         }
       }
-      // Final fallback - show the URL in an alert
       alert(`Share this product: ${shareUrl}`);
     } catch (error) {
       console.error('Error sharing product:', error);
@@ -395,13 +315,12 @@ const ProductDetailPage = () => {
       });
     }
   };
-  // Loading and error states
+
   if (loading) {
     return (
       <Layout>
         <div className={styles.container}>
           <div className={styles.contentWrapper}>
-            {/* Left Column Skeleton */}
             <div className={styles.leftColumn}>
               <div className={styles.imageGallery}>
                 <div className={styles.mainImage}>
@@ -434,7 +353,6 @@ const ProductDetailPage = () => {
                 </div>
               </div>
             </div>
-            {/* Right Column Skeleton */}
             <div className={styles.rightColumn}>
               <div className={styles.productHeader}>
                 <Skeleton className="h-8 w-3/4 mb-4" />
@@ -482,7 +400,6 @@ const ProductDetailPage = () => {
               </div>
             </div>
           </div>
-          {/* Tab headers skeleton */}
           <div className={styles.tabbedInfoDesktop}>
             <div className={styles.tabHeaders}>
               {Array.from({ length: 6 }).map((_, i) => (
@@ -499,6 +416,7 @@ const ProductDetailPage = () => {
       </Layout>
     );
   }
+
   if (!productData) {
     return (
       <Layout>
@@ -511,23 +429,11 @@ const ProductDetailPage = () => {
       </Layout>
     );
   }
-  // Quick bid options based on current bid
-  const currentBid = getCurrentBid();
-  const minimumBid = productData && productData.bids && productData.bids.length > 0 
-  ? getHighestBid(productData.bids) 
-  : productData?.starting_price || 0;
-  // Quick bid options - ensure minimum bid is always at least 50 more than current bid
-  const quickBidOptions = [
-    { amount: Math.max(minimumBid, getCurrentBid() + 50), label: '' },
-    { amount: Math.max(minimumBid, getCurrentBid() + 150), label: '' },
-    { amount: Math.max(minimumBid + 200, getCurrentBid() + 250), label: '' },
-    { amount: Math.max(minimumBid + 450, getCurrentBid() + 500), label: '' },
-  ];
+
   return (
     <Layout>
       <div className={styles.container}>
         <div className={styles.contentWrapper}>
-          {/* Left Column: Image Gallery and Bid Card (Desktop) */}
           <div className={styles.leftColumn}>
             <div className={styles.imageGallery}>
               <div 
@@ -560,7 +466,6 @@ const ProductDetailPage = () => {
                   </button>
                 </div>
               </div>
-              {/* Desktop thumbnails */}
               <div className={`${styles.thumbnailStrip} ${styles.desktopThumbnails}`}>
                 {images.map((image, index) => (
                   <div
@@ -574,7 +479,6 @@ const ProductDetailPage = () => {
                   </div>
                 ))}
               </div>
-              {/* Mobile dots indicator */}
               <div className={`${styles.dotsIndicator} ${styles.mobileDots}`}>
                 {images.map((_, index) => (
                   <div
@@ -590,7 +494,6 @@ const ProductDetailPage = () => {
                 ))}
               </div>
             </div>
-            {/* Place Your Bid Card (Desktop Only) */}
             <div className={styles.desktopPlaceBidCard}>
               <div className={styles.placeBidCard}>
                 <div className={styles.bidHeader}>
@@ -622,7 +525,7 @@ const ProductDetailPage = () => {
                           const value = e.target.value;
                           setBidAmount(value === '' ? '' : parseFloat(value));
                         }}
-                        min={minimumBid}
+                        min={getCurrentBid() + 50}
                         step={50}
                         placeholder="Enter your bid"
                         required
@@ -648,7 +551,12 @@ const ProductDetailPage = () => {
                 <div className={styles.quickBidSection}>
                   <h3>Quick Bid Options</h3>
                   <div className={styles.quickBidOptions}>
-                    {quickBidOptions.map((option, index) => (
+                    {[
+                      { amount: getCurrentBid() + 50, label: '' },
+                      { amount: getCurrentBid() + 150, label: '' },
+                      { amount: getCurrentBid() + 250, label: '' },
+                      { amount: getCurrentBid() + 500, label: '' },
+                    ].map((option, index) => (
                       <button
                         key={index}
                         className={`${styles.quickBidButton} ${bidAmount === option.amount ? styles.selected : ""}`}
@@ -664,7 +572,6 @@ const ProductDetailPage = () => {
               </div>
             </div>
           </div>
-          {/* Right Column: Product Header and Bid Info */}
           <div className={styles.rightColumn}>
             <div className={styles.productHeader}>
               <div className="flex justify-between items-start w-full">
@@ -693,8 +600,8 @@ const ProductDetailPage = () => {
               <div className={styles.priceInfo}>
                 <div className={styles.priceItem}>
                   <div>
-                    <span className={styles.priceLabel}>Floor Price</span>
-                    <span className={styles.priceValue}>{formatCurrency(productData.starting_price)}</span>
+                    <span className={styles.priceLabel}>Current Bid</span>
+                    <span className={styles.priceValue}>{formatCurrency(getCurrentBid())}</span>
                   </div>
                 </div>
                 <div className={styles.priceItem}>
@@ -760,7 +667,39 @@ const ProductDetailPage = () => {
                 </Tooltip>
               </div>
             </div>
-            <div className={styles.topBox}>
+
+            {/* New Mobile Bid Card */}
+            <div className={styles.mobileBidCard}>
+              <div className={styles.mobileBidAmount}>
+              Current Bid: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
+              </div>
+              <div className={styles.retailPercentage}>
+                    {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
+                  </div>
+              <div className={styles.mobileRetailValue}>
+                MSRP: {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
+              </div>
+              <div className={styles.mobileBidForm}>
+                <div className={styles.mobileBidLabel}>Place a new max bid</div>
+                <input
+                  type="number"
+                  className={styles.mobileBidInput}
+                  placeholder={`Enter max bid (${formatCurrency(getCurrentBid() + 50)}+)`}
+                  min={getCurrentBid() + 50}
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(parseFloat(e.target.value))}
+                />
+                <button 
+                  className={styles.mobileBidButton}
+                  onClick={handleBidSubmit}
+                  disabled={isSubmitting || timeRemaining === 0}
+                >
+                  Bid Now
+                </button>
+              </div>
+            </div>
+
+            <div className={`${styles.topBox} ${styles.hideOnMobile}`}>
               <div className={styles.bidCard}>
                 <div className={styles.bidHeader}>
                   <span className={styles.bidLabel}>CURRENT BID</span>
@@ -769,15 +708,15 @@ const ProductDetailPage = () => {
                   {formatCurrency(getCurrentBid())}
                 </div>
                 <div className={styles.progressBar}>
-                  <div className={styles.progressFill} style={{ width: `${getRetailPercentage()}%` }}></div>
+                  <div className={styles.progressFill} style={{ width: `${(getCurrentBid() / productData.retail_value) * 100}%` }}></div>
                 </div>
                 <div className={styles.bidStats}>
                   <div className={styles.bidCount}>
                     <FaGavel className={styles.statIcon} />
-                    {getBidCount()} bids
+                    {productData.bids?.length || 0} bids
                   </div>
                   <div className={styles.retailPercentage}>
-                    {getRetailPercentage()}% of MSRP
+                    {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
                   </div>
                 </div>
               </div>
@@ -801,73 +740,9 @@ const ProductDetailPage = () => {
                 </div>
               </div>
             </div>
-            {/* Place Your Bid Card (Mobile Only) */}
-            <div className={styles.mobilePlaceBidCard}>
-              <div className={styles.placeBidCard}>
-                <div className={styles.bidHeader}>
-                  <span className={styles.bidLabel}>Place Your Bid</span>
-                </div>
-                <form onSubmit={handleBidSubmit} className={styles.bidForm}>
-                  <div className={styles.bidInputGroup}>
-                    <div className={styles.inputWrapper}>
-                      <span className={styles.currencySymbol}>₹</span>
-                      <input
-                        type="number"
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(parseFloat(e.target.value))}
-                        min={minimumBid}
-                        step={50}
-                        required
-                        disabled={timeRemaining === 0}
-                      />
-                    </div>
-                    <div className={styles.bidInfo}>
-                      <span className={styles.bidRequirement}>
-                        <span className={styles.requirementIcon}>🛡️</span>
-                        Minimum bid: {formatCurrency(minimumBid)}
-                      </span>
-                      <span className={styles.bidIncrement}>
-                        +{formatCurrency(50)} increments
-                      </span>
-                    </div>
-                  </div>
-                  <button 
-                    type="submit" 
-                    className={styles.placeBidButton}
-                    disabled={isSubmitting || timeRemaining === 0}
-                  >
-                    {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Place Bid Now'}
-                    <FaGavel className={styles.buttonIcon} />
-                  </button>
-                  <div className={styles.terms}>
-                    By placing a bid, you agree to the{" "}
-                    <a href="#" className={styles.termsLink}>
-                      Terms & Conditions
-                    </a>
-                  </div>
-                </form>
-                <div className={styles.quickBidSection}>
-                  <h3>Quick Bid Options</h3>
-                  <div className={styles.quickBidOptions}>
-                    {quickBidOptions.map((option, index) => (
-                      <button
-                        key={index}
-                        className={`${styles.quickBidButton} ${bidAmount === option.amount ? styles.selected : ""}`}
-                        onClick={() => handleQuickBid(option.amount)}
-                        disabled={timeRemaining === 0}
-                      >
-                        {formatCurrency(option.amount)}
-                        {option.label && <span className={styles.quickBidLabel}>{option.label}</span>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
         <div className={styles.mobileSpacer}></div>
-        {/* Tabbed Info Desktop */}
         <div className={styles.tabbedInfoDesktop}>
           <div className={styles.tabHeaders}>
             {[
@@ -944,7 +819,32 @@ const ProductDetailPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {manifestData.map((item, index) => (
+                      {[
+                        {
+                          lotId: "3284U",
+                          manufacturer: "Mirooka",
+                          model: "E1ET2/200MV",
+                          itemNumber: "485104276",
+                          description: "27 inch electric vertical laundry...",
+                          quantity: 1,
+                          unitRetail: 2349.0 * 85,
+                          unitWeight: "346 lbs",
+                          condition: "Used Good",
+                          category: "Electronics"
+                        },
+                        {
+                          lotId: "3284U",
+                          manufacturer: "Mirooka",
+                          model: "E1ET2/400MT",
+                          itemNumber: "485107514",
+                          description: "27 inch electric vertical laundry...",
+                          quantity: 1,
+                          unitRetail: 3049.0 * 85,
+                          unitWeight: "346 lbs",
+                          condition: "Used Good",
+                          category: "Electronics"
+                        },
+                      ].map((item, index) => (
                         <tr key={index}>
                           <td>{item.lotId}</td>
                           <td>{item.manufacturer}</td>
@@ -975,7 +875,7 @@ const ProductDetailPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {productData.bids.map((bid, index) => (
+                      {productData.bids?.map((bid, index) => (
                         <tr key={index}>
                           <td>{bid.user_name}</td>
                           <td>{formatCurrency(bid.bid_amount)}</td>
@@ -1015,7 +915,6 @@ const ProductDetailPage = () => {
             )}
           </div>
         </div>
-        {/* Tabbed Info Mobile */}
         <div className={styles.tabbedInfoMobile}>
           {[
             "description",
@@ -1079,7 +978,30 @@ const ProductDetailPage = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {manifestData.slice(0, 2).map((item, index) => (
+                          {[
+                            {
+                              lotId: "3284U",
+                              manufacturer: "Mirooka",
+                              model: "E1ET2/200MV",
+                              itemNumber: "485104276",
+                              description: "27 inch electric vertical laundry...",
+                              quantity: 1,
+                              unitRetail: 2349.0 * 85,
+                              unitWeight: "346 lbs",
+                              condition: "Used Good",
+                            },
+                            {
+                              lotId: "3284U",
+                              manufacturer: "Mirooka",
+                              model: "E1ET2/400MT",
+                              itemNumber: "485107514",
+                              description: "27 inch electric vertical laundry...",
+                              quantity: 1,
+                              unitRetail: 3049.0 * 85,
+                              unitWeight: "346 lbs",
+                              condition: "Used Good",
+                            },
+                          ].slice(0, 2).map((item, index) => (
                             <tr key={index}>
                               <td>{item.lotId}</td>
                               <td>{item.manufacturer}</td>
@@ -1105,7 +1027,7 @@ const ProductDetailPage = () => {
                     <div className={styles.historyTable}>
                       <table>
                         <tbody>
-                          {productData.bids.slice(0, 3).map((bid, index) => (
+                          {productData.bids?.slice(0, 3).map((bid, index) => (
                             <tr key={index}>
                               <td>{bid.user_name}</td>
                               <td>{formatCurrency(bid.bid_amount)}</td>
@@ -1146,7 +1068,6 @@ const ProductDetailPage = () => {
           ))}
         </div>
       </div>
-      {/* Bid Modal */}
       <BidModal
         isOpen={showBidModal}
         onClose={() => setShowBidModal(false)}
@@ -1158,4 +1079,5 @@ const ProductDetailPage = () => {
     </Layout>
   );
 };
+
 export default ProductDetailPage;
