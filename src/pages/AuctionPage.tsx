@@ -1,31 +1,44 @@
 /* eslint-disable prefer-const */
-import * as React from 'react';
-import { useState, useMemo, useEffect, useCallback, memo } from 'react';
-import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import ProductCard from './ProductCard';
-import FilterPanel from './FilterPanel';
-import { Product, FilterState, SortOption } from '@/types/auction';
-import { usePaginatedProducts } from '@/services/productService';
-import { useToast } from '@/components/ui/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useMediaQuery } from '../hooks/use-media-query';
-import Layout from '@/components/layout/Layout';
+import * as React from "react";
+import { useState, useMemo, useEffect, useCallback, memo } from "react";
+import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import ProductCard from "./ProductCard";
+import FilterPanel from "./FilterPanel";
+import { Product, FilterState, SortOption } from "@/types/auction";
+import { usePaginatedProducts } from "@/services/productService";
+import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useMediaQuery } from "../hooks/use-media-query";
+import Layout from "@/components/layout/Layout";
 
 // Memoize the FilterPanel to prevent unnecessary re-renders
 const MemoizedFilterPanel = memo(FilterPanel);
-MemoizedFilterPanel.displayName = 'MemoizedFilterPanel';
+MemoizedFilterPanel.displayName = "MemoizedFilterPanel";
 
 const AuctionPage: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState<SortOption>('ending_soon');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortBy, setSortBy] = useState<SortOption>("ending_soon");
   const { toast } = useToast();
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   const {
     products: apiProducts,
     filterOptions,
@@ -35,27 +48,27 @@ const AuctionPage: React.FC = () => {
     loadProducts,
     loadNextPage,
     loadPrevPage,
-    loadSpecificPage
+    loadSpecificPage,
   } = usePaginatedProducts();
-  
+
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     locations: [],
     priceRange: [0, 50000],
     timeLeft: [],
     condition: [],
-    searchQuery: '',
+    searchQuery: "",
   });
 
   // Hide bottom navbar on mobile when filters are open
   useEffect(() => {
     if (isFilterOpen) {
-      document.body.classList.add('filter-open');
+      document.body.classList.add("filter-open");
     } else {
-      document.body.classList.remove('filter-open');
+      document.body.classList.remove("filter-open");
     }
     return () => {
-      document.body.classList.remove('filter-open');
+      document.body.classList.remove("filter-open");
     };
   }, [isFilterOpen]);
 
@@ -64,28 +77,39 @@ const AuctionPage: React.FC = () => {
     return (apiProduct): Product => {
       // Ensure we handle the API product structure correctly
       const productData = apiProduct.product_id ? apiProduct : apiProduct;
-      
+
       // Use the condition as provided by the API
-      const condition = productData.condition ? productData.condition.toString() : 'Unknown';
-      
-      const startingPrice = parseFloat(productData.starting_price?.toString() || '0');
-      const maxBidAmount = productData.max_bid_amount ? parseFloat(productData.max_bid_amount.toString()) : startingPrice;
-      const retailValue = productData.retail_value ? parseFloat(productData.retail_value.toString()) : undefined;
-      const categoryName = productData.category_name?.toString() || 'Uncategorized';
-      
+      const condition = productData.condition
+        ? productData.condition.toString()
+        : "Unknown";
+
+      const startingPrice = parseFloat(
+        productData.starting_price?.toString() || "0"
+      );
+      const maxBidAmount = productData.max_bid_amount
+        ? parseFloat(productData.max_bid_amount.toString())
+        : startingPrice;
+      const retailValue = productData.retail_value
+        ? parseFloat(productData.retail_value.toString())
+        : undefined;
+      const categoryName =
+        productData.category_name?.toString() || "Uncategorized";
+
       try {
         return {
           id: productData.product_id?.toString() || Math.random().toString(),
-          name: productData.name?.toString() || 'Unnamed Product',
-          image: productData.image_path?.split(',')[0] || '/placeholder-product.jpg',
-          description: productData.description?.toString() || 'No description available',
+          name: productData.name?.toString() || "Unnamed Product",
+          image:
+            productData.image_path?.split(",")[0] || "/placeholder-product.jpg",
+          description:
+            productData.description?.toString() || "No description available",
           currentBid: maxBidAmount,
-          totalBids: parseInt(productData.total_bids?.toString() || '0', 10),
+          totalBids: parseInt(productData.total_bids?.toString() || "0", 10),
           timeLeft: productData.auction_end || new Date().toISOString(),
-          location: productData.location?.toString() || 'Unknown',
+          location: productData.location?.toString() || "Unknown",
           category: categoryName,
           category_name: categoryName,
-          seller: productData.vendor_name?.toString() || 'Unknown Seller',
+          seller: productData.vendor_name?.toString() || "Unknown Seller",
           startingBid: startingPrice,
           buyNowPrice: startingPrice * 1.5,
           condition,
@@ -93,23 +117,23 @@ const AuctionPage: React.FC = () => {
           retail_value: retailValue,
         };
       } catch (error) {
-        console.error('Error mapping product:', productData, error);
+        console.error("Error mapping product:", productData, error);
         // Return a fallback product to prevent the entire list from breaking
         return {
           id: Math.random().toString(),
-          name: 'Product Error',
-          image: '/placeholder-product.jpg',
-          description: 'Error loading product data',
+          name: "Product Error",
+          image: "/placeholder-product.jpg",
+          description: "Error loading product data",
           currentBid: 0,
           totalBids: 0,
           timeLeft: new Date().toISOString(),
-          location: 'Unknown',
-          category: 'Uncategorized',
-          category_name: 'Uncategorized',
-          seller: 'Unknown Seller',
+          location: "Unknown",
+          category: "Uncategorized",
+          category_name: "Uncategorized",
+          seller: "Unknown Seller",
           startingBid: 0,
           buyNowPrice: 0,
-          condition: 'Fair',
+          condition: "Fair",
           isWishlisted: false,
           retail_value: 0,
         };
@@ -121,17 +145,19 @@ const AuctionPage: React.FC = () => {
   useEffect(() => {
     const searchParams = {
       q: filters.searchQuery || undefined,
-      categories: filters.categories.length > 0 ? filters.categories : undefined,
+      categories:
+        filters.categories.length > 0 ? filters.categories : undefined,
       locations: filters.locations.length > 0 ? filters.locations : undefined,
       condition: filters.condition.length > 0 ? filters.condition : undefined,
       timeLeft: filters.timeLeft.length > 0 ? filters.timeLeft : undefined,
       minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-      maxPrice: filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
+      maxPrice:
+        filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
       sortBy: sortBy,
       page: 1,
-      limit: 20
+      limit: 20,
     };
-    
+
     loadProducts(1, 20, searchParams);
   }, []);
 
@@ -139,41 +165,136 @@ const AuctionPage: React.FC = () => {
   useEffect(() => {
     if (apiError) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: apiError,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   }, [apiError, toast]);
 
   // Memoize the mapped products to prevent recreation
+  // Add this function for client-side sorting
+  const sortProducts = useCallback(
+    (products: Product[], sortOption: SortOption): Product[] => {
+      if (!products.length) return products;
+
+      const sortedProducts = [...products];
+
+      switch (sortOption) {
+        case "price_asc":
+          return sortedProducts.sort((a, b) => a.currentBid - b.currentBid);
+        case "price_desc":
+          return sortedProducts.sort((a, b) => b.currentBid - a.currentBid);
+        case "ending_soon":
+          return sortedProducts.sort(
+            (a, b) =>
+              new Date(a.timeLeft).getTime() - new Date(b.timeLeft).getTime()
+          );
+        case "newest":
+          // Assuming newer products have higher IDs or we could use a created_at field
+          return sortedProducts.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        case "popularity":
+          return sortedProducts.sort((a, b) => b.totalBids - a.totalBids);
+        default:
+          return sortedProducts;
+      }
+    },
+    []
+  );
+
+  // Modify the mappedProducts useMemo to include sorting
   const mappedProducts = useMemo((): Product[] => {
     if (!apiProducts.length) return [];
-    return apiProducts.map(mapApiProductToProduct);
-  }, [apiProducts, mapApiProductToProduct]);
+    const mapped = apiProducts.map(mapApiProductToProduct);
+    // Apply client-side sorting
+    return sortProducts(mapped, sortBy);
+  }, [apiProducts, mapApiProductToProduct, sortBy, sortProducts]);
 
   // Create a stable reference to the current filters and sortBy
-  const currentRequestParams = useMemo(() => ({
-    filters,
-    sortBy
-  }), [filters, sortBy]);
+  const currentRequestParams = useMemo(
+    () => ({
+      filters,
+      sortBy,
+    }),
+    [filters, sortBy]
+  );
 
   // Effect to load products when filters or sortBy change
+  // Remove the effect that automatically loads products when filters change
+  // We'll only load products when explicitly requested
   useEffect(() => {
     const timer = setTimeout(() => {
       const searchParams = {
         q: currentRequestParams.filters.searchQuery || undefined,
-        categories: currentRequestParams.filters.categories.length > 0 ? currentRequestParams.filters.categories : undefined,
-        locations: currentRequestParams.filters.locations.length > 0 ? currentRequestParams.filters.locations : undefined,
-        condition: currentRequestParams.filters.condition.length > 0 ? currentRequestParams.filters.condition : undefined,
-        timeLeft: currentRequestParams.filters.timeLeft.length > 0 ? currentRequestParams.filters.timeLeft : undefined,
-        minPrice: currentRequestParams.filters.priceRange[0] > 0 ? currentRequestParams.filters.priceRange[0] : undefined,
-        maxPrice: currentRequestParams.filters.priceRange[1] < 50000 ? currentRequestParams.filters.priceRange[1] : undefined,
+        categories:
+          currentRequestParams.filters.categories.length > 0
+            ? currentRequestParams.filters.categories
+            : undefined,
+        locations:
+          currentRequestParams.filters.locations.length > 0
+            ? currentRequestParams.filters.locations
+            : undefined,
+        condition:
+          currentRequestParams.filters.condition.length > 0
+            ? currentRequestParams.filters.condition
+            : undefined,
+        timeLeft:
+          currentRequestParams.filters.timeLeft.length > 0
+            ? currentRequestParams.filters.timeLeft
+            : undefined,
+        minPrice:
+          currentRequestParams.filters.priceRange[0] > 0
+            ? currentRequestParams.filters.priceRange[0]
+            : undefined,
+        maxPrice:
+          currentRequestParams.filters.priceRange[1] < 50000
+            ? currentRequestParams.filters.priceRange[1]
+            : undefined,
         sortBy: currentRequestParams.sortBy,
         page: 1,
-        limit: 20
+        limit: 20,
       };
-      
+
+      loadProducts(1, 20, searchParams);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [sortBy]); // Only react to sortBy changes, not filters
+
+  // Effect to load products when filters change, but with a longer debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const searchParams = {
+        q: currentRequestParams.filters.searchQuery || undefined,
+        categories:
+          currentRequestParams.filters.categories.length > 0
+            ? currentRequestParams.filters.categories
+            : undefined,
+        locations:
+          currentRequestParams.filters.locations.length > 0
+            ? currentRequestParams.filters.locations
+            : undefined,
+        condition:
+          currentRequestParams.filters.condition.length > 0
+            ? currentRequestParams.filters.condition
+            : undefined,
+        timeLeft:
+          currentRequestParams.filters.timeLeft.length > 0
+            ? currentRequestParams.filters.timeLeft
+            : undefined,
+        minPrice:
+          currentRequestParams.filters.priceRange[0] > 0
+            ? currentRequestParams.filters.priceRange[0]
+            : undefined,
+        maxPrice:
+          currentRequestParams.filters.priceRange[1] < 50000
+            ? currentRequestParams.filters.priceRange[1]
+            : undefined,
+        sortBy: currentRequestParams.sortBy,
+        page: 1,
+        limit: 20,
+      };
+
       loadProducts(1, 20, searchParams);
     }, 300); // 300ms debounce
 
@@ -190,35 +311,40 @@ const AuctionPage: React.FC = () => {
   }, []);
 
   // Pagination handlers
-  const handlePageChange = useCallback((page: number) => {
-    const searchParams = {
-      q: filters.searchQuery || undefined,
-      categories: filters.categories.length > 0 ? filters.categories : undefined,
-      locations: filters.locations.length > 0 ? filters.locations : undefined,
-      condition: filters.condition.length > 0 ? filters.condition : undefined,
-      timeLeft: filters.timeLeft.length > 0 ? filters.timeLeft : undefined,
-      minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-      maxPrice: filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
-      sortBy: sortBy,
-      page: page,
-      limit: 20
-    };
-    
-    loadSpecificPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [filters, sortBy, loadSpecificPage]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const searchParams = {
+        q: filters.searchQuery || undefined,
+        categories:
+          filters.categories.length > 0 ? filters.categories : undefined,
+        locations: filters.locations.length > 0 ? filters.locations : undefined,
+        condition: filters.condition.length > 0 ? filters.condition : undefined,
+        timeLeft: filters.timeLeft.length > 0 ? filters.timeLeft : undefined,
+        minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
+        maxPrice:
+          filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
+        sortBy: sortBy,
+        page: page,
+        limit: 20,
+      };
+
+      loadSpecificPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [filters, sortBy, loadSpecificPage]
+  );
 
   const handlePrevious = useCallback(() => {
     if (pagination?.hasPrevPage) {
       loadPrevPage();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [pagination, loadPrevPage]);
 
   const handleNext = useCallback(() => {
     if (pagination?.hasNextPage) {
       loadNextPage();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [pagination, loadNextPage]);
 
@@ -226,12 +352,12 @@ const AuctionPage: React.FC = () => {
   const getPageNumbers = useMemo(() => {
     return () => {
       if (!pagination) return [];
-      
+
       const pages = [];
       const maxVisiblePages = isMobile ? 3 : 5;
       const totalPages = pagination.totalPages;
       const currentPage = pagination.currentPage;
-      
+
       if (totalPages <= maxVisiblePages) {
         // Show all pages if total pages is less than max visible pages
         for (let i = 1; i <= totalPages; i++) {
@@ -240,39 +366,39 @@ const AuctionPage: React.FC = () => {
       } else {
         // Always show first page
         pages.push(1);
-        
+
         // Calculate start and end page
         let startPage = Math.max(2, currentPage - 1);
         let endPage = Math.min(totalPages - 1, currentPage + 1);
-        
+
         // Adjust if we're near the start or end
         if (currentPage <= 3) {
           endPage = Math.min(4, totalPages - 1);
         } else if (currentPage >= totalPages - 2) {
           startPage = Math.max(totalPages - 3, 2);
         }
-        
+
         // Add ellipsis if needed
         if (startPage > 2) {
-          pages.push('...');
+          pages.push("...");
         }
-        
+
         // Add middle pages
         for (let i = startPage; i <= endPage; i++) {
           pages.push(i);
         }
-        
+
         // Add ellipsis if needed
         if (endPage < totalPages - 1) {
-          pages.push('...');
+          pages.push("...");
         }
-        
+
         // Always show last page
         if (totalPages > 1) {
           pages.push(totalPages);
         }
       }
-      
+
       return pages;
     };
   }, [pagination, isMobile]);
@@ -285,7 +411,7 @@ const AuctionPage: React.FC = () => {
       priceRange: [0, 50000],
       timeLeft: [],
       condition: [],
-      searchQuery: '',
+      searchQuery: "",
     });
   }, []);
 
@@ -304,50 +430,76 @@ const AuctionPage: React.FC = () => {
   }, [filters]);
 
   // Memoize the results info component
+  // Modify the ResultsInfo useMemo to remove the "Page X of Y" display
   const ResultsInfo = useMemo(() => {
     if (!pagination) return null;
-    
+
     return (
       <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
         <span>
-          Showing {((pagination.currentPage - 1) * pagination.recordsPerPage) + 1} to{' '}
-          {Math.min(pagination.currentPage * pagination.recordsPerPage, pagination.totalRecords)} of{' '}
-          {pagination.totalRecords} results
+          Showing {(pagination.currentPage - 1) * pagination.recordsPerPage + 1}{" "}
+          to{" "}
+          {Math.min(
+            pagination.currentPage * pagination.recordsPerPage,
+            pagination.totalRecords
+          )}{" "}
+          of {pagination.totalRecords} results
         </span>
-        <span>
-          Page {pagination.currentPage} of {pagination.totalPages}
-        </span>
+
+        {/* Desktop Sorting UI - Add sorting options here */}
+        <div className="hidden lg:block">
+          <Select
+            value={sortBy}
+            onValueChange={(value) => handleSortChange(value as SortOption)}
+          >
+            <SelectTrigger className="w-48">
+              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              Sort by
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ending_soon">Ending Soon</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="popularity">Most Bids</SelectItem>
+              <SelectItem value="price_asc">Lowest Price</SelectItem>
+              <SelectItem value="price_desc">Highest Price</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     );
-  }, [pagination]);
+  }, [pagination, sortBy, handleSortChange]);
 
   // Memoize the pagination component
   const PaginationComponent = useMemo(() => {
     if (!pagination || pagination.totalPages <= 1) return null;
-    
+
     return (
       <div className="mt-8 flex justify-center">
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious 
+              <PaginationPrevious
                 onClick={handlePrevious}
-                className={!pagination.hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                className={
+                  !pagination.hasPrevPage
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
-            
+
             {getPageNumbers().map((page, index) => (
               <PaginationItem key={index}>
-                {page === '...' ? (
+                {page === "..." ? (
                   <span className="px-3 py-1">...</span>
                 ) : (
                   <PaginationLink
                     onClick={() => handlePageChange(page as number)}
                     isActive={pagination.currentPage === page}
                     className={`cursor-pointer ${
-                      pagination.currentPage === page 
-                        ? 'bg-primary text-white hover:text-white' 
-                        : ''
+                      pagination.currentPage === page
+                        ? "bg-primary text-white hover:text-white"
+                        : ""
                     }`}
                   >
                     {page}
@@ -355,32 +507,40 @@ const AuctionPage: React.FC = () => {
                 )}
               </PaginationItem>
             ))}
-            
+
             <PaginationItem>
-              <PaginationNext 
+              <PaginationNext
                 onClick={handleNext}
-                className={!pagination.hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                className={
+                  !pagination.hasNextPage
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
       </div>
     );
-  }, [pagination, getPageNumbers, handlePrevious, handleNext, handlePageChange]);
+  }, [
+    pagination,
+    getPageNumbers,
+    handlePrevious,
+    handleNext,
+    handlePageChange,
+  ]);
 
   // Memoize the no products message
   const NoProductsMessage = useMemo(() => {
     if (isLoading || mappedProducts.length > 0) return null;
-    
+
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
+        <p className="text-gray-500 text-lg">
+          No products found matching your criteria.
+        </p>
         {getActiveFiltersCount() > 0 && (
-          <Button
-            variant="outline"
-            onClick={clearFilters}
-            className="mt-4"
-          >
+          <Button variant="outline" onClick={clearFilters} className="mt-4">
             Clear Filters
           </Button>
         )}
@@ -392,19 +552,24 @@ const AuctionPage: React.FC = () => {
   const forceRefresh = useCallback(() => {
     const searchParams = {
       q: filters.searchQuery || undefined,
-      categories: filters.categories.length > 0 ? filters.categories : undefined,
+      categories:
+        filters.categories.length > 0 ? filters.categories : undefined,
       locations: filters.locations.length > 0 ? filters.locations : undefined,
       condition: filters.condition.length > 0 ? filters.condition : undefined,
       timeLeft: filters.timeLeft.length > 0 ? filters.timeLeft : undefined,
       minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-      maxPrice: filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
+      maxPrice:
+        filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
       sortBy: sortBy,
       page: 1,
-      limit: 20
+      limit: 20,
     };
-    
+
     loadProducts(1, 20, searchParams);
   }, [filters, sortBy, loadProducts]);
+
+  // Create a stable key for filter panels to prevent re-rendering
+  const filterPanelKey = useMemo(() => "filter-panel", []);
 
   // Skeleton while loading
   if (isLoading) {
@@ -461,10 +626,11 @@ const AuctionPage: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-2 sm:px-4 py-6">
         <div className="flex gap-6">
-          {/* Desktop Filter Sidebar - Memoized */}
+          {/* Desktop Filter Sidebar - Memoized with stable key */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-24">
               <MemoizedFilterPanel
+                key={filterPanelKey}
                 isOpen={true}
                 onClose={() => {}}
                 filters={filters}
@@ -472,7 +638,7 @@ const AuctionPage: React.FC = () => {
                 products={mappedProducts}
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={clearFilters}
-                forceRefresh={forceRefresh} // Add force refresh prop
+                forceRefresh={forceRefresh}
               />
             </div>
           </div>
@@ -495,7 +661,10 @@ const AuctionPage: React.FC = () => {
                 )}
               </Button>
 
-              <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortOption)}>
+              <Select
+                value={sortBy}
+                onValueChange={(value) => handleSortChange(value as SortOption)}
+              >
                 <SelectTrigger className="w-48">
                   <SlidersHorizontal className="h-4 w-4 mr-2" />
                   Sort by
@@ -510,24 +679,19 @@ const AuctionPage: React.FC = () => {
               </Select>
             </div>
 
-            {/* Results Info - Memoized */}
+            {/* Remove the Desktop View Controls section that was here */}
+
+            {/* Results Info - Memoized - Now includes desktop sorting */}
             {ResultsInfo}
 
-            {/* Products Grid - Memoized */}
-            <div className="space-y-6">
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
-                  {mappedProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {mappedProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} viewMode="list" />
-                  ))}
-                </div>
-              )}
+            {/* Products Grid - With key based on loading state */}
+            <div className="space-y-6" key={`products-${isLoading}`}>
+              {/* Always use grid view for desktop since we removed the view toggle */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
+                {mappedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
 
               {/* No products message - Memoized */}
               {NoProductsMessage}
@@ -539,8 +703,9 @@ const AuctionPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Filter Panel - Memoized */}
+      {/* Mobile Filter Panel - Memoized with stable key */}
       <MemoizedFilterPanel
+        key={`mobile-${filterPanelKey}`}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         filters={filters}
@@ -548,7 +713,7 @@ const AuctionPage: React.FC = () => {
         products={mappedProducts}
         onFiltersChange={handleFiltersChange}
         onClearFilters={clearFilters}
-        forceRefresh={forceRefresh} // Add force refresh prop
+        forceRefresh={forceRefresh}
       />
     </Layout>
   );
