@@ -1,11 +1,54 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Cookies from 'js-cookie';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { getUserIdFromToken } from './crudService';
 
 export interface UserProductCounts {
   wishlist_count: number;
   bids_count: number;
+}
+
+export interface SearchParams {
+  q?: string;
+  categories?: string[];
+  locations?: string[];
+  condition?: string[];
+  timeLeft?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: 'price_asc' | 'price_desc' | 'ending_soon' | 'newest' | 'popularity';
+  page?: number;
+  limit?: number;
+}
+
+export interface FilterOptions {
+  categories: string[];
+  locations: string[];
+  conditions: string[];
+}
+
+export interface SearchResponse {
+  success: boolean;
+  data: Product[];
+  filterOptions: FilterOptions;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalRecords: number;
+    recordsPerPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
+  appliedFilters: {
+    categories: string[];
+    locations: string[];
+    conditions: string[];
+    timeLeft: string[];
+    priceRange: [number, number];
+    searchQuery: string | null;
+  };
 }
 
 // Get the API base URL from environment variables
@@ -19,7 +62,7 @@ export interface Product {
   starting_price: string | number;
   category_id: string | number;
   auction_start: string;
-  auction_end: string ;
+  auction_end: string;
   status: string;
   created_at: string;
   retail_value: string | number;
@@ -36,6 +79,7 @@ export interface Product {
   vendor_name: string | null;
   total_bids: string | number;
   max_bid_amount: string | number;
+  condition: string;
 }
 
 // Pagination types
@@ -53,6 +97,7 @@ interface PaginationInfo {
 interface PaginatedProductResponse {
   success: boolean;
   data: Product[];
+  filterOptions: FilterOptions;
   pagination: PaginationInfo;
 }
 
@@ -64,31 +109,72 @@ interface LegacyProductResponse {
 }
 
 /**
- * Fetches all products from the API with pagination
+ * Fetches all products from the API with pagination and filters
  * @param page The page number (default: 1)
  * @param limit The number of records per page (default: 20)
+ * @param filters Search parameters including query, filters, and pagination
  * @returns Promise with the paginated list of products
  */
 export const getProducts = async (
   page: number = 1, 
-  limit: number = 20
+  limit: number = 20,
+  filters: Partial<SearchParams> = {}
 ): Promise<PaginatedProductResponse> => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/products?page=${page}&limit=${limit}`, 
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Cookies.get('authToken')}`
-        }
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch products');
+    // Build query string from params
+    const queryParams = new URLSearchParams();
+    
+    // Add pagination
+    queryParams.append('page', page.toString());
+    queryParams.append('limit', limit.toString());
+    
+    // Add filters
+    if (filters.q) queryParams.append('searchQuery', filters.q);
+    
+    if (filters.categories && filters.categories.length > 0) {
+      filters.categories.forEach(category => queryParams.append('categories', category));
+    }
+    
+    if (filters.locations && filters.locations.length > 0) {
+      filters.locations.forEach(location => queryParams.append('locations', location));
+    }
+    
+    if (filters.condition && filters.condition.length > 0) {
+      filters.condition.forEach(condition => queryParams.append('condition', condition));
+    }
+    
+    if (filters.timeLeft && filters.timeLeft.length > 0) {
+      filters.timeLeft.forEach(time => queryParams.append('timeLeft', time));
+    }
+    
+    if (filters.minPrice !== undefined) queryParams.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice !== undefined) queryParams.append('maxPrice', filters.maxPrice.toString());
+    
+    // Add sorting - map UI values to database column names
+    if (filters.sortBy) {
+      queryParams.append('sortBy', filters.sortBy);
     }
 
+    const token = Cookies.get('authToken');
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/products?${queryParams.toString()}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to fetch products');
+    }
+
+    // Fixed: Removed the incorrect destructuring
     const data: PaginatedProductResponse = await response.json();
     return data;
   } catch (error) {
@@ -118,40 +204,46 @@ export const getAllProducts = async (): Promise<LegacyProductResponse> => {
 };
 
 // Additional utility functions for easier pagination handling
-export const getFirstPage = async (limit: number = 20): Promise<PaginatedProductResponse> => {
-  return getProducts(1, limit);
+export const getFirstPage = async (limit: number = 20, filters: Partial<SearchParams> = {}): Promise<PaginatedProductResponse> => {
+  return getProducts(1, limit, filters);
 };
 
-export const getNextPage = async (currentPage: number, limit: number = 20): Promise<PaginatedProductResponse> => {
-  return getProducts(currentPage + 1, limit);
+export const getNextPage = async (currentPage: number, limit: number = 20, filters: Partial<SearchParams> = {}): Promise<PaginatedProductResponse> => {
+  return getProducts(currentPage + 1, limit, filters);
 };
 
-export const getPrevPage = async (currentPage: number, limit: number = 20): Promise<PaginatedProductResponse> => {
-  return getProducts(currentPage - 1, limit);
+export const getPrevPage = async (currentPage: number, limit: number = 20, filters: Partial<SearchParams> = {}): Promise<PaginatedProductResponse> => {
+  return getProducts(currentPage - 1, limit, filters);
 };
 
-export const getSpecificPage = async (page: number, limit: number = 20): Promise<PaginatedProductResponse> => {
-  return getProducts(page, limit);
+export const getSpecificPage = async (page: number, limit: number = 20, filters: Partial<SearchParams> = {}): Promise<PaginatedProductResponse> => {
+  return getProducts(page, limit, filters);
 };
 
 /**
- * Hook for managing paginated products state
+ * Hook for managing paginated products state with filters
  */
 export const usePaginatedProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    categories: [],
+    locations: [],
+    conditions: []
+  });
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadProducts = async (page: number = 1, limit: number = 20) => {
+  const loadProducts = useCallback(async (page: number = 1, limit: number = 20, filters: Partial<SearchParams> = {}) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await getProducts(page, limit);
+      const response = await getProducts(page, limit, filters);
       
       if (response.success) {
         setProducts(response.data);
+        setFilterOptions(response.filterOptions);
         setPagination(response.pagination);
       }
     } catch (err) {
@@ -160,34 +252,35 @@ export const usePaginatedProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadNextPage = async () => {
+  const loadNextPage = useCallback(() => {
     if (pagination?.hasNextPage) {
-      await loadProducts(pagination.nextPage!, pagination.recordsPerPage);
+      loadProducts(pagination.nextPage!, pagination.recordsPerPage);
     }
-  };
+  }, [pagination, loadProducts]);
 
-  const loadPrevPage = async () => {
+  const loadPrevPage = useCallback(() => {
     if (pagination?.hasPrevPage) {
-      await loadProducts(pagination.prevPage!, pagination.recordsPerPage);
+      loadProducts(pagination.prevPage!, pagination.recordsPerPage);
     }
-  };
+  }, [pagination, loadProducts]);
 
-  const loadSpecificPage = async (page: number) => {
+  const loadSpecificPage = useCallback((page: number) => {
     if (pagination) {
-      await loadProducts(page, pagination.recordsPerPage);
+      loadProducts(page, pagination.recordsPerPage);
     }
-  };
+  }, [pagination, loadProducts]);
 
-  const refreshCurrentPage = async () => {
+  const refreshCurrentPage = useCallback(() => {
     if (pagination) {
-      await loadProducts(pagination.currentPage, pagination.recordsPerPage);
+      loadProducts(pagination.currentPage, pagination.recordsPerPage);
     }
-  };
+  }, [pagination, loadProducts]);
 
   return {
     products,
+    filterOptions,
     pagination,
     loading,
     error,
@@ -376,7 +469,7 @@ export const isInWishlist = async (productId: number): Promise<boolean> => {
  * @param userId The ID of the user to get counts for
  * @returns Promise with the user's product counts
  */
-export const getUserProductCounts = async (userId: string | number): Promise<{ success: boolean; data: UserProductCounts }> => {
+export const getUserProductCounts = async (userId: string | number): Promise<{ success: boolean;  UserProductCounts }> => {
   try {
     const token = Cookies.get('authToken'); // Changed from 'token' to 'authToken' to match your auth system
 
@@ -398,6 +491,72 @@ export const getUserProductCounts = async (userId: string | number): Promise<{ s
     return data;
   } catch (error) {
     console.error('Error fetching user product counts:', error);
+    throw error;
+  }
+};
+
+/**
+ * Searches for products based on various filters and search terms
+ * @param params Search parameters including query, filters, and pagination
+ * @returns Promise with the search results and pagination info
+ */
+export const searchProducts = async (params: SearchParams): Promise<SearchResponse> => {
+  try {
+    // Build query string from params
+    const queryParams = new URLSearchParams();
+    
+    // Add search query if provided
+    if (params.q) queryParams.append('searchQuery', params.q);
+    
+    // Add filters if provided
+    if (params.categories && params.categories.length > 0) {
+      params.categories.forEach(category => queryParams.append('categories', category));
+    }
+    
+    if (params.locations && params.locations.length > 0) {
+      params.locations.forEach(location => queryParams.append('locations', location));
+    }
+    
+    if (params.condition && params.condition.length > 0) {
+      params.condition.forEach(condition => queryParams.append('condition', condition));
+    }
+    
+    if (params.timeLeft && params.timeLeft.length > 0) {
+      params.timeLeft.forEach(time => queryParams.append('timeLeft', time));
+    }
+    
+    if (params.minPrice) queryParams.append('minPrice', params.minPrice.toString());
+    if (params.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    
+    // Add pagination
+    const page = params.page || 1;
+    const limit = params.limit || 12;
+    queryParams.append('page', page.toString());
+    queryParams.append('limit', limit.toString());
+
+    const token = Cookies.get('authToken');
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/products/search?${queryParams.toString()}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to search products');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching products:', error);
     throw error;
   }
 };

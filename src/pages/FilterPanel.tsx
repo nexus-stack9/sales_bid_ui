@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter, Search } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -10,102 +10,121 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FilterState, Product } from '@/types/auction';
+import dayjs from 'dayjs';
 
 interface FilterPanelProps {
   isOpen: boolean;
   onClose: () => void;
   filters: FilterState;
+  filterOptions: {
+    categories: string[];
+    locations: string[];
+    conditions: string[];
+  };
   products: Product[];
   onFiltersChange: (filters: FilterState) => void;
   onClearFilters: () => void;
+  forceRefresh?: () => void;
 }
+
+// Format text to have the first letter of each word capitalized
+const formatText = (text: string): string => {
+  if (!text) return '';
+  return text
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
   isOpen,
   onClose,
   filters,
+  filterOptions,
   products,
   onFiltersChange,
   onClearFilters,
+  forceRefresh
 }) => {
-  // Extract unique categories, conditions, and locations from products
-  const uniqueCategories = React.useMemo(() => {
-    const categories = new Set<string>();
-    products.forEach(product => {
-      if (product.category_name) {
-        categories.add(product.category_name);
-      }
-    });
-    return Array.from(categories).sort();
-  }, [products]);
+  // Memoize the filter options to prevent recreation
+  const uniqueCategories = useMemo(() => filterOptions.categories || [], [filterOptions.categories]);
+  const uniqueConditions = useMemo(() => filterOptions.conditions || [], [filterOptions.conditions]);
+  const uniqueLocations = useMemo(() => filterOptions.locations || [], [filterOptions.locations]);
 
-  const uniqueConditions = React.useMemo(() => {
-    const conditions = new Set<string>();
-    products.forEach(product => {
-      if (product.condition) {
-        conditions.add(product.condition);
-      }
-    });
-    return Array.from(conditions).sort();
-  }, [products]);
+  // Generate time left options
+  const timeLeftOptions = useMemo(() => [
+    { value: '1h', label: 'Less than 1 hour' },
+    { value: '12h', label: 'Less than 12 hours' },
+    { value: '24h', label: 'Less than 24 hours' },
+    { value: '1d+', label: 'More than 1 day' }
+  ], []);
 
-  const uniqueLocations = React.useMemo(() => {
-    const locations = new Set<string>();
-    products.forEach(product => {
-      if (product.location) {
-        locations.add(product.location);
-      }
-    });
-    return Array.from(locations).sort();
-  }, [products]);
+  // Calculate price range
+  const priceRange = useMemo(() => {
+    const defaultMin = 0;
+    const defaultMax = 50000;
+    return [defaultMin, defaultMax];
+  }, []);
 
-  const timeLeftOptions = [
-    { label: 'Less than 1 hour', value: '1h' },
-    { label: 'Less than 12 hours', value: '12h' },
-    { label: 'Less than 24 hours', value: '24h' },
-    { label: 'More than 1 day', value: '1d+' },
-  ];
-
-  const handleCheckboxChange = (
+  // Memoize the checkbox change handler
+  const handleCheckboxChange = useMemo(() => (
     field: keyof FilterState,
     value: string,
     checked: boolean
   ) => {
-    const currentValues = filters[field] as string[];
-    const newValues = checked
-      ? [...currentValues, value]
-      : currentValues.filter(v => v !== value);
+    const currentValues = Array.isArray(filters[field]) 
+      ? [...(filters[field] as string[])] 
+      : [];
+      
+    let newValues: string[];
+    
+    if (checked) {
+      if (!currentValues.includes(value)) {
+        newValues = [...currentValues, value];
+      } else {
+        newValues = [...currentValues];
+      }
+    } else {
+      newValues = currentValues.filter(v => v !== value);
+    }
     
     onFiltersChange({
       ...filters,
       [field]: newValues,
     });
-  };
+  }, [filters, onFiltersChange]);
 
-  const handlePriceRangeChange = (value: number[]) => {
-    onFiltersChange({
-      ...filters,
-      priceRange: [value[0], value[1]],
-    });
-  };
+  // Memoize the price range change handler
+  const handlePriceRangeChange = useMemo(() => (value: number[]) => {
+    if (value.length === 2 && value[0] <= value[1]) {
+      onFiltersChange({
+        ...filters,
+        priceRange: [value[0], value[1]],
+      });
+    }
+  }, [filters, onFiltersChange]);
 
-  const handleSearchChange = (value: string) => {
+  // Memoize the search change handler
+  const handleSearchChange = useMemo(() => (value: string) => {
     onFiltersChange({
       ...filters,
       searchQuery: value,
     });
-  };
+  }, [filters, onFiltersChange]);
 
-  const getActiveFiltersCount = () => {
+  // Memoize the active filters count
+  const getActiveFiltersCount = useMemo(() => {
     return (
-      filters.categories.length +
-      filters.locations.length +
-      filters.timeLeft.length +
-      filters.condition.length +
+      (Array.isArray(filters.categories) ? filters.categories.length : 0) +
+      (Array.isArray(filters.locations) ? filters.locations.length : 0) +
+      (Array.isArray(filters.timeLeft) ? filters.timeLeft.length : 0) +
+      (Array.isArray(filters.condition) ? filters.condition.length : 0) +
       (filters.searchQuery ? 1 : 0) +
-      (filters.priceRange[0] > 0 || filters.priceRange[1] < 50000 ? 1 : 0)
+      (filters.priceRange && 
+       (filters.priceRange[0] > 0 || 
+        filters.priceRange[1] < 50000) ? 1 : 0)
     );
-  };
+  }, [filters]);
 
   return (
     <AnimatePresence>
@@ -125,7 +144,11 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            // Remove animation for desktop by setting transition to 0
+            transition={{ 
+              x: { type: 'tween', duration: 0 }, 
+              opacity: { duration: 0 }
+            }}
             className="fixed left-0 top-0 h-full w-80 bg-background border-r border-border z-50 lg:relative lg:w-full lg:h-auto lg:bg-transparent lg:border-0"
           >
             <Card className="h-full lg:h-auto">
@@ -134,9 +157,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <Filter className="h-5 w-5 text-primary" />
                   <h2 className="font-semibold text-lg">Filters</h2>
-                  {getActiveFiltersCount() > 0 && (
+                  {getActiveFiltersCount > 0 && (
                     <Badge variant="secondary" className="ml-2">
-                      {getActiveFiltersCount()}
+                      {getActiveFiltersCount}
                     </Badge>
                   )}
                 </div>
@@ -144,7 +167,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={onClearFilters}
+                    onClick={() => {
+                      onClearFilters();
+                      if (forceRefresh) {
+                        setTimeout(forceRefresh, 100);
+                      }
+                    }}
                     className="text-muted-foreground hover:text-foreground"
                   >
                     Clear All
@@ -162,23 +190,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
               <ScrollArea className="flex-1 px-4 pb-4">
                 <div className="space-y-6 py-4">
-                  {/* Search */}
-                  <div className="space-y-2">
-                    <Label htmlFor="search" className="text-sm font-medium">
-                      Search Products
-                    </Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="search"
-                        placeholder="Search by product name..."
-                        value={filters.searchQuery}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
                   {/* Price Range */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">
@@ -311,4 +322,5 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 
-export default FilterPanel;
+// Memoize the FilterPanel to prevent unnecessary re-renders
+export default memo(FilterPanel);
