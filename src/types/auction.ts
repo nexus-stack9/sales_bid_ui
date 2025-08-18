@@ -32,7 +32,7 @@ export interface Product {
   description: string;
   currentBid: number;
   totalBids: number;
-  timeLeft: string; // ISO string
+  timeLeft: string;
   location: string;
   category: string;
   category_name: string;
@@ -44,13 +44,13 @@ export interface Product {
   retail_value?: number;
 }
   
-  export interface FilterState {
-    categories: string[];
-    locations: string[];
-    priceRange: [number, number];
-    timeLeft: string[];
-    condition: string[];
-    searchQuery: string;
-  }
+export interface FilterState {
+  categories: string[];
+  locations: string[];
+  priceRange: [number, number];
+  timeLeft: string[];
+  condition: string[];
+  searchQuery: string;
+}
   
-  export type SortOption = 'newest' | 'ending-soon' | 'most-bids' | 'lowest-price' | 'highest-price';
+export type SortOption = 'price_asc' | 'price_desc' | 'ending_soon' | 'newest' | 'popularity';
