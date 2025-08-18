@@ -21,6 +21,8 @@ import Wishlist from "./pages/user/Wishlist";
 import BuyersPage from "./pages/buyers/BuyersPage"
 import allSellersPage from "./pages/sellers/allSellersPage";
 import AllSellersPage from "./pages/sellers/allSellersPage";
+import SellerRegistrationForm from "./pages/sellers/SellerRegistrationForm";
+
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,9 @@ const App = () => (
                 <Route path="/my-bids" element={<MyBids />} />
                 <Route path="/sellers" element={<SellersPage />} />
                                 <Route path="/allSellersPage" element={<AllSellersPage />} />
+                                <Route path="/sellerRegistration" element={<SellerRegistrationForm />} />
+
+
 
                 <Route path="/buyers" element={<BuyersPage />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

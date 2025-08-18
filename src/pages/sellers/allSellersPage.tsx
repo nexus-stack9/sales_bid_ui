@@ -1,431 +1,523 @@
-import React, { useState } from 'react';
-import { FaSearch, FaStar, FaRegStar, FaRegHeart, FaFilter, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { RiAuctionFill } from 'react-icons/ri';
-import { MdVerified, MdLocationOn } from 'react-icons/md';
+import React, { useState, useEffect } from 'react';
+import { FaSearch, FaRegHeart, FaHeart, FaFilter, FaChevronDown, FaChevronUp, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { MdVerified, MdBusiness, MdEmail, MdPhone, MdDateRange } from 'react-icons/md';
+import { HiOutlineCube, HiOutlineShoppingCart, HiOutlineCheckCircle } from 'react-icons/hi';
 import Layout from '@/components/layout/Layout';
+import axios from 'axios';
+import sellerService from '@/services/sellerService';
 
+interface Seller {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  business_type: string;
+  business_name: string;
+  status: 'active' | 'pending' | 'suspended';
+  created_at: string;
+  product_count: number;
+  sold_products: number;
+  active_products: number;
+}
+
+interface ApiResponse {
+  success: boolean;
+  count: number;
+  data: Seller[];
+  message?: string;
+  error?: string;
+}
+
+interface Filters {
+  businessType: string;
+  status: string;
+  searchQuery: string;
+}
+
+interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
 
 const AllSellersPage = () => {
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    category: '',
-    rating: null,
-    location: '',
-    verifiedOnly: false
+  const [filters, setFilters] = useState<Filters>({
+    businessType: '',
+    status: '',
+    searchQuery: ''
   });
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<Pagination>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10
+  });
 
-  const toggleFavorite = (sellerId) => {
-    if (favorites.includes(sellerId)) {
-      setFavorites(favorites.filter(id => id !== sellerId));
-    } else {
-      setFavorites([...favorites, sellerId]);
-    }
+  useEffect(() => {
+    const fetchSellers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        debugger
+        
+        const response = await sellerService.getAllSellers();
+        
+        if (response.success) {
+          setSellers(response.data);
+          setPagination(prev => ({
+            ...prev,
+            totalItems: response.data.count,
+            totalPages: Math.ceil(response.data.count / prev.itemsPerPage)
+          }));
+        } else {
+          throw new Error(response.data.message || 'Failed to fetch sellers');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        setSellers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSellers();
+  }, []);
+
+  const toggleFavorite = (sellerId: number) => {
+    setFavorites(prev => 
+      prev.includes(sellerId) 
+        ? prev.filter(id => id !== sellerId) 
+        : [...prev, sellerId]
+    );
   };
 
-  const handleFilterChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
   };
 
   const resetFilters = () => {
     setFilters({
-      category: '',
-      rating: null,
-      location: '',
-      verifiedOnly: false
+      businessType: '',
+      status: '',
+      searchQuery: ''
     });
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
   };
 
-  // Mock seller data
-  const sellers = [
-    {
-      id: 1,
-      name: "Elite Collectibles",
-      verified: true,
-      rating: 4.8,
-      reviewCount: 247,
-      location: "New York, USA",
-      categories: ["Art", "Antiques", "Collectibles"],
-      itemsListed: 142,
-      joinedDate: "2015",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 2,
-      name: "Timepiece Treasures",
-      verified: true,
-      rating: 4.9,
-      reviewCount: 183,
-      location: "Geneva, Switzerland",
-      categories: ["Watches", "Jewelry"],
-      itemsListed: 89,
-      joinedDate: "2017",
-      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 3,
-      name: "Vintage Motors",
-      verified: false,
-      rating: 4.5,
-      reviewCount: 112,
-      location: "Los Angeles, USA",
-      categories: ["Automobiles", "Memorabilia"],
-      itemsListed: 56,
-      joinedDate: "2019",
-      image: "https://images.unsplash.com/photo-1504215680853-026ed2a45def?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 4,
-      name: "Artisan Gallery",
-      verified: true,
-      rating: 4.7,
-      reviewCount: 98,
-      location: "Paris, France",
-      categories: ["Art", "Sculptures"],
-      itemsListed: 203,
-      joinedDate: "2014",
-      image: "https://images.unsplash.com/photo-1554080353-a576cf803bda?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 5,
-      name: "Jewel Box",
-      verified: true,
-      rating: 4.6,
-      reviewCount: 156,
-      location: "London, UK",
-      categories: ["Jewelry", "Luxury"],
-      itemsListed: 178,
-      joinedDate: "2016",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-    },
-    {
-      id: 6,
-      name: "Sports Legends",
-      verified: false,
-      rating: 4.3,
-      reviewCount: 67,
-      location: "Chicago, USA",
-      categories: ["Sports Memorabilia"],
-      itemsListed: 42,
-      joinedDate: "2020",
-      image: "https://images.unsplash.com/photo-1543357486-c250e88b4d16?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, currentPage: newPage }));
     }
-  ];
-
-  const categories = [
-    "All Categories",
-    "Art",
-    "Antiques",
-    "Collectibles",
-    "Watches",
-    "Jewelry",
-    "Automobiles",
-    "Memorabilia",
-    "Sculptures",
-    "Luxury",
-    "Sports Memorabilia"
-  ];
-
-  const locations = [
-    "All Locations",
-    "North America",
-    "Europe",
-    "Asia",
-    "Australia",
-    "Africa",
-    "South America"
-  ];
-
-  const renderStars = (rating) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    
-    for (let i = 1; i <= 5; i++) {
-      if (i <= fullStars) {
-        stars.push(<FaStar key={i} className="text-yellow-400" />);
-      } else if (i === fullStars + 1 && hasHalfStar) {
-        stars.push(<FaStar key={i} className="text-yellow-400" />);
-      } else {
-        stars.push(<FaRegStar key={i} className="text-yellow-400" />);
-      }
-    }
-    
-    return stars;
   };
+
+  const businessTypes = [
+    { value: '', label: 'All Types' },
+    { value: 'Individual', label: 'Individual' },
+    { value: 'Business', label: 'Business' },
+    { value: 'Dealer', label: 'Dealer' },
+    { value: 'Gallery', label: 'Gallery' }
+  ];
+
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'active', label: 'Active' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'suspended', label: 'Suspended' }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-emerald-100 text-emerald-800';
+      case 'pending': return 'bg-amber-100 text-amber-800';
+      case 'suspended': return 'bg-rose-100 text-rose-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Filter sellers based on search query and filters
+  const filteredSellers = sellers.filter(seller => {
+    const matchesSearch = filters.searchQuery 
+      ? seller.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) || 
+        (seller.business_name && seller.business_name.toLowerCase().includes(filters.searchQuery.toLowerCase()))
+      : true;
+      
+    const matchesBusinessType = filters.businessType 
+      ? seller.business_type === filters.businessType 
+      : true;
+      
+    const matchesStatus = filters.status 
+      ? seller.status === filters.status 
+      : true;
+      
+    return matchesSearch && matchesBusinessType && matchesStatus;
+  });
+
+  // Apply pagination to filtered results
+  const paginatedSellers = filteredSellers.slice(
+    (pagination.currentPage - 1) * pagination.itemsPerPage,
+    pagination.currentPage * pagination.itemsPerPage
+  );
+
+  // Update total pages when filters change
+  useEffect(() => {
+    setPagination(prev => ({
+      ...prev,
+      totalPages: Math.ceil(filteredSellers.length / prev.itemsPerPage),
+      totalItems: filteredSellers.length
+    }));
+  }, [filteredSellers]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse flex space-x-4">
+              <div className="rounded-full bg-purple-100 h-12 w-12"></div>
+              <div className="flex-1 space-y-4 py-1">
+                <div className="h-4 bg-purple-100 rounded w-3/4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-purple-100 rounded"></div>
+                  <div className="h-4 bg-purple-100 rounded w-5/6"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-rose-50 border-l-4 border-rose-500 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-rose-700">Error loading sellers: {error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-    <div className="all-sellers-page bg-gray-50 min-h-screen">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <RiAuctionFill className="text-3xl" />
-              <h1 className="text-2xl font-bold">BidMaster Pro</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button className="text-white hover:text-purple-200 transition">
-                For Buyers
-              </button>
-              <button className="text-white hover:text-purple-200 transition">
-                For Sellers
-              </button>
-              <button className="bg-white text-purple-700 px-4 py-2 rounded-full font-medium hover:bg-purple-100 transition">
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Browse All Sellers</h1>
-          <p className="text-gray-600">
-            Discover trusted sellers from around the world offering unique items
-          </p>
-        </div>
-
-        {/* Search and Filter Bar */}
-        <div className="bg-white rounded-xl shadow-md p-4 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search sellers by name or specialty..." 
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition"
-            >
-              <FaFilter />
-              <span>Filters</span>
-              {showFilters ? <FaChevronUp /> : <FaChevronDown />}
-            </button>
+      <div className="bg-gray-50 min-h-screen">
+        <main className="container mx-auto px-4 py-8">
+          {/* Page Header */}
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold mb-2 bg-gray-800 to-blue-500 bg-clip-text text-transparent">
+              Our Trusted Sellers
+            </h1>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Discover premium sellers offering exclusive products with verified credentials and outstanding service
+            </p>
           </div>
 
-          {/* Expanded Filters */}
-          {showFilters && (
-            <div className="mt-4 pt-4 border-t">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-gray-700 mb-1">Category</label>
-                  <select
-                    name="category"
-                    value={filters.category}
-                    onChange={handleFilterChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    {categories.map((category, index) => (
-                      <option key={index} value={category}>{category}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-gray-700 mb-1">Minimum Rating</label>
-                  <select
-                    name="rating"
-                    value={filters.rating || ''}
-                    onChange={handleFilterChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">Any Rating</option>
-                    <option value="4.5">4.5+ Stars</option>
-                    <option value="4.0">4.0+ Stars</option>
-                    <option value="3.5">3.5+ Stars</option>
-                    <option value="3.0">3.0+ Stars</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-gray-700 mb-1">Location</label>
-                  <select
-                    name="location"
-                    value={filters.location}
-                    onChange={handleFilterChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    {locations.map((location, index) => (
-                      <option key={index} value={location}>{location}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="flex items-end">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      name="verifiedOnly"
-                      checked={filters.verifiedOnly}
+          {/* Search and Filter Bar */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input 
+                  type="text" 
+                  name="searchQuery"
+                  value={filters.searchQuery}
+                  onChange={handleFilterChange}
+                  placeholder="Search by seller name or business..." 
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                />
+              </div>
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg border border-gray-200 transition"
+              >
+                <FaFilter className="text-purple-500" />
+                <span className="text-gray-700">Filters</span>
+                {showFilters ? <FaChevronUp className="text-gray-500" /> : <FaChevronDown className="text-gray-500" />}
+              </button>
+            </div>
+
+            {/* Expanded Filters */}
+            {showFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-gray-700 mb-1 text-sm font-medium">Business Type</label>
+                    <select
+                      name="businessType"
+                      value={filters.businessType}
                       onChange={handleFilterChange}
-                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                    />
-                    <span className="text-gray-700">Verified Only</span>
-                  </label>
-                  <button 
-                    onClick={resetFilters}
-                    className="ml-auto text-purple-600 hover:text-purple-800 text-sm"
-                  >
-                    Reset All
-                  </button>
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-sm"
+                    >
+                      {businessTypes.map((type) => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-gray-700 mb-1 text-sm font-medium">Status</label>
+                    <select
+                      name="status"
+                      value={filters.status}
+                      onChange={handleFilterChange}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-sm"
+                    >
+                      {statusOptions.map((status) => (
+                        <option key={status.value} value={status.value}>{status.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-end justify-end">
+                    <button 
+                      onClick={resetFilters}
+                      className="px-4 py-2 text-sm text-purple-600 hover:text-purple-800 font-medium transition"
+                    >
+                      Reset All Filters
+                    </button>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Results Count */}
+          <div className="mb-6 flex justify-between items-center">
+            <p className="text-gray-600 text-sm">
+              Showing <span className="font-medium">{(pagination.currentPage - 1) * pagination.itemsPerPage + 1}</span> to{' '}
+              <span className="font-medium">{Math.min(pagination.currentPage * pagination.itemsPerPage, filteredSellers.length)}</span> of{' '}
+              <span className="font-medium">{filteredSellers.length}</span> sellers
+            </p>
+          </div>
+
+          {/* Sellers List */}
+          <div className="space-y-4">
+            {paginatedSellers.length > 0 ? (
+              paginatedSellers.map(seller => (
+                <div key={seller.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
+                  <div className="flex flex-col md:flex-row">
+                    {/* Seller Logo */}
+                    <div className="md:w-1/5 bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-2xl font-bold text-purple-600">
+                          {seller.business_name ? 
+                            seller.business_name.charAt(0).toUpperCase() : 
+                            seller.name.charAt(0).toUpperCase()}
+                        </div>
+                        {seller.status === 'active' && (
+                          <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-sm">
+                            <MdVerified className="text-emerald-500 text-xl" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Seller Info */}
+                    <div className="md:w-4/5 p-6 relative">
+                      {/* <button 
+                        onClick={() => toggleFavorite(seller.id)}
+                        className={`absolute top-6 right-6 p-2 rounded-full transition ${favorites.includes(seller.id) ? 'text-rose-500' : 'text-gray-300 hover:text-rose-400'}`}
+                      >
+                        {favorites.includes(seller.id) ? <FaHeart /> : <FaRegHeart />}
+                      </button> */}
+                      
+                      <div className="flex flex-col h-full">
+                        <div className="flex-1">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                            <div>
+                              <h2 className="text-xl font-bold text-gray-800">
+                                {seller.business_name || seller.name}
+                              </h2>
+                              <p className="text-gray-500 text-sm flex items-center mt-1">
+                                <MdBusiness className="mr-1" />
+                                {seller.business_type || 'Not specified'}
+                              </p>
+                            </div>
+                            <span className={`mt-2 md:mt-0 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(seller.status)}`}>
+                              {seller.status.charAt(0).toUpperCase() + seller.status.slice(1)}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                            <div className="flex items-start">
+                              <MdEmail className="text-purple-500 mt-1 mr-2 flex-shrink-0" />
+                              <div>
+                                <p className="text-gray-500 text-xs">Email</p>
+                                <p className="text-gray-800 font-medium truncate">{seller.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start">
+                              <MdPhone className="text-purple-500 mt-1 mr-2 flex-shrink-0" />
+                              <div>
+                                <p className="text-gray-500 text-xs">Phone</p>
+                                <p className="text-gray-800 font-medium">{seller.phone || 'Not provided'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start">
+                              <MdDateRange className="text-purple-500 mt-1 mr-2 flex-shrink-0" />
+                              <div>
+                                <p className="text-gray-500 text-xs">Joined</p>
+                                <p className="text-gray-800 font-medium">
+                                  {new Date(seller.created_at).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="flex items-center bg-gray-50 rounded-lg p-3">
+                              <HiOutlineCube className="text-purple-500 mr-3 text-xl" />
+                              <div>
+                                <p className="text-gray-500 text-xs">Total Products</p>
+                                <p className="text-gray-800 font-bold text-lg">{seller.product_count}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center bg-gray-50 rounded-lg p-3">
+                              <HiOutlineShoppingCart className="text-emerald-500 mr-3 text-xl" />
+                              <div>
+                                <p className="text-gray-500 text-xs">Active Products</p>
+                                <p className="text-gray-800 font-bold text-lg">{seller.active_products}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center bg-gray-50 rounded-lg p-3">
+                              <HiOutlineCheckCircle className="text-blue-500 mr-3 text-xl" />
+                              <div>
+                                <p className="text-gray-500 text-xs">Sold Products</p>
+                                <p className="text-gray-800 font-bold text-lg">{seller.sold_products}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* <div className="mt-6 flex flex-col md:flex-row justify-between items-center pt-4 border-t border-gray-100">
+                          <button className="order-2 md:order-1 mt-4 md:mt-0 text-purple-600 hover:text-purple-800 text-sm font-medium transition">
+                            View Full Profile
+                          </button>
+                          <button className="order-1 md:order-2 w-full md:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white py-2 px-6 rounded-lg shadow-sm transition-all duration-300 transform hover:-translate-y-0.5">
+                            View Products
+                          </button>
+                        </div> */}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                <div className="max-w-md mx-auto">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="mt-2 text-lg font-medium text-gray-900">No sellers found</h3>
+                  <p className="mt-1 text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
+                  <div className="mt-6">
+                    <button
+                      onClick={resetFilters}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
+                    >
+                      Reset all filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {filteredSellers.length > pagination.itemsPerPage && (
+            <div className="flex justify-center mt-10">
+              <nav className="flex items-center space-x-2">
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1}
+                  className="px-3 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaChevronLeft className="text-sm" />
+                </button>
+                
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  let pageNum;
+                  const totalPages = pagination.totalPages;
+                  
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = pagination.currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-4 py-1 rounded border text-sm font-medium transition ${
+                        pagination.currentPage === pageNum
+                          ? 'bg-purple-600 border-purple-600 text-white'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                {pagination.totalPages > 5 && 
+                  pagination.currentPage < pagination.totalPages - 2 && (
+                  <span className="px-2 text-gray-500">...</span>
+                )}
+
+                {pagination.totalPages > 5 && 
+                  pagination.currentPage < pagination.totalPages - 2 && (
+                  <button
+                    onClick={() => handlePageChange(pagination.totalPages)}
+                    className={`px-4 py-1 rounded border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition ${
+                      pagination.currentPage === pagination.totalPages 
+                        ? 'bg-purple-600 border-purple-600 text-white' 
+                        : ''
+                    }`}
+                  >
+                    {pagination.totalPages}
+                  </button>
+                )}
+
+                <button 
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === pagination.totalPages}
+                  className="px-3 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaChevronRight className="text-sm" />
+                </button>
+              </nav>
             </div>
           )}
-        </div>
-
-        {/* Sellers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sellers.map(seller => (
-            <div key={seller.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
-              <div className="relative">
-                <div className="h-40 bg-gradient-to-r from-blue-500 to-teal-400"></div>
-                <div className="absolute -bottom-12 left-4">
-                  <div className="w-24 h-24 rounded-full border-4 border-white bg-white overflow-hidden">
-                    <img 
-                      src={seller.image} 
-                      alt={seller.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-                <button 
-                  onClick={() => toggleFavorite(seller.id)}
-                  className={`absolute top-4 right-4 p-2 rounded-full ${favorites.includes(seller.id) ? 'text-red-500 bg-white' : 'text-gray-400 bg-white'}`}
-                >
-                  <FaRegHeart className={favorites.includes(seller.id) ? 'fill-current' : ''} />
-                </button>
-              </div>
-              
-              <div className="pt-14 px-4 pb-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h2 className="text-xl font-bold flex items-center">
-                    {seller.name}
-                    {seller.verified && <MdVerified className="text-blue-500 ml-1" />}
-                  </h2>
-                  <div className="flex items-center">
-                    {renderStars(seller.rating)}
-                    <span className="ml-1 text-gray-600 text-sm">{seller.rating}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center text-gray-600 text-sm mb-3">
-                  <MdLocationOn className="mr-1" />
-                  <span>{seller.location}</span>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {seller.categories.map((category, index) => (
-                    <span key={index} className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full">
-                      {category}
-                    </span>
-                  ))}
-                </div>
-                
-                <div className="flex justify-between text-sm text-gray-600 border-t pt-3">
-                  <span>{seller.itemsListed} items listed</span>
-                  <span>Member since {seller.joinedDate}</span>
-                </div>
-                
-                <div className="mt-4">
-                  <button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg transition">
-                    View Seller's Items
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Pagination */}
-        <div className="flex justify-center mt-10">
-          <nav className="flex items-center space-x-2">
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">
-              Previous
-            </button>
-            <button className="px-3 py-1 rounded bg-purple-600 text-white">
-              1
-            </button>
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">
-              2
-            </button>
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">
-              3
-            </button>
-            <span className="px-2">...</span>
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">
-              8
-            </button>
-            <button className="px-3 py-1 rounded border text-gray-600 hover:bg-gray-100">
-              Next
-            </button>
-          </nav>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12 mt-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <RiAuctionFill className="text-2xl" />
-                <h3 className="text-xl font-bold">BidMaster Pro</h3>
-              </div>
-              <p className="text-gray-400">
-                The world's premier online auction platform connecting buyers and sellers of unique items.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">For Buyers</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">How to Buy</a></li>
-                <li><a href="#" className="hover:text-white transition">Buyer Protection</a></li>
-                <li><a href="#" className="hover:text-white transition">Bidding Tips</a></li>
-                <li><a href="#" className="hover:text-white transition">Payment Options</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">For Sellers</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">How to Sell</a></li>
-                <li><a href="#" className="hover:text-white transition">Seller Fees</a></li>
-                <li><a href="#" className="hover:text-white transition">Seller Tools</a></li>
-                <li><a href="#" className="hover:text-white transition">Seller Success Stories</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition">Press Center</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact Us</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-700 mt-10 pt-6 text-center text-gray-400">
-            <p>© 2023 BidMaster Pro. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+        </main>
+      </div>
     </Layout>
   );
 };

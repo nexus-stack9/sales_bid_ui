@@ -1,0 +1,511 @@
+/* Base Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header */
+.seller-header {
+  background: linear-gradient(135deg, #2c3e50, #4ca1af);
+  color: white;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.seller-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.seller-header p {
+  font-size: 1.2rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Main Content Layout */
+.main-content {
+  display: flex;
+  gap: 30px;
+  padding: 40px 0;
+}
+
+.info-section {
+  flex: 2;
+}
+
+.registration-section {
+  flex: 1;
+  position: relative;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 30px;
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #666;
+  position: relative;
+}
+
+.tabs button.active {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.tabs button.active:after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #4ca1af;
+}
+
+/* Benefits Grid */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.benefit-card {
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.benefit-card:hover {
+  transform: translateY(-5px);
+}
+
+.benefit-card .icon {
+  font-size: 2rem;
+  margin-bottom: 15px;
+}
+
+.benefit-card h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+/* Process Steps */
+.process-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.step-number {
+  background: #4ca1af;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: bold;
+}
+
+.step-content h3 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+/* Fee Table */
+.fee-table {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fee-row {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+
+.fee-row:last-child {
+  border-bottom: none;
+}
+
+.fee-row.header {
+  background: #f5f5f5;
+  font-weight: bold;
+}
+
+.fee-col {
+  flex: 1;
+  padding: 15px;
+}
+
+.fee-notes {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Registration Card */
+.registration-card {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 20px;
+}
+
+.registration-card h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.error {
+  border-color: #e74c3c;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  display: block;
+}
+
+/* Aadhaar Verification */
+.aadhaar-verification {
+  display: flex;
+  gap: 10px;
+}
+
+.aadhaar-verification input {
+  flex: 1;
+}
+
+.btn-verify {
+  background: #4ca1af;
+  color: white;
+  border: none;
+  padding: 0 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-verify:hover {
+  background: #3d8b99;
+}
+
+.verified-badge {
+  background: #27ae60;
+  color: white;
+  padding: 0 15px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* OTP Section */
+.otp-section {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.otp-section p {
+  margin-top: 0;
+}
+
+.otp-input {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.otp-input input {
+  flex: 1;
+  max-width: 150px;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group input {
+  width: auto;
+  margin-right: 10px;
+}
+
+.checkbox-group label {
+  margin-bottom: 0;
+}
+
+/* Buttons */
+.btn-primary {
+  background: #2c3e50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-primary:hover {
+  background: #1a252f;
+}
+
+.btn-primary:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  color: #2c3e50;
+  border: 2px solid #2c3e50;
+  padding: 12px 25px;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #2c3e50;
+  color: white;
+}
+
+/* Success Message */
+.success-message {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.success-icon {
+  font-size: 3rem;
+  color: #27ae60;
+  margin-bottom: 20px;
+}
+
+.success-message h3 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+/* Testimonials */
+.testimonials-section {
+  background: #f9f9f9;
+  padding: 60px 0;
+}
+
+.testimonials-section h2 {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #2c3e50;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.testimonial-card {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  position: relative;
+}
+
+.testimonial-card .quote {
+  font-size: 3rem;
+  line-height: 1;
+  color: #4ca1af;
+  opacity: 0.2;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+}
+
+.testimonial-card p {
+  font-style: italic;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.author .name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.author .business {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* CTA Section */
+.cta-section {
+  background: linear-gradient(135deg, #4ca1af, #2c3e50);
+  color: white;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.cta-section h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+}
+
+.cta-section p {
+  font-size: 1.2rem;
+  max-width: 700px;
+  margin: 0 auto 30px;
+}
+
+/* Footer */
+.seller-footer {
+  background: #2c3e50;
+  color: white;
+  padding: 60px 0 20px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.link-column {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 30px;
+}
+
+.link-column h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.link-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.link-column li {
+  margin-bottom: 10px;
+}
+
+.link-column a {
+  color: #ecf0f1;
+  text-decoration: none;
+}
+
+.link-column a:hover {
+  text-decoration: underline;
+}
+
+.copyright {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #34495e;
+  color: #bdc3c7;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .registration-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabs {
+    flex-wrap: wrap;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
