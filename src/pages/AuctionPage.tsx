@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import * as React from "react";
-import { useState, useMemo, useEffect, useCallback, memo } from "react";
+import { useState, useMemo, useEffect, useCallback, memo, useRef } from "react";
 import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +38,10 @@ const AuctionPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>("ending_soon");
   const { toast } = useToast();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  
+  // Use ref to prevent initial load race conditions
+  const hasInitiallyLoaded = useRef(false);
+  const lastRequestRef = useRef<string>("");
 
   const {
     products: apiProducts,
@@ -141,26 +145,6 @@ const AuctionPage: React.FC = () => {
     };
   }, []);
 
-  // Load initial products
-  useEffect(() => {
-    const searchParams = {
-      q: filters.searchQuery || undefined,
-      categories:
-        filters.categories.length > 0 ? filters.categories : undefined,
-      locations: filters.locations.length > 0 ? filters.locations : undefined,
-      condition: filters.condition.length > 0 ? filters.condition : undefined,
-      timeLeft: filters.timeLeft.length > 0 ? filters.timeLeft : undefined,
-      minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-      maxPrice:
-        filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
-      sortBy: sortBy,
-      page: 1,
-      limit: 20,
-    };
-
-    loadProducts(1, 20, searchParams);
-  }, []);
-
   // Show error toast when API error occurs
   useEffect(() => {
     if (apiError) {
@@ -195,6 +179,7 @@ const AuctionPage: React.FC = () => {
           return sortedProducts.sort((a, b) => parseInt(b.id) - parseInt(a.id));
         case "popularity":
           return sortedProducts.sort((a, b) => b.totalBids - a.totalBids);
+        // case "ending_soon":
         default:
           return sortedProducts;
       }
@@ -210,128 +195,106 @@ const AuctionPage: React.FC = () => {
     return sortProducts(mapped, sortBy);
   }, [apiProducts, mapApiProductToProduct, sortBy, sortProducts]);
 
-  // Create a stable reference to the current filters and sortBy
-  const currentRequestParams = useMemo(
-    () => ({
-      filters,
-      sortBy,
-    }),
-    [filters, sortBy]
+  // Create a single load function with debouncing
+  const loadProductsWithParams = useCallback(
+    async (
+      page: number = 1,
+      limit: number = 20,
+      currentFilters: FilterState = filters,
+      currentSortBy: SortOption = sortBy
+    ) => {
+      const searchParams = {
+        q: currentFilters.searchQuery || undefined,
+        categories:
+          currentFilters.categories.length > 0
+            ? currentFilters.categories
+            : undefined,
+        locations:
+          currentFilters.locations.length > 0
+            ? currentFilters.locations
+            : undefined,
+        condition:
+          currentFilters.condition.length > 0
+            ? currentFilters.condition
+            : undefined,
+        timeLeft:
+          currentFilters.timeLeft.length > 0
+            ? currentFilters.timeLeft
+            : undefined,
+        minPrice:
+          currentFilters.priceRange[0] > 0
+            ? currentFilters.priceRange[0]
+            : undefined,
+        maxPrice:
+          currentFilters.priceRange[1] < 50000
+            ? currentFilters.priceRange[1]
+            : undefined,
+        sortBy: currentSortBy,
+        page: page,
+        limit: limit,
+      };
+
+      // Create a unique request identifier
+      const requestId = JSON.stringify({ searchParams, page, limit });
+      
+      // Prevent duplicate requests
+      if (lastRequestRef.current === requestId) {
+        return;
+      }
+      
+      lastRequestRef.current = requestId;
+      
+      try {
+        await loadProducts(page, limit, searchParams);
+      } catch (error) {
+        // Reset the request ref on error so retries can happen
+        lastRequestRef.current = "";
+        throw error;
+      }
+    },
+    [filters, sortBy, loadProducts]
   );
 
-  // Effect to load products when filters or sortBy change
-  // Remove the effect that automatically loads products when filters change
-  // We'll only load products when explicitly requested
+  // Single effect for initial load
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const searchParams = {
-        q: currentRequestParams.filters.searchQuery || undefined,
-        categories:
-          currentRequestParams.filters.categories.length > 0
-            ? currentRequestParams.filters.categories
-            : undefined,
-        locations:
-          currentRequestParams.filters.locations.length > 0
-            ? currentRequestParams.filters.locations
-            : undefined,
-        condition:
-          currentRequestParams.filters.condition.length > 0
-            ? currentRequestParams.filters.condition
-            : undefined,
-        timeLeft:
-          currentRequestParams.filters.timeLeft.length > 0
-            ? currentRequestParams.filters.timeLeft
-            : undefined,
-        minPrice:
-          currentRequestParams.filters.priceRange[0] > 0
-            ? currentRequestParams.filters.priceRange[0]
-            : undefined,
-        maxPrice:
-          currentRequestParams.filters.priceRange[1] < 50000
-            ? currentRequestParams.filters.priceRange[1]
-            : undefined,
-        sortBy: currentRequestParams.sortBy,
-        page: 1,
-        limit: 20,
-      };
+    if (!hasInitiallyLoaded.current) {
+      hasInitiallyLoaded.current = true;
+      loadProductsWithParams(1, 20);
+    }
+  }, []); // Empty dependency array for initial load only
 
-      loadProducts(1, 20, searchParams);
+  // Separate effect for filters and sorting changes with debouncing
+  useEffect(() => {
+    // Skip if this is the initial load
+    if (!hasInitiallyLoaded.current) return;
+
+    const timer = setTimeout(() => {
+      loadProductsWithParams(1, 20, filters, sortBy);
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timer);
-  }, [sortBy]); // Only react to sortBy changes, not filters
-
-  // Effect to load products when filters change, but with a longer debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const searchParams = {
-        q: currentRequestParams.filters.searchQuery || undefined,
-        categories:
-          currentRequestParams.filters.categories.length > 0
-            ? currentRequestParams.filters.categories
-            : undefined,
-        locations:
-          currentRequestParams.filters.locations.length > 0
-            ? currentRequestParams.filters.locations
-            : undefined,
-        condition:
-          currentRequestParams.filters.condition.length > 0
-            ? currentRequestParams.filters.condition
-            : undefined,
-        timeLeft:
-          currentRequestParams.filters.timeLeft.length > 0
-            ? currentRequestParams.filters.timeLeft
-            : undefined,
-        minPrice:
-          currentRequestParams.filters.priceRange[0] > 0
-            ? currentRequestParams.filters.priceRange[0]
-            : undefined,
-        maxPrice:
-          currentRequestParams.filters.priceRange[1] < 50000
-            ? currentRequestParams.filters.priceRange[1]
-            : undefined,
-        sortBy: currentRequestParams.sortBy,
-        page: 1,
-        limit: 20,
-      };
-
-      loadProducts(1, 20, searchParams);
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(timer);
-  }, [currentRequestParams, loadProducts]);
+  }, [filters, sortBy, loadProductsWithParams]);
 
   // Reset to first page when filters or sort change
   const handleFiltersChange = useCallback((newFilters: FilterState) => {
     setFilters(newFilters);
+    // Reset the request ref when filters change
+    lastRequestRef.current = "";
   }, []);
 
   const handleSortChange = useCallback((newSortBy: SortOption) => {
     setSortBy(newSortBy);
+    // Reset the request ref when sort changes
+    lastRequestRef.current = "";
   }, []);
 
   // Pagination handlers
   const handlePageChange = useCallback(
     (page: number) => {
-      const searchParams = {
-        q: filters.searchQuery || undefined,
-        categories:
-          filters.categories.length > 0 ? filters.categories : undefined,
-        locations: filters.locations.length > 0 ? filters.locations : undefined,
-        condition: filters.condition.length > 0 ? filters.condition : undefined,
-        timeLeft: filters.timeLeft.length > 0 ? filters.timeLeft : undefined,
-        minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-        maxPrice:
-          filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
-        sortBy: sortBy,
-        page: page,
-        limit: 20,
-      };
-
       loadSpecificPage(page);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [filters, sortBy, loadSpecificPage]
+    [loadSpecificPage]
   );
 
   const handlePrevious = useCallback(() => {
@@ -413,6 +376,8 @@ const AuctionPage: React.FC = () => {
       condition: [],
       searchQuery: "",
     });
+    // Reset the request ref when clearing filters
+    lastRequestRef.current = "";
   }, []);
 
   // Get active filters count
@@ -430,7 +395,6 @@ const AuctionPage: React.FC = () => {
   }, [filters]);
 
   // Memoize the results info component
-  // Modify the ResultsInfo useMemo to remove the "Page X of Y" display
   const ResultsInfo = useMemo(() => {
     if (!pagination) return null;
 
@@ -550,29 +514,16 @@ const AuctionPage: React.FC = () => {
 
   // Force refresh function
   const forceRefresh = useCallback(() => {
-    const searchParams = {
-      q: filters.searchQuery || undefined,
-      categories:
-        filters.categories.length > 0 ? filters.categories : undefined,
-      locations: filters.locations.length > 0 ? filters.locations : undefined,
-      condition: filters.condition.length > 0 ? filters.condition : undefined,
-      timeLeft: filters.timeLeft.length > 0 ? filters.timeLeft : undefined,
-      minPrice: filters.priceRange[0] > 0 ? filters.priceRange[0] : undefined,
-      maxPrice:
-        filters.priceRange[1] < 50000 ? filters.priceRange[1] : undefined,
-      sortBy: sortBy,
-      page: 1,
-      limit: 20,
-    };
-
-    loadProducts(1, 20, searchParams);
-  }, [filters, sortBy, loadProducts]);
+    // Reset the request ref to allow the refresh
+    lastRequestRef.current = "";
+    loadProductsWithParams(1, 20);
+  }, [loadProductsWithParams]);
 
   // Create a stable key for filter panels to prevent re-rendering
   const filterPanelKey = useMemo(() => "filter-panel", []);
 
   // Skeleton while loading
-  if (isLoading) {
+  if (isLoading && !hasInitiallyLoaded.current) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
@@ -678,8 +629,6 @@ const AuctionPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Remove the Desktop View Controls section that was here */}
 
             {/* Results Info - Memoized - Now includes desktop sorting */}
             {ResultsInfo}

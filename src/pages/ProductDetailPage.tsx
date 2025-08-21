@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from 'react-router-dom';
+ import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import styles from "./ProductDetailPage.module.css";
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import fridgeWebp from "@/assets/fridge.webp";
-import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock } from 'react-icons/fa';
+import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock, FaShoppingCart } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
 import { addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
 import WebSocketService, { WebSocketMessage } from "@/services/WebsocketService";
@@ -16,6 +16,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 const ProductDetailPage = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
@@ -44,10 +45,10 @@ const ProductDetailPage = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -59,6 +60,48 @@ const ProductDetailPage = () => {
   const getCurrentBid = () => {
     if (!productData) return 0;
     return getHighestBid(productData.bids) || parseFloat(productData.starting_price);
+  };
+
+  // Check if buy option is available
+  const hasBuyOption = () => {
+    return productData?.buy_option === 1 && productData?.sale_price;
+  };
+
+  // Handle Buy Now action
+  const handleBuyNow = async () => {
+    try {
+      const userId = getUserIdFromToken();
+      
+      if (!userId) {
+        toast({
+          variant: 'default',
+          title: 'Sign in required',
+          description: 'Please sign in to purchase this item',
+          className: 'bg-white border border-gray-200 text-foreground shadow-lg'
+        });
+        return;
+      }
+
+      // Add your buy now logic here
+      // This could redirect to a checkout page or open a purchase modal
+      toast({
+        title: 'Redirecting to checkout',
+        description: 'Processing your purchase request...',
+        className: 'bg-white border border-green-200 text-foreground shadow-lg'
+      });
+
+      // Example: navigate to checkout page
+      // navigate(`/checkout/${productId}?type=buy-now&price=${productData.sale_price}`);
+      
+    } catch (error) {
+      console.error('Error processing buy now:', error);
+      toast({
+        variant: 'default',
+        title: 'Error',
+        description: 'Failed to process purchase',
+        className: 'bg-white border border-red-200 text-foreground shadow-lg'
+      });
+    }
   };
 
   useEffect(() => {
@@ -198,7 +241,6 @@ const ProductDetailPage = () => {
     }
     setShowBidModal(true);
   };
-
   const handleQuickBid = (amount) => {
     if (timeRemaining > 0) {
       setBidAmount(amount);
@@ -533,19 +575,38 @@ const ProductDetailPage = () => {
                       />
                     </div>
                   </div>
-                  <button 
-                    type="submit" 
-                    className={styles.placeBidButton}
-                    disabled={isSubmitting || timeRemaining === 0}
-                  >
-                    {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Bid Now'}
-                    <FaGavel className={styles.buttonIcon} />
-                  </button>
-                  <div className={styles.terms}>
-                    By placing a bid, you agree to the{" "}
-                    <a href="#" className={styles.termsLink}>
-                      Terms & Conditions
-                    </a>
+                  <div className={styles.bidButtonContainer}>
+                    <button 
+                      type="submit" 
+                      className={styles.placeBidButton}
+                      disabled={isSubmitting || timeRemaining === 0}
+                    >
+                      {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Bid Now'}
+                      <FaGavel className={styles.buttonIcon} />
+                    </button>
+                    {productData.buy_option === 1 && getCurrentBid() < parseFloat(productData.sale_price) && (
+                      <button 
+                        type="button" 
+                        className={`${styles.placeBidButton} ${styles.buyNowButton}`}
+                        disabled={timeRemaining === 0}
+                        onClick={() => {
+                          navigate('/checkout/address', {
+                            state: {
+                              product: {
+                                id: productData.id,
+                                name: productData.name,
+                                image: productData.images?.[0] || '',
+                                price: parseFloat(productData.sale_price),
+                                quantity: 1,
+                                sellerId: productData.seller_id
+                              }
+                            }
+                          });
+                        }}
+                      >
+                        Buy for {formatCurrency(productData.sale_price)}
+                      </button>
+                    )}
                   </div>
                 </form>
                 <div className={styles.quickBidSection}>
@@ -689,13 +750,37 @@ const ProductDetailPage = () => {
                   value={bidAmount}
                   onChange={(e) => setBidAmount(parseFloat(e.target.value))}
                 />
-                <button 
-                  className={styles.mobileBidButton}
-                  onClick={handleBidSubmit}
-                  disabled={isSubmitting || timeRemaining === 0}
-                >
-                  Bid Now
-                </button>
+                <div className={styles.mobileButtonContainer}>
+                  <button 
+                    className={styles.mobileBidButton}
+                    onClick={handleBidSubmit}
+                    disabled={isSubmitting || timeRemaining === 0}
+                  >
+                    Bid Now
+                  </button>
+                  {productData.buy_option === 1 && getCurrentBid() < parseFloat(productData.sale_price) && (
+                    <button 
+                      className={`${styles.mobileBidButton} ${styles.mobileBuyNowButton}`}
+                      disabled={timeRemaining === 0}
+                      onClick={() => {
+                        navigate('/checkout/address', {
+                          state: {
+                            product: {
+                              id: productData.id,
+                              name: productData.name,
+                              image: productData.images?.[0] || '',
+                              price: parseFloat(productData.sale_price),
+                              quantity: 1,
+                              sellerId: productData.seller_id
+                            }
+                          }
+                        });
+                      }}
+                    >
+                      Buy for {formatCurrency(productData.sale_price)}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -891,26 +976,9 @@ const ProductDetailPage = () => {
             )}
             {activeTab === "seller" && (
               <div className={styles.sellerInfo}>
-                <h3>Seller Information</h3>
                 <div className={styles.sellerDetails}>
                   <div className={styles.sellerNameRating}>
                     <span className={styles.sellerName}>{productData.seller}</span>
-                    <span className={styles.sellerRating}>
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <span
-                          key={i}
-                          className={
-                            i < 4 ? styles.starFilled : styles.starEmpty
-                          }
-                        >
-                          ★
-                        </span>
-                      ))}
-                      (4.8)
-                    </span>
-                  </div>
-                  <div className={styles.sellerTerms}>
-                    <strong>Terms:</strong> Standard auction terms apply
                   </div>
                 </div>
               </div>

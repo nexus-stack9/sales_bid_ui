@@ -364,20 +364,18 @@
 
 .descriptionPreview h3 {
     font-size: 16px;
-    margin: 0 0 8px 0;
-    color: #333;
-    font-weight: 600;
 }
 
 .descriptionPreview p {
-    font-size: 14px;
-    color: #4a4a4a;
-    line-height: 1.6;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+font-size: 14px;
+color: #4a4a4a;
+line-height: 1.6;
+margin: 0;
+display: -webkit-box;
+-webkit-line-clamp: 3;
+line-clamp: 3;
+-webkit-box-orient: vertical;
+overflow: hidden;
 }
 
 .topBox {
@@ -562,7 +560,7 @@
     justify-content: center;
     gap: 8px;
     padding: 12px 24px;
-    background: linear-gradient(to right, #f59e0b, #d97706);
+    background: linear-gradient(to right, #ea550f, #f39d3a);
     color: #ffffff;
     border: none;
     border-radius: 8px;
@@ -579,65 +577,91 @@
 }
 
 .placeBidButton:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
+background: #9ca3af;
+cursor: not-allowed;
+}
+
+.bidButtonContainer {
+display: flex;
+gap: 12px;
+margin-top: 16px;
+flex-wrap: wrap;
+}
+
+.bidButtonContainer .placeBidButton {
+flex: 1;
+min-width: 120px;
+}
+
+.buyNowButton {
+background: linear-gradient(to right, #09146ad4, #2722c7);
+border: none;
+}
+
+.buyNowButton:hover {
+background: linear-gradient(to right, #09146ad4, #09146ad4);
+}
+
+.buyNowButton:disabled {
+background: #9ca3af;
+cursor: not-allowed;
 }
 
 .buttonIcon {
-    font-size: 18px;
-    color: #ffffff;
+font-size: 18px;
+color: #ffffff;
 }
 
 .terms {
-    font-size: 12px;
-    color: #4b5563;
-    text-align: center;
-    font-weight: 500;
+font-size: 12px;
+color: #4b5563;
+text-align: center;
+font-weight: 500;
 }
 
 .termsLink {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 600;
+color: #2563eb;
+text-decoration: none;
+font-weight: 600;
 }
 
 .termsLink:hover {
-    text-decoration: underline;
+text-decoration: underline;
 }
 
 .quickBidSection {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+display: flex;
+flex-direction: column;
+gap: 10px;
 }
 
 .quickBidSection h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0;
+font-size: 16px;
+font-weight: 700;
+color: #1a1a1a;
+margin: 0;
 }
 
 .quickBidOptions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
 }
 
 .quickBidButton {
-    position: relative;
-    flex: 1;
-    padding: 10px 16px;
-    background-color: #f8f9fa;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+position: relative;
+flex: 1;
+padding: 10px 16px;
+background-color: #f8f9fa;
+border: 1px solid #d1d5db;
+border-radius: 6px;
+font-size: 14px;
+font-weight: 600;
+color: #1a1a1a;
+cursor: pointer;
+transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+text-align: center;
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .quickBidButton.selected {
@@ -879,20 +903,85 @@ tr:hover {
     border-color: #4a90e2;
 }
 
+.mobileButtonContainer {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    width: 100%;
+}
+
 .mobileBidButton {
-    background-color: #003087;
+    flex: 1;
+    min-width: 0;
+    background: linear-gradient(to right, #ea550f, #f39d3a);
     color: white;
     border: none;
-    padding: 12px;
     border-radius: 6px;
-    font-size: 16px;
+    padding: 12px 16px;
     font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.mobileBidButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobileBidButton:active:not(:disabled) {
+    transform: translateY(0);
 }
 
 .mobileBidButton:disabled {
-    background-color: #ccc;
+    background: #9ca3af;
     cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+.mobileBuyNowButton {
+    flex: 1;
+    min-width: 0;
+    background: linear-gradient(135deg, #09146ad4, #2722c7);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.mobileBuyNowButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #09146ad4, #09146ad4);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobileBuyNowButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.mobileBuyNowButton:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
 }
 
 /* Responsive Styles */

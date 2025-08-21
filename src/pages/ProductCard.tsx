@@ -44,6 +44,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
     if (target.closest('button, a, [role="button"]')) {
       return;
     }
+    // Scroll to top before navigating
+    window.scrollTo(0, 0);
     navigate(`/auctions/${product.id}`);
   };
 
