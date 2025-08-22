@@ -1,29 +1,25 @@
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { ChevronDown, User, Shield, CreditCard, Bell, LogOut, Mail, Phone, MapPin, Calendar, Check, Lock, CreditCard as CreditCardIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { User, Shield, CreditCard, Bell, LogOut, Home, Briefcase, Gavel, Heart, Clock, TrendingUp, TrendingDown, Award, AlertTriangle, Trophy } from 'lucide-react';
 import Cookies from 'js-cookie';
 import CryptoJS from 'crypto-js';
-import { updatePassword, updateProfile, getProfileDetails, getUserIdFromToken } from '@/services/crudService';
+import { updatePassword, updateProfile, getProfileDetails, getUserIdFromToken, getUserBids, getUserWishlist, Bid, WishlistItem } from '@/services/crudService';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
-// Define the ProfileDetails interface once
+// Define the ProfileDetails interface
 interface ProfileDetails {
   profile: {
     user: {
@@ -76,70 +72,35 @@ const Profile = () => {
     lastName: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
   });
   
   const [profileDetails, setProfileDetails] = useState<ProfileDetails | null>(null);
   
-  // Fetch profile details on component mount
   useEffect(() => {
     const fetchProfileDetails = async () => {
       try {
         setIsLoading(true);
         const userId = getUserIdFromToken();
-        const data = await getProfileDetails(userId);
-        
-        // Initialize addresses array
-        if (!data.profile.addresses) {
-          data.profile.addresses = [];
-          
-          // If there's an address in the root, add it as the primary
-          if (data.profile.address) {
-            data.profile.addresses.push({
-              addressId: 1,
-              label: "Home",
-              street: data.profile.address.street || "",
-              city: data.profile.address.city || "",
-              state: data.profile.address.state || "",
-              postalCode: data.profile.address.postalCode || "",
-              country: data.profile.address.country || "",
-              isPrimary: true
-            });
-          }
-          
-          // Add a default work address if needed
-          data.profile.addresses.push({
-            addressId: data.profile.addresses.length + 1,
-            label: "Work",
-            street: "123 Office Street",
-            city: "Business City",
-            state: "BZ",
-            postalCode: "54321",
-            country: "USA",
-            isPrimary: data.profile.addresses.length === 0 // Make primary if no other addresses
-          });
+        if (!userId) {
+          navigate('/auth/signin');
+          return;
         }
+        const data = await getProfileDetails(userId);
         
         setProfileDetails(data);
         
-        // Get primary address or first address
-        const primaryAddress = data.profile.addresses.find(addr => addr.isPrimary) || 
-                             data.profile.addresses[0];
-        
-        // Update the form data with the fetched details
+        const primaryAddress = data.profile.addresses?.find(addr => addr.isPrimary) || data.profile.addresses?.[0];
+        const addressString = primaryAddress
+          ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`
+          : "";
+
         setProfileData({
           firstName: data.profile.user.firstName || "",
           lastName: data.profile.user.lastName || "",
           email: data.profile.user.email || "",
           phone: data.profile.user.phone || "",
-          address: primaryAddress ? 
-            [
-              primaryAddress.street,
-              primaryAddress.city,
-              primaryAddress.state,
-              primaryAddress.postalCode,
-              primaryAddress.country
-            ].filter(Boolean).join(", ") : ""
+          address: addressString,
         });
       } catch (error) {
         console.error('Error fetching profile details:', error);
@@ -154,20 +115,22 @@ const Profile = () => {
     };
     
     fetchProfileDetails();
-  }, [toast]);
+  }, [toast, navigate]);
   
   const handleSaveProfile = async () => {
     try {
-      // Use the updateProfile service function
       await updateProfile(profileData);
-      
-      // Disable editing mode after successful update
       setIsEditing(false);
-      
       toast({
         title: "Profile updated",
         description: "Your profile information has been saved.",
       });
+      // Refetch data to show updated info
+      const userId = getUserIdFromToken();
+      if (userId) {
+        const data = await getProfileDetails(userId);
+        setProfileDetails(data);
+      }
     } catch (error) {
       toast({
         title: "Update failed",
@@ -178,7 +141,7 @@ const Profile = () => {
     }
   };
   
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string) => {
     setProfileData(prev => ({
       ...prev,
       [field]: value
@@ -186,194 +149,301 @@ const Profile = () => {
   };
   
   const handleLogout = () => {
-    // Remove the auth token from cookies
     Cookies.remove('authToken');
-    
-    // Show a success toast
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
-    
-    // Redirect to home page
     navigate('/');
   };
 
-  // Get user initials for avatar
   const getUserInitials = () => {
-    try {
-      // Safely get the first letters of first and last name
-      const firstNameInitial = profileDetails?.profile?.user?.firstName?.charAt(0) || '';
-      const lastNameInitial = profileDetails?.profile?.user?.lastName?.charAt(0) || '';
-      
-      // If we have both initials, return them in uppercase
-      if (firstNameInitial || lastNameInitial) {
-        return `${firstNameInitial}${lastNameInitial}`.toUpperCase();
-      }
-      
-      // Default fallback
-      return 'JD';
-    } catch (error) {
-      console.error('Error getting user initials:', error);
-      return 'JD';
+    const firstName = profileDetails?.profile?.user?.firstName || '';
+    const lastName = profileDetails?.profile?.user?.lastName || '';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'U';
+  };
+
+  const menuItems = [
+    { id: 'profile', label: 'Edit Profile', icon: User },
+    { id: 'mybids', label: 'My Bids', icon: Gavel },
+    { id: 'watchlist', label: 'Watchlist', icon: Heart },
+    { id: 'security', label: 'Password & Security', icon: Shield },
+    { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+  ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return <ProfileContent />;
+      case 'mybids':
+        return <MyBidsContent />;
+      case 'watchlist':
+        return <WatchlistContent />;
+      case 'security':
+        return <SecurityContent />;
+      case 'billing':
+        return <BillingContent />;
+      case 'notifications':
+        return <NotificationsContent />;
+      default:
+        return <ProfileContent />;
     }
   };
 
-  // Return blue gradient background for avatar
-  const getAvatarColor = () => {
-    return 'bg-gradient-to-br from-blue-500 to-indigo-600';
-  };
-
-  // Profile content component
-  const renderProfileContent = () => (
-    <Card className="shadow-lg border-0 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-slate-100 to-slate-50 border-b">
-        <CardTitle className="text-2xl">Profile Information</CardTitle>
-        <CardDescription>
-          {isEditing ? "Edit your personal details below." : "Your personal details are shown below."}
-        </CardDescription>
+  const ProfileContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Public profile</CardTitle>
+        <CardDescription>This is how others will see you on the site.</CardDescription>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
-        {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+      <CardContent className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-20 w-20">
+            <AvatarFallback className="text-2xl">{getUserInitials()}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="text-lg font-medium">{profileDetails?.profile.user.firstName} {profileDetails?.profile.user.lastName}</h3>
+            <p className="text-sm text-muted-foreground">{profileDetails?.profile.user.role}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name</Label>
+            <Input id="firstName" value={profileData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} disabled={!isEditing} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input id="lastName" value={profileData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} disabled={!isEditing} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={profileData.email} onChange={(e) => handleInputChange('email', e.target.value)} disabled={!isEditing} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone</Label>
+            <Input id="phone" type="tel" value={profileData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} disabled={!isEditing} />
+          </div>
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="address">Primary Address</Label>
+            <Textarea id="address" value={profileData.address} onChange={(e) => handleInputChange('address', e.target.value)} disabled={!isEditing} />
+          </div>
+        <div className="space-y-2">
+          <Label>Your Addresses</Label>
+          <div className="space-y-4">
+            {profileDetails?.profile.addresses?.map(addr => (
+              <div key={addr.addressId} className="border p-4 rounded-md flex justify-between items-start">
+                <div className="flex items-start space-x-4">
+                  <div className="bg-secondary p-3 rounded-full">
+                    {addr.label.toLowerCase() === 'home' ? <Home className="h-5 w-5 text-secondary-foreground" /> : <Briefcase className="h-5 w-5 text-secondary-foreground" />}
+                  </div>
+                  <div>
+                    <p className="font-medium flex items-center">
+                      {addr.label} {addr.isPrimary && <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Primary</span>}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{addr.street}, {addr.city}, {addr.state} {addr.postalCode}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm">Edit</Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="border-t px-6 py-4">
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+            <Button onClick={handleSaveProfile}>Save</Button>
           </div>
         ) : (
-          <>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium flex items-center">
-                    <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                    First Name
-                  </label>
-                  <Input 
-                    id="firstName" 
-                    value={profileData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    disabled={!isEditing}
-                    className={`${!isEditing ? "text-black font-semibold bg-slate-50" : ""} rounded-md`}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium flex items-center">
-                    <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                    Email
-                  </label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={profileData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    disabled={!isEditing}
-                    className={`${!isEditing ? "text-black font-semibold bg-slate-50" : ""} rounded-md`}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium flex items-center">
-                    <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                    Last Name
-                  </label>
-                  <Input 
-                    id="lastName" 
-                    value={profileData.lastName}
-                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    disabled={!isEditing}
-                    className={`${!isEditing ? "text-black font-semibold bg-slate-50" : ""} rounded-md`}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-medium flex items-center">
-                    <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                    Phone Number
-                  </label>
-                  <Input 
-                    id="phone" 
-                    type="tel" 
-                    value={profileData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    disabled={!isEditing}
-                    className={`${!isEditing ? "text-black font-semibold bg-slate-50" : ""} rounded-md`}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-2 pt-2">
-              <label htmlFor="address" className="text-sm font-medium flex items-center">
-                <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                Primary Address
-              </label>
-              <Textarea
-                id="address"
-                placeholder="Enter your address"
-                value={profileData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                disabled={!isEditing}
-                className={`${!isEditing ? "text-black font-semibold bg-slate-50" : ""} rounded-md`}
-              />
-            </div>
-            
-            {profileDetails && (
-              <div className="mt-8 pt-6 border-t">
-                <h3 className="font-medium mb-4 text-lg flex items-center">
-                  <CreditCardIcon className="h-5 w-5 mr-2 text-muted-foreground" />
-                  Additional Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-slate-50 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">User Role</p>
-                    <p className="font-semibold text-black">{profileDetails.profile.user.role}</p>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Account Status</p>
-                    <p className="font-semibold text-black flex items-center">
-                      {profileDetails.profile.user.isActive ? 
-                        <><span className="h-2 w-2 bg-green-500 rounded-full mr-2"></span>Active</> : 
-                        <><span className="h-2 w-2 bg-red-500 rounded-full mr-2"></span>Inactive</>}
-                    </p>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Member Since</p>
-                    <p className="font-semibold text-black">{new Date(profileDetails.profile.user.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  {profileDetails.profile.paymentMethod && profileDetails.profile.paymentMethod.cardNumber && (
-                    <div className="bg-slate-50 p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Payment Card</p>
-                      <p className="font-semibold text-black">•••• •••• •••• {profileDetails.profile.paymentMethod.cardNumber.slice(-4)}</p>
-                      <p className="text-xs text-muted-foreground">Expires: {profileDetails.profile.paymentMethod.expiryDate}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </CardContent>
-      <CardFooter className="bg-gradient-to-r from-slate-100 to-slate-50 border-t py-4">
-        {!isLoading && (
-          isEditing ? (
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-              <Button onClick={handleSaveProfile} className="px-6">Save Changes</Button>
-            </div>
-          ) : (
-            <Button onClick={() => setIsEditing(true)} className="px-6">
-              Update Profile
-            </Button>
-          )
+          <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
         )}
       </CardFooter>
     </Card>
   );
 
-  // Security content component
+  const MyBidsContent = () => {
+    const [bids, setBids] = useState<Bid[]>([]);
+    const [isLoadingBids, setIsLoadingBids] = useState(true);
+
+    useEffect(() => {
+      const fetchBids = async () => {
+        try {
+          setIsLoadingBids(true);
+          const userId = getUserIdFromToken();
+          if (userId) {
+            const userBids = await getUserBids(userId);
+            setBids(userBids);
+          }
+        } catch (error) {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Failed to fetch your bids.',
+          });
+        } finally {
+          setIsLoadingBids(false);
+        }
+      };
+      fetchBids();
+    }, []);
+
+    const getTimeLeft = (endDate: string) => {
+      const now = new Date();
+      const end = new Date(endDate);
+      const diff = end.getTime() - now.getTime();
+      
+      if (diff <= 0) return "Ended";
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (days > 0) return `${days}d ${hours}h`;
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      return `${minutes}m`;
+    };
+
+    const getStatusBadge = (status: string, bidAmount: string, maxBidAmount: string) => {
+      const isWinning = parseFloat(bidAmount) >= parseFloat(maxBidAmount);
+      const computedStatus = status === 'active' ? (isWinning ? 'winning' : 'losing') : status;
+  
+      switch (computedStatus) {
+        case 'winning':
+          return <Badge className="bg-green-500">Winning</Badge>;
+        case 'losing':
+          return <Badge variant="destructive">Outbid</Badge>;
+        case 'ended':
+          return <Badge variant="secondary">Ended</Badge>;
+        default:
+          return <Badge variant="outline">Unknown</Badge>;
+      }
+    };
+
+    if (isLoadingBids) {
+      return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+        </div>
+    }
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>My Bids</CardTitle>
+          <CardDescription>Here are the auctions you've bid on.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {bids.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {bids.map(bid => (
+                <Card key={bid.bid_id} className="overflow-hidden">
+                  <img src={bid.image_path.split(',')[0]} alt={bid.product_name} className="w-full h-32 object-cover" />
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-semibold line-clamp-2">{bid.product_name}</h4>
+                      {getStatusBadge(bid.status, bid.bid_amount, bid.max_bid_amount)}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      <p>Your Bid: <span className="font-medium text-primary">₹{parseFloat(bid.bid_amount).toLocaleString()}</span></p>
+                      <p>Highest Bid: <span className="font-medium">₹{parseFloat(bid.max_bid_amount).toLocaleString()}</span></p>
+                      <p className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {getTimeLeft(bid.auction_end)}</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full" onClick={() => navigate(`/auctions/${bid.product_id}`)}>View Auction</Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Gavel className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-medium">You haven't placed any bids yet.</h3>
+              <p className="mt-2 text-muted-foreground">
+                Start bidding on auctions to see them here.
+              </p>
+              <Button className="mt-6" onClick={() => navigate('/auctions')}>Browse Auctions</Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const WatchlistContent = () => {
+    const [watchlist, setWatchlist] = useState<WishlistItem[]>([]);
+    const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(true);
+
+    useEffect(() => {
+      const fetchWatchlist = async () => {
+        try {
+          setIsLoadingWatchlist(true);
+          const userId = getUserIdFromToken();
+          if (userId) {
+            const userWatchlist = await getUserWishlist(userId);
+            setWatchlist(userWatchlist);
+          }
+        } catch (error) {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Failed to fetch your watchlist.',
+          });
+        } finally {
+          setIsLoadingWatchlist(false);
+        }
+      };
+      fetchWatchlist();
+    }, []);
+
+    if (isLoadingWatchlist) {
+      return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+        </div>
+    }
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>My Watchlist</CardTitle>
+          <CardDescription>Items you are keeping an eye on.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {watchlist.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {watchlist.map(item => (
+                <Card key={item.wishlist_id} className="overflow-hidden">
+                  <img src={item.image_path.split(',')[0]} alt={item.product_name} className="w-full h-32 object-cover" />
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold line-clamp-2">{item.product_name}</h4>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      <p>Current Bid: <span className="font-medium text-primary">₹{parseFloat(item.current_bid).toLocaleString()}</span></p>
+                      <p className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {item.time_left}</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full" onClick={() => navigate(`/auctions/${item.product_id}`)}>View Auction</Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Heart className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-medium">Your watchlist is empty.</h3>
+              <p className="mt-2 text-muted-foreground">
+                Add items to your watchlist to track them here.
+              </p>
+              <Button className="mt-6" onClick={() => navigate('/auctions')}>Browse Auctions</Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   const SecurityContent = () => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -385,308 +455,192 @@ const Profile = () => {
     };
     
     const handleUpdatePassword = async () => {
-      // Basic validation
-      if (!currentPassword) {
-        toast({
-          variant: "destructive",
-          title: "Current password required",
-          description: "Please enter your current password."
-        });
+      if (!currentPassword || !newPassword) {
+        toast({ variant: "destructive", title: "Please fill in all fields." });
         return;
       }
-      
-      if (!newPassword) {
-        toast({
-          variant: "destructive",
-          title: "New password required",
-          description: "Please enter a new password."
-        });
-        return;
-      }
-      
-      // Password strength validation (optional)
       if (newPassword.length < 8) {
-        toast({
-          variant: "destructive",
-          title: "Password too short",
-          description: "New password must be at least 8 characters long."
-        });
+        toast({ variant: "destructive", title: "Password too short", description: "New password must be at least 8 characters long." });
         return;
       }
       
       setIsUpdatingPassword(true);
-      
       try {
-        // Encrypt passwords before sending to API
-        const encryptedCurrentPassword = encryptPassword(currentPassword);
-        const encryptedNewPassword = encryptPassword(newPassword);
-        
-        // Call the updatePassword API with encrypted passwords
         await updatePassword({
-          currentPassword: encryptedCurrentPassword,
-          newPassword: encryptedNewPassword
+          currentPassword: encryptPassword(currentPassword),
+          newPassword: encryptPassword(newPassword)
         });
-        
-        // Clear the form
         setCurrentPassword('');
         setNewPassword('');
-        
-        toast({
-          title: "Password updated",
-          description: "Your password has been successfully updated."
-        });
+        toast({ title: "Password updated successfully" });
       } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Update failed",
-          description: "There was an error updating your password. Please check your current password and try again."
-        });
+        toast({ variant: "destructive", title: "Update failed", description: "Please check your current password." });
         console.error('Error updating password:', error);
       } finally {
         setIsUpdatingPassword(false);
       }
     };
-    
+
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Security Settings</CardTitle>
-          <CardDescription>
-            Update your password and security preferences.
-          </CardDescription>
+          <CardTitle>Password</CardTitle>
+          <CardDescription>Change your password here. After saving, you'll be logged out.</CardDescription>
         </CardHeader>
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="currentPassword" className="text-sm font-medium">
-              Current Password
-            </label>
-            <Input 
-              id="currentPassword" 
-              type="password" 
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="rounded-md"
-            />
+            <Label htmlFor="currentPassword">Current Password</Label>
+            <Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label htmlFor="newPassword" className="text-sm font-medium">
-              New Password
-            </label>
-            <Input 
-              id="newPassword" 
-              type="password" 
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="rounded-md"
-            />
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
           </div>
-
         </CardContent>
-        <CardFooter className="bg-gradient-to-r from-slate-100 to-slate-50 border-t py-4">
-          <Button 
-            onClick={handleUpdatePassword}
-            disabled={isUpdatingPassword}
-            className="px-6"
-          >
-            {isUpdatingPassword ? (
-              <>
-                <span className="mr-2">Updating...</span>
-                <span className="animate-spin">⟳</span>
-              </>
-            ) : (
-              "Update Password"
-            )}
+        <CardFooter className="border-t px-6 py-4">
+          <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword}>
+            {isUpdatingPassword ? 'Updating...' : 'Update Password'}
           </Button>
         </CardFooter>
       </Card>
     );
   };
 
-  // Billing content component
   const BillingContent = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Billing Information</CardTitle>
-        <CardDescription>
-          Manage your payment methods and billing details.
-        </CardDescription>
+        <CardTitle>Payment Method</CardTitle>
+        <CardDescription>Update your billing details and address.</CardDescription>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
-        <div className="space-y-4">
-          <h3 className="font-medium text-lg">Payment Methods</h3>
-          {profileDetails && profileDetails.profile.paymentMethod && profileDetails.profile.paymentMethod.cardNumber ? (
-            <div className="border rounded-lg p-5 flex items-center justify-between bg-white shadow-sm">
-              <div className="flex items-center space-x-4">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md p-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                    <line x1="1" y1="10" x2="23" y2="10"></line>
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">Card ending in {profileDetails.profile.paymentMethod.cardNumber.slice(-4)}</p>
-                  <p className="text-sm text-muted-foreground">Expires {profileDetails.profile.paymentMethod.expiryDate}</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" className="rounded-md">Edit</Button>
+      <CardContent>
+        {profileDetails?.profile.paymentMethod?.cardNumber ? (
+          <div className="border rounded-lg p-4 flex justify-between items-center">
+            <div>
+              <p className="font-medium">Visa ending in {profileDetails.profile.paymentMethod.cardNumber.slice(-4)}</p>
+              <p className="text-sm text-muted-foreground">Expires {profileDetails.profile.paymentMethod.expiryDate}</p>
             </div>
-          ) : (
-            <div className="text-center py-8 border rounded-lg bg-slate-50">
-              <p className="text-muted-foreground">No payment methods found</p>
-            </div>
-          )}
-          <Button variant="outline" className="w-full mt-2 rounded-md">Add Payment Method</Button>
-        </div>
-        <div className="space-y-4 pt-6 mt-2 border-t">
-          <h3 className="font-medium text-lg">Billing Address</h3>
-          {profileDetails && profileDetails.profile.address ? (
-            <div className="space-y-2 bg-slate-50 p-5 rounded-lg">
-              <p className="font-medium">{profileDetails.profile.user.firstName} {profileDetails.profile.user.lastName}</p>
-              <p>{profileDetails.profile.address.street}</p>
-              <p>{profileDetails.profile.address.city}, {profileDetails.profile.address.state} {profileDetails.profile.address.postalCode}</p>
-              <p>{profileDetails.profile.address.country}</p>
-            </div>
-          ) : (
-            <div className="text-center py-8 border rounded-lg bg-slate-50">
-              <p className="text-muted-foreground">No billing address found</p>
-            </div>
-          )}
-          <Button variant="outline" className="mt-2 rounded-md">Edit Address</Button>
-        </div>
+            <Button variant="outline">Edit</Button>
+          </div>
+        ) : (
+          <div className="text-center py-8 border-2 border-dashed rounded-lg">
+            <p className="text-muted-foreground">No payment method on file.</p>
+            <Button variant="link">Add payment method</Button>
+          </div>
+        )}
       </CardContent>
+      <CardFooter className="border-t px-6 py-4">
+        <Button>Update Payment Method</Button>
+      </CardFooter>
     </Card>
   );
 
+  const NotificationsContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Notifications</CardTitle>
+        <CardDescription>Manage how you receive notifications.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex items-center justify-between space-x-4">
+          <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
+            <span>Email Notifications</span>
+            <span className="font-normal leading-snug text-muted-foreground">
+              Receive emails about your account activity.
+            </span>
+          </Label>
+          <Switch id="email-notifications" defaultChecked />
+        </div>
+        <div className="flex items-center justify-between space-x-4">
+          <Label htmlFor="push-notifications" className="flex flex-col space-y-1">
+            <span>Push Notifications</span>
+            <span className="font-normal leading-snug text-muted-foreground">
+              Receive push notifications on your devices.
+            </span>
+          </Label>
+          <Switch id="push-notifications" />
+        </div>
+        <div className="flex items-center justify-between space-x-4">
+          <Label htmlFor="promotional-emails" className="flex flex-col space-y-1">
+            <span>Promotional Emails</span>
+            <span className="font-normal leading-snug text-muted-foreground">
+              Receive emails about new products, features, and promotions.
+            </span>
+          </Label>
+          <Switch id="promotional-emails" defaultChecked />
+        </div>
+      </CardContent>
+      <CardFooter className="border-t px-6 py-4">
+        <Button>Save Preferences</Button>
+      </CardFooter>
+    </Card>
+  );
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8 px-4 md:px-6">
+          <div className="grid md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] gap-8">
+            <div>
+              <Skeleton className="h-10 w-full mb-4" />
+              <Skeleton className="h-10 w-full mb-2" />
+              <Skeleton className="h-10 w-full mb-2" />
+              <Skeleton className="h-10 w-full mb-2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div>
+              <Skeleton className="h-[500px] w-full" />
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <div className="container py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Desktop sidebar */}
-          <div className="hidden md:block w-72 space-y-6">
-            <div className="flex flex-col items-center p-6 bg-white border rounded-xl shadow-sm">
-              <div className={`h-28 w-28 mb-4 rounded-full flex items-center justify-center text-2xl font-bold shadow-md ${getAvatarColor()} text-white`}>
-                {getUserInitials()}
-              </div>
-              <h3 className="text-xl font-bold">
-                {profileDetails ? 
-                  `${profileDetails.profile.user.firstName}` : 
-                  ''}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {profileDetails ? profileDetails.profile.user.email : ''}
-              </p>
-              
-              {/* Logout button for desktop */}
-              <Button 
-                variant="outline" 
-                className="mt-6 w-full flex items-center justify-center rounded-md hover:bg-slate-100 hover:text-foreground transition-colors" 
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-            
-            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
-              <button 
-                className={`w-full text-left px-6 py-4 flex items-center transition-colors ${activeTab === 'profile' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-slate-50'}`}
-                onClick={() => setActiveTab('profile')}
-              >
-                <User className="mr-3 h-5 w-5" />
-                Profile Settings
-              </button>
-              <button 
-                className={`w-full text-left px-6 py-4 flex items-center transition-colors ${activeTab === 'security' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-slate-50'}`}
-                onClick={() => setActiveTab('security')}
-              >
-                <Shield className="mr-3 h-5 w-5" />
-                Security
-              </button>
-              <button 
-                className={`w-full text-left px-6 py-4 flex items-center transition-colors ${activeTab === 'billing' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-slate-50'}`}
-                onClick={() => setActiveTab('billing')}
-              >
-                <CreditCard className="mr-3 h-5 w-5" />
-                Billing Info
-              </button>
-            </div>
-          </div>
-          
-          {/* Main content */}
-          <div className="flex-1">
-            {/* Mobile view - Accordion */}
+      <div className="container mx-auto py-8 px-4 md:px-6">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <p className="text-muted-foreground">Manage your account settings and set e-mail preferences.</p>
+        </header>
+        
+        <div className="grid md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] gap-8">
+          <aside>
             {isMobile ? (
-              <div className="md:hidden mb-6">
-                <div className="flex flex-col items-center p-6 bg-white border rounded-xl shadow-sm mb-6">
-                  <div className={`h-24 w-24 mb-4 rounded-full flex items-center justify-center text-xl font-bold shadow-md ${getAvatarColor()} text-white`}>
-                    {getUserInitials()}
-                  </div>
-                  <h3 className="text-xl font-bold">
-                    {profileDetails ? 
-                      `${profileDetails.profile.user.firstName} ${profileDetails.profile.user.lastName}` : 
-                      ''}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {profileDetails ? profileDetails.profile.user.email : ''}
-                  </p>
-                </div>
-                
-                <Accordion type="single" collapsible className="bg-white border rounded-xl shadow-sm mb-6">
-                  <AccordionItem value="profile" className="border-b">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-slate-50">
-                      <div className="flex items-center">
-                        <User className="mr-3 h-5 w-5" />
-                        <span>Profile Settings</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      {renderProfileContent()}
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="security" className="border-b">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-slate-50">
-                      <div className="flex items-center">
-                        <Shield className="mr-3 h-5 w-5" />
-                        <span>Security</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <SecurityContent />
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="billing">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-slate-50">
-                      <div className="flex items-center">
-                        <CreditCard className="mr-3 h-5 w-5" />
-                        <span>Billing Info</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <BillingContent />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center rounded-md mb-4" 
-                  onClick={handleLogout}
-                >
+              <Select value={activeTab} onValueChange={setActiveTab}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {menuItems.map(item => (
+                    <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <nav className="flex flex-col space-y-1">
+                {menuItems.map(item => (
+                  <Button
+                    key={item.id}
+                    variant={activeTab === item.id ? 'secondary' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab(item.id)}
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                ))}
+                <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </Button>
-              </div>
-            ) : (
-              /* Desktop view - Tabs */
-              <div>
-                {activeTab === 'profile' && renderProfileContent()}
-                {activeTab === 'security' && <SecurityContent />}
-                {activeTab === 'billing' && <BillingContent />}
-              </div>
+              </nav>
             )}
-          </div>
+          </aside>
+
+          <main>
+            {renderContent()}
+          </main>
         </div>
       </div>
     </Layout>
