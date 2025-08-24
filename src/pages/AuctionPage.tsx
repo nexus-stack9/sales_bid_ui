@@ -551,9 +551,9 @@ const AuctionPage: React.FC = () => {
                 <Skeleton className="h-10 w-40" />
               </div>
               {/* 5 rows × 4 columns = 20 items */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 gap-3 px-2 sm:px-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 sm:gap-4">
                 {Array.from({ length: 20 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-sm p-4">
+                  <div key={i} className="bg-white rounded-lg border border-gray-200 shadow-sm p-2 hover:shadow-md transition-shadow duration-200">
                     <Skeleton className="w-full h-48 rounded-lg" />
                     <div className="mt-4 space-y-2">
                       <Skeleton className="h-5 w-3/4" />
@@ -575,7 +575,7 @@ const AuctionPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-2 sm:px-4 py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-6">
         <div className="flex gap-6">
           {/* Desktop Filter Sidebar - Memoized with stable key */}
           <div className="hidden lg:block w-80 flex-shrink-0">

@@ -239,36 +239,40 @@ export const usePaginatedProducts = () => {
       setLoading(true);
       setError(null);
       
-      const response = await getProducts(page, limit, filters);
+      // Remove sortBy from filters
+      const { sortBy, ...restFilters } = filters;
+      const response = await getProducts(page, limit, restFilters);
       
       if (response.success) {
         setProducts(response.data);
         setFilterOptions(response.filterOptions);
         setPagination(response.pagination);
+      } else {
+        throw new Error('Failed to fetch products');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load products');
+      setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error loading products:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const loadNextPage = useCallback(() => {
-    if (pagination?.hasNextPage) {
-      loadProducts(pagination.nextPage!, pagination.recordsPerPage);
+  const loadNextPage = useCallback(async () => {
+    if (pagination?.hasNextPage && pagination.currentPage) {
+      await loadProducts(pagination.currentPage + 1, pagination.recordsPerPage, {});
     }
   }, [pagination, loadProducts]);
 
-  const loadPrevPage = useCallback(() => {
-    if (pagination?.hasPrevPage) {
-      loadProducts(pagination.prevPage!, pagination.recordsPerPage);
+  const loadPrevPage = useCallback(async () => {
+    if (pagination?.hasPrevPage && pagination.currentPage && pagination.currentPage > 1) {
+      await loadProducts(pagination.currentPage - 1, pagination.recordsPerPage, {});
     }
   }, [pagination, loadProducts]);
 
-  const loadSpecificPage = useCallback((page: number) => {
-    if (pagination) {
-      loadProducts(page, pagination.recordsPerPage);
+  const loadSpecificPage = useCallback(async (page: number) => {
+    if (pagination?.recordsPerPage) {
+      await loadProducts(page, pagination.recordsPerPage, {});
     }
   }, [pagination, loadProducts]);
 
