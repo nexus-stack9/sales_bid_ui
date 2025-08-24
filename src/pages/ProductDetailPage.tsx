@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import fridgeWebp from "@/assets/fridge.webp";
 import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock, FaShoppingCart } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
+import ShippingOptionsModal from '@/components/modals/ShippingOptionsModal';
 import { addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
 import WebSocketService, { WebSocketMessage } from "@/services/WebsocketService";
 import BidModal from "./user/BidModal";
@@ -28,6 +29,7 @@ const ProductDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState(fridgeWebp);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [showShippingModal, setShowShippingModal] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [isCheckingWishlist, setIsCheckingWishlist] = useState(true);
   const { triggerWishlistUpdate } = useWishlist();
@@ -73,25 +75,12 @@ const ProductDetailPage = () => {
       const userId = getUserIdFromToken();
       
       if (!userId) {
-        toast({
-          variant: 'default',
-          title: 'Sign in required',
-          description: 'Please sign in to purchase this item',
-          className: 'bg-white border border-gray-200 text-foreground shadow-lg'
-        });
+        navigate('/login', { state: { from: location.pathname } });
         return;
       }
 
-      // Add your buy now logic here
-      // This could redirect to a checkout page or open a purchase modal
-      toast({
-        title: 'Redirecting to checkout',
-        description: 'Processing your purchase request...',
-        className: 'bg-white border border-green-200 text-foreground shadow-lg'
-      });
-
-      // Example: navigate to checkout page
-      // navigate(`/checkout/${productId}?type=buy-now&price=${productData.sale_price}`);
+      // Show shipping options modal
+      setShowShippingModal(true);
       
     } catch (error) {
       console.error('Error processing buy now:', error);
@@ -102,6 +91,11 @@ const ProductDetailPage = () => {
         className: 'bg-white border border-red-200 text-foreground shadow-lg'
       });
     }
+  };
+
+  const handleProceedToCheckout = (shippingOption: string) => {
+    navigate(`/checkout/${productId}?type=buy-now&price=${productData.sale_price}&shipping=${encodeURIComponent(shippingOption)}`);
+    setShowShippingModal(false);
   };
 
   useEffect(() => {
@@ -162,13 +156,25 @@ const ProductDetailPage = () => {
 
     const handleWebSocketMessage = (message: WebSocketMessage) => {
       if (message.type === 'product_update' && message.data) {
-        setProductData(message.data);
+        setProductData(prevData => ({
+          ...prevData,
+          ...message.data,
+          // Ensure we don't overwrite other product data
+          id: prevData?.id || message.data.id,
+          name: prevData?.name || message.data.name,
+        }));
         setLoading(false);
         setConnectionError(false);
       }
     };
 
+    // Disconnect any existing connection
+    webSocketService.disconnect();
+    
+    // Connect with the new product ID
     webSocketService.connect(productId, handleWebSocketMessage);
+    
+    // Cleanup on unmount or when productId changes
     return () => {
       webSocketService.disconnect();
     };
@@ -226,6 +232,29 @@ const ProductDetailPage = () => {
 
   const handleBidSuccess = () => {
     setBidAmount('');
+    
+    // Force a WebSocket reconnect to get the latest bid data
+    if (productId) {
+      webSocketService.disconnect();
+      const handleWebSocketMessage = (message: WebSocketMessage) => {
+        if (message.type === 'product_update' && message.data) {
+          setProductData(prevData => ({
+            ...prevData,
+            ...message.data,
+            // Ensure we don't overwrite other product data
+            id: prevData?.id || message.data.id,
+            name: prevData?.name || message.data.name,
+          }));
+          setLoading(false);
+          setConnectionError(false);
+        }
+      };
+      
+      // Small delay to ensure the server has processed the bid
+      setTimeout(() => {
+        webSocketService.connect(productId, handleWebSocketMessage);
+      }, 500);
+    }
   };
 
   const handleBidSubmit = (e) => {
@@ -589,20 +618,7 @@ const ProductDetailPage = () => {
                         type="button" 
                         className={`${styles.placeBidButton} ${styles.buyNowButton}`}
                         disabled={timeRemaining === 0}
-                        onClick={() => {
-                          navigate('/checkout/address', {
-                            state: {
-                              product: {
-                                id: productData.id,
-                                name: productData.name,
-                                image: productData.images?.[0] || '',
-                                price: parseFloat(productData.sale_price),
-                                quantity: 1,
-                                sellerId: productData.seller_id
-                              }
-                            }
-                          });
-                        }}
+                        onClick={handleBuyNow}
                       >
                         Buy for {formatCurrency(productData.sale_price)}
                       </button>
@@ -734,9 +750,19 @@ const ProductDetailPage = () => {
               <div className={styles.mobileBidAmount}>
               Current Bid: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
               </div>
-              <div className={styles.retailPercentage}>
-                    {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
-                  </div>
+              <div className={styles.retailPercentageContainer}>
+                <div className={styles.retailPercentageText}>
+                  {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
+                </div>
+                <div className={styles.mobileProgressBar}>
+                  <div 
+                    className={styles.mobileProgressFill} 
+                    style={{ 
+                      width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` 
+                    }}
+                  ></div>
+                </div>
+              </div>
               <div className={styles.mobileRetailValue}>
                 MSRP: {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
               </div>
@@ -762,20 +788,7 @@ const ProductDetailPage = () => {
                     <button 
                       className={`${styles.mobileBidButton} ${styles.mobileBuyNowButton}`}
                       disabled={timeRemaining === 0}
-                      onClick={() => {
-                        navigate('/checkout/address', {
-                          state: {
-                            product: {
-                              id: productData.id,
-                              name: productData.name,
-                              image: productData.images?.[0] || '',
-                              price: parseFloat(productData.sale_price),
-                              quantity: 1,
-                              sellerId: productData.seller_id
-                            }
-                          }
-                        });
-                      }}
+                      onClick={handleBuyNow}
                     >
                       Buy for {formatCurrency(productData.sale_price)}
                     </button>
@@ -800,9 +813,19 @@ const ProductDetailPage = () => {
                     <FaGavel className={styles.statIcon} />
                     {productData.bids?.length || 0} bids
                   </div>
-                  <div className={styles.retailPercentage}>
-                    {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
-                  </div>
+                  <div className={styles.retailPercentageContainer}>
+                <div className={styles.retailPercentageText}>
+                  {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
+                </div>
+                <div className={styles.mobileProgressBar}>
+                  <div 
+                    className={styles.mobileProgressFill} 
+                    style={{ 
+                      width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` 
+                    }}
+                  ></div>
+                </div>
+              </div>
                 </div>
               </div>
               <div className={styles.auctionDetails}>
@@ -863,14 +886,38 @@ const ProductDetailPage = () => {
             {activeTab === "shipping" && (
               <div className={styles.shippingInfo}>
                 <h4>Shipping Information</h4>
-                <p>Shipping: {productData.shipping}</p>
-                <p>Location: {productData.location}</p>
-                <p>Standard Shipping only</p>
-                <p>Transport Mode: Firelight - TL</p>
-                <p>Number of Shipments: 1</p>
-                <p>Packaging Type: Floor Loaded</p>
-                <p>Shipment Weight: 10,554 lbs</p>
-                <p>Number of Truckloads: 1</p>
+                <div className={styles.shippingDetails}>
+                  <div className={styles.shippingRow}>
+                    <span className={styles.shippingLabel}>Shipping:</span>
+                    <span className={styles.shippingValue}>
+                      {productData.shipping 
+                        ? productData.shipping
+                            .split(',')
+                            .map(item => item.trim()
+                                .split(' ')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                .join(' ')
+                            )
+                            .join(', ')
+                        : 'Standard Shipping'}
+                    </span>
+                  </div>
+                  <div className={styles.shippingRow}>
+                    <span className={styles.shippingLabel}>Location:</span>
+                    <span className={styles.shippingValue}>
+                      {productData.location 
+                        ? productData.location
+                            .split(',')
+                            .map(item => item.trim()
+                                .split(' ')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                .join(' ')
+                            )
+                            .join(', ')
+                        : 'Not Specified'}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
             {activeTab === "returns" && (
@@ -1138,6 +1185,13 @@ const ProductDetailPage = () => {
           ))}
         </div>
       </div>
+      <ShippingOptionsModal
+        isOpen={showShippingModal}
+        onClose={() => setShowShippingModal(false)}
+        productId={parseInt(productId)}
+        price={String(productData?.sale_price || '0')}
+        shippingOptions={productData?.shipping?.split(',').map(s => s.trim()) || []}
+      />
       <BidModal
         isOpen={showBidModal}
         onClose={() => setShowBidModal(false)}

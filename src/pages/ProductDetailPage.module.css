@@ -865,11 +865,80 @@ tr:hover {
     max-width: 450px;
 }
 
+/* Mobile MSRP Percentage Bar */
+.retailPercentageContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.retailPercentageText {
+  font-size: 14px;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.mobileProgressBar {
+  flex: 1;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mobileProgressFill {
+  height: 100%;
+  background: linear-gradient(135deg, #09146ad4, #2722c7);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.shippingInfo {
+  padding: 16px 0;
+  width: 100%;
+}
+
+.shippingInfo h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.shippingDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shippingRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.shippingLabel {
+  font-weight: 500;
+  color: #4b5563;
+  font-size: 0.9375rem;
+}
+
+.shippingValue {
+  color: #1f2937;
+  font-weight: 500;
+  text-align: right;
+}
+
 .mobileBidAmount {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
 }
 
 .mobileRetailValue {
