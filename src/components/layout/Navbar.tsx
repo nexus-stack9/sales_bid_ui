@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -26,8 +26,11 @@ import Cookies from "js-cookie";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const isMobile = useIsMobile();
   const { wishlistCount, bidsCount } = useWishlist();
+  const navigate = useNavigate();
 
   // Check for token in cookies
   const token = Cookies.get("authToken");
@@ -36,18 +39,62 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleMobileSearchSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setIsMobileSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleMobileSearchClose = () => {
+    setIsMobileSearchOpen(false);
+    setSearchQuery('');
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-sm border-b border-border">
       <div className="container flex h-16 items-center justify-between px-4 md:px-8">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-3">
-          <img
-            src={salesBidLogo}
-            alt="Sales Bid Logo"
-            className="h-12 w-auto object-contain"
-          />
-          {/* <span className="font-display text-2xl font-bold">Sales Bid</span> */}
-        </Link>
+        {/* Logo - Hidden when mobile search is open */}
+        {!isMobileSearchOpen && (
+          <Link to="/" className="flex items-center space-x-3">
+            <img
+              src={salesBidLogo}
+              alt="Sales Bid Logo"
+              className="h-12 w-auto object-contain"
+            />
+          </Link>
+        )}
+
+        {/* Mobile Search Form - Shown when search is active */}
+        {isMobileSearchOpen && (
+          <form 
+            onSubmit={handleMobileSearchSubmit}
+            className="flex-1 flex items-center"
+          >
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="search"
+                placeholder="Search auctions..."
+                className="pl-10 pr-4 py-2 h-10 w-full rounded-md border border-input bg-background text-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleMobileSearchClose}
+              className="ml-3 h-10 w-10 flex items-center justify-center"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </form>
+        )}
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
@@ -168,9 +215,15 @@ const Navbar = () => {
         <div className="flex items-center space-x-2">
           {isMobile ? (
             <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="icon">
-                <Search className="h-5 w-5" />
-              </Button>
+              {!isMobileSearchOpen && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setIsMobileSearchOpen(true)}
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              )}
               <Link to="/my-bids" className="relative">
                 <Button variant="ghost" size="icon">
                   <ShoppingCart className="h-5 w-5" />
@@ -183,14 +236,29 @@ const Navbar = () => {
               </Link>
             </div>
           ) : (
-            <div className="hidden md:flex items-center relative">
+            <form 
+              onSubmit={(e: FormEvent) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                }
+              }}
+              className="hidden md:flex items-center relative"
+            >
               <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
               <input
                 type="search"
                 placeholder="Search auctions..."
                 className="pl-10 h-9 w-64 rounded-md border border-input bg-background px-3"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                  }
+                }}
               />
-            </div>
+            </form>
           )}
           <div className="hidden md:flex items-center space-x-2">
             <Link to={"/user/wishlist"} className="relative">
@@ -230,47 +298,49 @@ const Navbar = () => {
               </Link>
             )}
           </div>
-          <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-[300px] sm:w-[400px] bg-white">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-              </SheetHeader>
-              <div className="py-4">
-                <div className="flex flex-col space-y-4">
-                  <Link to="/categories" className="text-lg font-medium">
-                    Categories
-                  </Link>
-                  <Link to="/auctions" className="text-lg font-medium">
-                    All Auctions
-                  </Link>
-                  <Link to="/sellers" className="text-lg font-medium">
-                    For Sellers
-                  </Link>
-                  <Link to="/how-it-works" className="text-lg font-medium">
-                    How It Works
-                  </Link>
-                  <hr className="my-2" />
-                  {!token && (
-                    <div className="group/menu-item">
-                      <Link
-                        to="/signin"
-                        className="text-lg font-medium flex items-center relative"
-                      >
-                        <User className="mr-2 h-5 w-5" />
-                        <span>Sign In</span>
-                        <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
-                      </Link>
-                    </div>
-                  )}
+          {!isMobileSearchOpen && (
+            <Sheet>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-[300px] sm:w-[400px] bg-white">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="py-4">
+                  <div className="flex flex-col space-y-4">
+                    <Link to="/categories" className="text-lg font-medium">
+                      Categories
+                    </Link>
+                    <Link to="/auctions" className="text-lg font-medium">
+                      All Auctions
+                    </Link>
+                    <Link to="/sellers" className="text-lg font-medium">
+                      For Sellers
+                    </Link>
+                    <Link to="/how-it-works" className="text-lg font-medium">
+                      How It Works
+                    </Link>
+                    <hr className="my-2" />
+                    {!token && (
+                      <div className="group/menu-item">
+                        <Link
+                          to="/signin"
+                          className="text-lg font-medium flex items-center relative"
+                        >
+                          <User className="mr-2 h-5 w-5" />
+                          <span>Sign In</span>
+                          <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>

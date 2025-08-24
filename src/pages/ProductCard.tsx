@@ -145,7 +145,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-full object-cover"
               />
               
               {/* Condition Ribbon */}

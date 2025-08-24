@@ -23,6 +23,7 @@ import BuyersPage from "./pages/buyers/BuyersPage"
 import AllSellersPage from "./pages/sellers/allSellersPage";
 import SellerRegistrationForm from "./pages/sellers/SellerRegistrationForm";
 import CheckoutAddressPage from "./pages/CheckoutAddressPage";
+import { SearchResultsPage } from "./pages/SearchResultsPage";
 
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
                 <Route path="/sellers" element={<SellersPage />} />
                 <Route path="/allSellersPage" element={<AllSellersPage />} />
                 <Route path="/sellerRegistration" element={<SellerRegistrationForm />} />
+                <Route path="/search" element={<SearchResultsPage />} />
                 <Route path="/checkout/address" element={<CheckoutAddressPage />} />
 
 
