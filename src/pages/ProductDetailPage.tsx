@@ -808,7 +808,7 @@ const ProductDetailPage = () => {
                 <div className={styles.progressBar}>
                   <div className={styles.progressFill} style={{ width: `${(getCurrentBid() / productData.retail_value) * 100}%` }}></div>
                 </div>
-                <div className={styles.bidStats}>
+                {/* <div className={styles.bidStats}>
                   <div className={styles.bidCount}>
                     <FaGavel className={styles.statIcon} />
                     {productData.bids?.length || 0} bids
@@ -826,7 +826,7 @@ const ProductDetailPage = () => {
                   ></div>
                 </div>
               </div>
-                </div>
+                </div> */}
               </div>
               <div className={styles.auctionDetails}>
                 <h3>Auction Details</h3>
