@@ -1,23 +1,23 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Shield, CreditCard, Bell, LogOut, Home, Briefcase, Gavel, Heart, Clock, TrendingUp, TrendingDown, Award, AlertTriangle, Trophy } from 'lucide-react';
+import { User, LogOut, Home, Briefcase, Gavel,Package, Heart } from 'lucide-react';
 import Cookies from 'js-cookie';
-import CryptoJS from 'crypto-js';
-import { updatePassword, updateProfile, getProfileDetails, getUserIdFromToken, getUserBids, getUserWishlist, Bid, WishlistItem } from '@/services/crudService';
+import { updateProfile, getProfileDetails, getUserIdFromToken } from '@/services/crudService';
+import { addUserAddress, updateUserAddress, deleteUserAddress } from '@/services/addressService';
+
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { Badge } from "@/components/ui/badge";
+
 
 // Define the ProfileDetails interface
 interface ProfileDetails {
@@ -32,16 +32,6 @@ interface ProfileDetails {
       isActive: boolean;
       createdAt: string;
     };
-    address: {
-      addressId: number;
-      label: string;
-      street: string;
-      city: string;
-      state: string;
-      postalCode: string;
-      country: string;
-      isPrimary: boolean;
-    } | null;
     addresses?: Array<{
       addressId: number;
       label: string;
@@ -52,10 +42,6 @@ interface ProfileDetails {
       country: string;
       isPrimary: boolean;
     }>;
-    paymentMethod: {
-      cardNumber: string;
-      expiryDate: string;
-    } | null;
   };
   message: string;
 }
@@ -74,9 +60,9 @@ const Profile = () => {
     phone: "",
     address: "",
   });
-  
+
   const [profileDetails, setProfileDetails] = useState<ProfileDetails | null>(null);
-  
+
   useEffect(() => {
     const fetchProfileDetails = async () => {
       try {
@@ -87,9 +73,8 @@ const Profile = () => {
           return;
         }
         const data = await getProfileDetails(userId);
-        
         setProfileDetails(data);
-        
+
         const primaryAddress = data.profile.addresses?.find(addr => addr.isPrimary) || data.profile.addresses?.[0];
         const addressString = primaryAddress
           ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`
@@ -113,10 +98,10 @@ const Profile = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchProfileDetails();
   }, [toast, navigate]);
-  
+
   const handleSaveProfile = async () => {
     try {
       await updateProfile(profileData);
@@ -125,7 +110,6 @@ const Profile = () => {
         title: "Profile updated",
         description: "Your profile information has been saved.",
       });
-      // Refetch data to show updated info
       const userId = getUserIdFromToken();
       if (userId) {
         const data = await getProfileDetails(userId);
@@ -140,14 +124,14 @@ const Profile = () => {
       console.error('Error updating profile:', error);
     }
   };
-  
+
   const handleInputChange = (field: string, value: string) => {
     setProfileData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-  
+
   const handleLogout = () => {
     Cookies.remove('authToken');
     toast({
@@ -165,32 +149,100 @@ const Profile = () => {
 
   const menuItems = [
     { id: 'profile', label: 'Edit Profile', icon: User },
-    { id: 'mybids', label: 'My Bids', icon: Gavel },
-    { id: 'watchlist', label: 'Watchlist', icon: Heart },
-    { id: 'security', label: 'Password & Security', icon: Shield },
-    { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'address', label: 'My Addresses', icon: Gavel },
+    { id: 'OrdersContent', label: 'My Orders', icon: Heart },
   ];
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'profile':
-        return <ProfileContent />;
-      case 'mybids':
-        return <MyBidsContent />;
-      case 'watchlist':
-        return <WatchlistContent />;
-      case 'security':
-        return <SecurityContent />;
-      case 'billing':
-        return <BillingContent />;
-      case 'notifications':
-        return <NotificationsContent />;
-      default:
-        return <ProfileContent />;
+  interface Bid {
+  id: string;
+  itemName: string;
+  imageUrl: string;
+  bidAmount: number;
+  status: 'active' | 'won' | 'lost' | 'paid' | 'shipped';
+  endTime: Date;
+  paymentDeadline?: Date;
+  orderId?: string;
+}
+
+  const sampleBids: Bid[] = [
+  {
+    id: '1',
+    itemName: 'Vintage Rolex Submariner 1970',
+    imageUrl: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&h=300&fit=crop',
+    bidAmount: 12500,
+    status: 'won',
+    endTime: new Date(Date.now() - 3600000),
+    paymentDeadline: new Date(Date.now() + 43200000) // 12 hours from now
+  },
+  {
+    id: '2',
+    itemName: 'Classic Ferrari Model Collection',
+    imageUrl: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=300&h=300&fit=crop',
+    bidAmount: 3200,
+    status: 'paid',
+    endTime: new Date(Date.now() - 86400000),
+    orderId: 'ORD-2024-001'
+  },
+  {
+    id: '3',
+    itemName: 'Art Deco Diamond Ring',
+    imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=300&h=300&fit=crop',
+    bidAmount: 8750,
+    status: 'active',
+    endTime: new Date(Date.now() + 7200000)
+  }
+];
+
+const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'won': return 'bg-gradient-success text-success-foreground shadow-success animate-pulse-glow';
+      case 'paid': return 'bg-primary text-primary-foreground';
+      case 'active': return 'bg-accent text-accent-foreground';
+      case 'lost': return 'bg-muted text-muted-foreground';
+      case 'shipped': return 'bg-success text-success-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
+const OrdersContent = () => (
+<div className="space-y-6">
+<Card className="bg-gradient-card shadow-elegant border-0 animate-fade-in">
+<CardHeader className="p-4 sm:p-6">
+<CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+<Package className="h-5 w-5" />
+Recent Orders
+</CardTitle>
+</CardHeader>
+<CardContent className="p-4 sm:p-6 pt-0">
+<div className="space-y-3 sm:space-y-4">
+{sampleBids
+.filter(bid => bid.status === 'paid' || bid.status === 'shipped')
+.map((order) => (
+<div key={order.id} className="flex items-center justify-between p-3 sm:p-4 bg-background rounded-lg border">
+<div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+<img src={order.imageUrl} alt={order.itemName} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0" />
+<div className="min-w-0 flex-1">
+<h4 className="font-medium text-sm sm:text-base truncate">{order.itemName}</h4>
+<p className="text-xs sm:text-sm text-muted-foreground">Order #{order.orderId}</p>
+</div>
+</div>
+<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+<Badge className={`${getStatusColor(order.status)} text-xs`}>
+{order.status.toUpperCase()}
+</Badge>
+<Button onClick={() => navigate(`/my-orders/${order.orderId}`)} variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
+Track
+</Button>
+</div>
+</div>
+))}
+</div>
+</CardContent>
+</Card>
+</div>
+);
+
+  // ============== Profile Content ==============
   const ProfileContent = () => (
     <Card>
       <CardHeader>
@@ -226,29 +278,8 @@ const Profile = () => {
           </div>
         </div>
         <div className="space-y-2">
-            <Label htmlFor="address">Primary Address</Label>
-            <Textarea id="address" value={profileData.address} onChange={(e) => handleInputChange('address', e.target.value)} disabled={!isEditing} />
-          </div>
-        <div className="space-y-2">
-          <Label>Your Addresses</Label>
-          <div className="space-y-4">
-            {profileDetails?.profile.addresses?.map(addr => (
-              <div key={addr.addressId} className="border p-4 rounded-md flex justify-between items-start">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-secondary p-3 rounded-full">
-                    {addr.label.toLowerCase() === 'home' ? <Home className="h-5 w-5 text-secondary-foreground" /> : <Briefcase className="h-5 w-5 text-secondary-foreground" />}
-                  </div>
-                  <div>
-                    <p className="font-medium flex items-center">
-                      {addr.label} {addr.isPrimary && <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">Primary</span>}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{addr.street}, {addr.city}, {addr.state} {addr.postalCode}</p>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm">Edit</Button>
-              </div>
-            ))}
-          </div>
+          <Label htmlFor="address">Primary Address</Label>
+          <Textarea id="address" value={profileData.address} onChange={(e) => handleInputChange('address', e.target.value)} disabled={!isEditing} />
         </div>
       </CardContent>
       <CardFooter className="border-t px-6 py-4">
@@ -264,316 +295,140 @@ const Profile = () => {
     </Card>
   );
 
-  const MyBidsContent = () => {
-    const [bids, setBids] = useState<Bid[]>([]);
-    const [isLoadingBids, setIsLoadingBids] = useState(true);
+  // ============== Address Content ==============
+  const AddressContent = () => {
+    const [formData, setFormData] = useState({
+      label: "",
+      street: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "",
+    });
+    const [editingId, setEditingId] = useState<number | null>(null);
 
-    useEffect(() => {
-      const fetchBids = async () => {
-        try {
-          setIsLoadingBids(true);
-          const userId = getUserIdFromToken();
-          if (userId) {
-            const userBids = await getUserBids(userId);
-            setBids(userBids);
-          }
-        } catch (error) {
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Failed to fetch your bids.',
-          });
-        } finally {
-          setIsLoadingBids(false);
-        }
-      };
-      fetchBids();
-    }, []);
-
-    const getTimeLeft = (endDate: string) => {
-      const now = new Date();
-      const end = new Date(endDate);
-      const diff = end.getTime() - now.getTime();
-      
-      if (diff <= 0) return "Ended";
-      
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      if (days > 0) return `${days}d ${hours}h`;
-      if (hours > 0) return `${hours}h ${minutes}m`;
-      return `${minutes}m`;
-    };
-
-    const getStatusBadge = (status: string, bidAmount: string, maxBidAmount: string) => {
-      const isWinning = parseFloat(bidAmount) >= parseFloat(maxBidAmount);
-      const computedStatus = status === 'active' ? (isWinning ? 'winning' : 'losing') : status;
-  
-      switch (computedStatus) {
-        case 'winning':
-          return <Badge className="bg-green-500">Winning</Badge>;
-        case 'losing':
-          return <Badge variant="destructive">Outbid</Badge>;
-        case 'ended':
-          return <Badge variant="secondary">Ended</Badge>;
-        default:
-          return <Badge variant="outline">Unknown</Badge>;
-      }
-    };
-
-    if (isLoadingBids) {
-      return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
-        </div>
-    }
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>My Bids</CardTitle>
-          <CardDescription>Here are the auctions you've bid on.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {bids.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {bids.map(bid => (
-                <Card key={bid.bid_id} className="overflow-hidden">
-                  <img src={bid.image_path.split(',')[0]} alt={bid.product_name} className="w-full h-32 object-cover" />
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-semibold line-clamp-2">{bid.product_name}</h4>
-                      {getStatusBadge(bid.status, bid.bid_amount, bid.max_bid_amount)}
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-2">
-                      <p>Your Bid: <span className="font-medium text-primary">₹{parseFloat(bid.bid_amount).toLocaleString()}</span></p>
-                      <p>Highest Bid: <span className="font-medium">₹{parseFloat(bid.max_bid_amount).toLocaleString()}</span></p>
-                      <p className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {getTimeLeft(bid.auction_end)}</p>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full" onClick={() => navigate(`/auctions/${bid.product_id}`)}>View Auction</Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Gavel className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium">You haven't placed any bids yet.</h3>
-              <p className="mt-2 text-muted-foreground">
-                Start bidding on auctions to see them here.
-              </p>
-              <Button className="mt-6" onClick={() => navigate('/auctions')}>Browse Auctions</Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const WatchlistContent = () => {
-    const [watchlist, setWatchlist] = useState<WishlistItem[]>([]);
-    const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(true);
-
-    useEffect(() => {
-      const fetchWatchlist = async () => {
-        try {
-          setIsLoadingWatchlist(true);
-          const userId = getUserIdFromToken();
-          if (userId) {
-            const userWatchlist = await getUserWishlist(userId);
-            setWatchlist(userWatchlist);
-          }
-        } catch (error) {
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Failed to fetch your watchlist.',
-          });
-        } finally {
-          setIsLoadingWatchlist(false);
-        }
-      };
-      fetchWatchlist();
-    }, []);
-
-    if (isLoadingWatchlist) {
-      return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
-        </div>
-    }
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>My Watchlist</CardTitle>
-          <CardDescription>Items you are keeping an eye on.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {watchlist.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {watchlist.map(item => (
-                <Card key={item.wishlist_id} className="overflow-hidden">
-                  <img src={item.image_path.split(',')[0]} alt={item.product_name} className="w-full h-32 object-cover" />
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold line-clamp-2">{item.product_name}</h4>
-                    <div className="text-sm text-muted-foreground mt-2">
-                      <p>Current Bid: <span className="font-medium text-primary">₹{parseFloat(item.current_bid).toLocaleString()}</span></p>
-                      <p className="flex items-center"><Clock className="w-4 h-4 mr-1" /> {item.time_left}</p>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full" onClick={() => navigate(`/auctions/${item.product_id}`)}>View Auction</Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Heart className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium">Your watchlist is empty.</h3>
-              <p className="mt-2 text-muted-foreground">
-                Add items to your watchlist to track them here.
-              </p>
-              <Button className="mt-6" onClick={() => navigate('/auctions')}>Browse Auctions</Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const SecurityContent = () => {
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-    
-    const encryptPassword = (password: string) => {
-      const secretKey = import.meta.env.VITE_SECRET_KEY;
-      return CryptoJS.AES.encrypt(password, secretKey).toString();
-    };
-    
-    const handleUpdatePassword = async () => {
-      if (!currentPassword || !newPassword) {
-        toast({ variant: "destructive", title: "Please fill in all fields." });
+    const autofillFromLocation = () => {
+      if (!navigator.geolocation) {
+        toast({ variant: "destructive", title: "Geolocation not supported" });
         return;
       }
-      if (newPassword.length < 8) {
-        toast({ variant: "destructive", title: "Password too short", description: "New password must be at least 8 characters long." });
-        return;
-      }
-      
-      setIsUpdatingPassword(true);
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+          const data = await res.json();
+          setFormData({
+            ...formData,
+            street: data.address.road || "",
+            city: data.address.city || data.address.town || data.address.village || "",
+            state: data.address.state || "",
+            postalCode: data.address.postcode || "",
+            country: data.address.country || "",
+          });
+          toast({ title: "Address autofilled" });
+        } catch (err) {
+          console.error(err);
+          toast({ variant: "destructive", title: "Failed to fetch location" });
+        }
+      });
+    };
+
+    const handleSave = async () => {
       try {
-        await updatePassword({
-          currentPassword: encryptPassword(currentPassword),
-          newPassword: encryptPassword(newPassword)
-        });
-        setCurrentPassword('');
-        setNewPassword('');
-        toast({ title: "Password updated successfully" });
+        if (editingId) {
+          await updateUserAddress(editingId, formData);
+          toast({ title: "Address updated" });
+        } else {
+          await addUserAddress(formData);
+          toast({ title: "Address added" });
+        }
+        setFormData({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
+        setEditingId(null);
+        const userId = getUserIdFromToken();
+        if (userId) {
+          const data = await getProfileDetails(userId);
+          setProfileDetails(data);
+        }
       } catch (error) {
-        toast({ variant: "destructive", title: "Update failed", description: "Please check your current password." });
-        console.error('Error updating password:', error);
-      } finally {
-        setIsUpdatingPassword(false);
+        console.error(error);
+        toast({ variant: "destructive", title: "Failed to save address" });
+      }
+    };
+
+    const handleEdit = (addr: any) => {
+      setFormData(addr);
+      setEditingId(addr.addressId);
+    };
+
+    const handleDelete = async (id: number) => {
+      try {
+        await deleteUserAddress(id);
+        toast({ title: "Address deleted" });
+        setProfileDetails((prev) =>
+          prev ? { ...prev, profile: { ...prev.profile, addresses: prev.profile.addresses?.filter((a) => a.addressId !== id) } } : prev
+        );
+      } catch (err) {
+        console.error(err);
+        toast({ variant: "destructive", title: "Failed to delete address" });
       }
     };
 
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Password</CardTitle>
-          <CardDescription>Change your password here. After saving, you'll be logged out.</CardDescription>
+          <CardTitle>My Addresses</CardTitle>
+          <CardDescription>Manage your saved addresses</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
-            <Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+        <CardContent className="space-y-6">
+          <div className="space-y-3">
+            {profileDetails?.profile.addresses?.map(addr => (
+              <div key={addr.addressId} className="p-3 border rounded-lg flex justify-between items-center">
+                <div>
+                  <p className="font-semibold">
+                    {addr.label} {addr.isPrimary && <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">Primary</span>}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{addr.street}, {addr.city}, {addr.state} {addr.postalCode}, {addr.country}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => handleEdit(addr)}>Edit</Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(addr.addressId)}>Delete</Button>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">New Password</Label>
-            <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+
+          <div className="space-y-2 border-t pt-4">
+            <h3 className="font-semibold">{editingId ? "Edit Address" : "Add New Address"}</h3>
+            <Input placeholder="Label (Home/Office)" value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} />
+            <Input placeholder="Street" value={formData.street} onChange={(e) => setFormData({ ...formData, street: e.target.value })} />
+            <Input placeholder="City" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+            <Input placeholder="State" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
+            <Input placeholder="Postal Code" value={formData.postalCode} onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })} />
+            <Input placeholder="Country" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+
+            <div className="flex gap-3">
+              <Button onClick={handleSave}>{editingId ? "Update" : "Add"} Address</Button>
+              <Button variant="outline" onClick={autofillFromLocation}>Autofill from Location</Button>
+            </div>
           </div>
         </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-          <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword}>
-            {isUpdatingPassword ? 'Updating...' : 'Update Password'}
-          </Button>
-        </CardFooter>
       </Card>
     );
   };
 
-  const BillingContent = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Payment Method</CardTitle>
-        <CardDescription>Update your billing details and address.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {profileDetails?.profile.paymentMethod?.cardNumber ? (
-          <div className="border rounded-lg p-4 flex justify-between items-center">
-            <div>
-              <p className="font-medium">Visa ending in {profileDetails.profile.paymentMethod.cardNumber.slice(-4)}</p>
-              <p className="text-sm text-muted-foreground">Expires {profileDetails.profile.paymentMethod.expiryDate}</p>
-            </div>
-            <Button variant="outline">Edit</Button>
-          </div>
-        ) : (
-          <div className="text-center py-8 border-2 border-dashed rounded-lg">
-            <p className="text-muted-foreground">No payment method on file.</p>
-            <Button variant="link">Add payment method</Button>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="border-t px-6 py-4">
-        <Button>Update Payment Method</Button>
-      </CardFooter>
-    </Card>
-  );
-
-  const NotificationsContent = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notifications</CardTitle>
-        <CardDescription>Manage how you receive notifications.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between space-x-4">
-          <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
-            <span>Email Notifications</span>
-            <span className="font-normal leading-snug text-muted-foreground">
-              Receive emails about your account activity.
-            </span>
-          </Label>
-          <Switch id="email-notifications" defaultChecked />
-        </div>
-        <div className="flex items-center justify-between space-x-4">
-          <Label htmlFor="push-notifications" className="flex flex-col space-y-1">
-            <span>Push Notifications</span>
-            <span className="font-normal leading-snug text-muted-foreground">
-              Receive push notifications on your devices.
-            </span>
-          </Label>
-          <Switch id="push-notifications" />
-        </div>
-        <div className="flex items-center justify-between space-x-4">
-          <Label htmlFor="promotional-emails" className="flex flex-col space-y-1">
-            <span>Promotional Emails</span>
-            <span className="font-normal leading-snug text-muted-foreground">
-              Receive emails about new products, features, and promotions.
-            </span>
-          </Label>
-          <Switch id="promotional-emails" defaultChecked />
-        </div>
-      </CardContent>
-      <CardFooter className="border-t px-6 py-4">
-        <Button>Save Preferences</Button>
-      </CardFooter>
-    </Card>
-  );
+  // ============== Render ==============
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return <ProfileContent />;
+      case 'address':
+        return <AddressContent />;
+      case 'OrdersContent':
+        return <OrdersContent />;  
+      default:
+        return <ProfileContent />;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -600,10 +455,10 @@ const Profile = () => {
     <Layout>
       <div className="container mx-auto py-8 px-4 md:px-6">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage your account settings and set e-mail preferences.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+          <p className="text-muted-foreground">Manage your account settings and preferences.</p>
         </header>
-        
+
         <div className="grid md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] gap-8">
           <aside>
             {isMobile ? (

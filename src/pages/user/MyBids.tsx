@@ -84,15 +84,34 @@ const MyBids = () => {
     const end = new Date(endDate);
     const diff = end.getTime() - now.getTime();
     
-    if (diff <= 0) return "Ended";
-    
+    if (diff <= 0) return { text: "Ended", seconds: 0 };
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+
+    if (days > 0) return { text: `${days}d ${hours}h`, seconds: diff };
+    if (hours > 0) return { text: `${hours}h ${minutes}m`, seconds: diff };
+    return { text: `${minutes}m`, seconds: diff };
+  };
+
+  const getPaymentTimeLeft = (endDate: string) => {
+    const end = new Date(endDate);
+    const paymentDueDate = new Date(end.getTime() + 48 * 60 * 60 * 1000);
+    const now = new Date();
+    const diff = paymentDueDate.getTime() - now.getTime();
+
+    if (diff <= 0) return null;
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return {
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+    };
   };
 
   const getStatusBadge = (status: string, bidAmount: string, maxBidAmount: string) => {
@@ -115,6 +134,15 @@ const MyBids = () => {
           </Badge>
         );
       case 'ended':
+        const isWinning = parseFloat(bidAmount) >= parseFloat(maxBidAmount);
+        if (isWinning) {
+          return (
+            <Badge className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 font-medium shadow-sm">
+              <Trophy className="w-3 h-3 mr-1.5" />
+              <span>Won</span>
+            </Badge>
+          );
+        }
         return (
           <Badge className="bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white border-0 font-medium shadow-sm">
             <Clock className="w-3 h-3 mr-1.5" />
@@ -189,78 +217,121 @@ const MyBids = () => {
     navigate(`/auctions/${productId}`);
   };
 
-  const BidCard = ({ item }: { item: Bid }) => (
-    <div className="w-[320px] sm:w-auto sm:max-w-[280px] mx-auto bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      <div className="relative pt-[75%] overflow-hidden">
-        <img 
-          src={item.image_path.split(',')[0]} 
-          alt={item.product_name}
-          className="absolute top-0 left-0 w-full h-full object-cover"
-        />
-        <div className="absolute top-2 right-2 z-10">
-          {getStatusBadge(item.status, item.bid_amount, item.max_bid_amount)}
-        </div>
+  const CountdownTimer = ({ endDate }: { endDate: string }) => {
+    const [timeLeft, setTimeLeft] = useState(getPaymentTimeLeft(endDate));
+
+    useEffect(() => {
+      const timer = setInterval(() => {
+        setTimeLeft(getPaymentTimeLeft(endDate));
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }, [endDate]);
+
+    if (!timeLeft) {
+      return null;
+    }
+
+    return (
+      <div className="text-center text-sm text-red-600 font-medium mt-2">
+        Payment due in: {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
       </div>
-      
-      <div className="p-4">
-        <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
-          {item.product_name}
-        </h3>
+    );
+  };
+
+  const BidCard = ({ item }: { item: Bid }) => {
+    const timeLeft = getTimeLeft(item.auction_end);
+    const isWon = item.status === 'active' && parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount);
+
+    return (
+      <div className="w-[320px] sm:max-w-[280px] mx-auto bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+        <div className="relative pt-[75%] overflow-hidden">
+          <img 
+            src={item.image_path.split(',')[0]} 
+            alt={item.product_name}
+            className="absolute top-0 left-0 w-full h-full object-cover"
+          />
+          <div className="absolute top-2 right-2 z-10">
+            {getStatusBadge(item.status, item.bid_amount, item.max_bid_amount)}
+          </div>
+        </div>
         
-        <div className="space-y-2 mb-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-bold text-gray-600">My Bid</span>
-            <span className="text-sm font-bold text-primary">
-              ₹{parseFloat(item.bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-bold text-gray-600">Highest Bid</span>
-            <span className={cn("text-sm font-bold", 
-              parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "text-emerald-600" : "text-red-600"
-            )}>
-              ₹{parseFloat(item.max_bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-bold text-gray-600">Time Left</span>
-            <div className="flex items-center gap-1 text-sm">
-              <Clock className="w-4 h-4" />
-              <span className="font-medium text-primary">
-                {getTimeLeft(item.auction_end)}
+        <div className="p-4">
+          <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+            {item.product_name}
+          </h3>
+          
+          <div className="space-y-2 mb-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-bold text-gray-600">My Bid</span>
+              <span className="text-sm font-bold text-primary">
+                ₹{parseFloat(item.bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-bold text-gray-600">Highest Bid</span>
+              <span className={cn("text-sm font-bold", 
+                parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "text-emerald-600" : "text-red-600"
+              )}>
+                ₹{parseFloat(item.max_bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-bold text-gray-600">Time Left</span>
+              <div className="flex items-center gap-1 text-sm">
+                <Clock className="w-4 h-4" />
+                <span className="font-medium text-primary">
+                  {timeLeft.text}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div className="flex gap-2 mt-4">
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/auctions/${item.product_id}`);
-            }}
-            className="flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm"
-          >
-            View Details
-          </button>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              if (item.status !== 'ended') handlePlaceBidClick(item);
-            }}
-            className={`px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
-              item.status === 'ended'
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg'
-            }`}
-            disabled={item.status === 'ended'}
-          >
-            {item.status === 'ended' ? 'Ended' : 'Bid Again'}
-          </button>
+          
+          {isWon && <CountdownTimer endDate={item.auction_end} />}
+
+        <div className="flex flex-col gap-2 mt-4">
+  <button 
+    onClick={(e) => {
+      e.stopPropagation();
+      navigate(`/auctions/${item.product_id}`);
+    }}
+    className="w-full px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm"
+  >
+    View Details
+  </button>
+
+  {isWon ? (
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        navigate(`/payment/${item.product_id}`);
+      }}
+      className='w-full px-4 py-1.5 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md hover:shadow-lg'
+    >
+      Pay Now
+    </button>
+  ) : (
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        if (item.status !== 'ended') handlePlaceBidClick(item);
+      }}
+      className={`w-full px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
+        item.status === 'ended'
+          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg'
+      }`}
+      disabled={item.status === 'ended'}
+    >
+      {item.status === 'ended' ? 'Ended' : 'Bid Again'}
+    </button>
+  )}
+</div>
+
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const EmptyState = ({ icon, title, description, showButton = false }: {
     icon: React.ReactNode;

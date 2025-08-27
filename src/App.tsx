@@ -13,8 +13,8 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/user/Profile";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
-import Cart from "./pages/cart/Cart";
-import Payment from "./pages/cart/Payment";
+// import Cart from "./pages/cart/Cart";
+import PaymentPage from "./pages/PaymentPage";
 import SellersPage from "./pages/sellers/SellersPage";
 import ForgotPassword from './pages/ForgotPassword';
 import MyBids from "./pages/user/MyBids";
@@ -27,6 +27,8 @@ import { SearchResultsPage } from "./pages/SearchResultsPage";
 
 
 const queryClient = new QueryClient();
+
+import OrderTrackingPage from "./pages/OrderTrackingPage";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -45,9 +47,10 @@ const App = () => (
                 <Route path="/user/wishlist" element={<Wishlist />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/payment/:orderId" element={<Payment />} />
+                {/* <Route path="/cart" element={<Cart />} /> */}
+                <Route path="/payment/:orderId" element={<PaymentPage />} />
                 <Route path="/my-bids" element={<MyBids />} />
+                <Route path="/my-orders/:orderId" element={<OrderTrackingPage />} />
                 <Route path="/sellers" element={<SellersPage />} />
                 <Route path="/allSellersPage" element={<AllSellersPage />} />
                 <Route path="/sellerRegistration" element={<SellerRegistrationForm />} />
