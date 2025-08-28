@@ -30,11 +30,12 @@ const formatPrice = (amount: number): string => {
   });
 };
 
+
 const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' }) => {
   const navigate = useNavigate();
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isUrgent, setIsUrgent] = useState(false);
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(product.isWishlisted);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const { triggerWishlistUpdate } = useWishlist();
   
@@ -49,22 +50,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
     navigate(`/auctions/${product.id}`);
   };
 
-  // Check wishlist status on component mount
+  // Update wishlist state when product prop changes
   useEffect(() => {
-    const checkWishlistStatus = async () => {
-      try {
-        const userId = getUserIdFromToken();
-        if (!userId) return;
-        
-        const isInWishlist = await checkWishlistItem(product.id.toString(), userId);
-        setIsInWishlist(isInWishlist);
-      } catch (error) {
-        console.error('Error checking wishlist status:', error);
-      }
-    };
-
-    checkWishlistStatus();
-  }, [product.id]);
+    setIsInWishlist(product.isWishlisted);
+  }, [product.isWishlisted]);
 
   // Toggle wishlist status
   const toggleWishlist = async (e: React.MouseEvent) => {
@@ -136,7 +125,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
     <motion.div className="group relative overflow-hidden w-full">
       <Card 
         onClick={handleCardClick}
-        className="relative overflow-hidden group h-full w-full max-w-none sm:max-w-[280px] flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 hover:border-primary/20 hover:shadow-primary/10"
+        className="relative overflow-hidden group h-full w-full max-w-none flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-400 hover:border-primary/70 hover:shadow-md sm:max-w-[340px] lg:max-w-[380px] xl:max-w-[420px] sm:rounded-xl mx-auto w-[calc(100%-16px)] sm:w-full"
       >
         {viewMode === 'grid' ? (
           <div className="flex flex-col h-full">
@@ -177,20 +166,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
             </div>
 
             {/* Content */}
-            <div className="p-3 flex-1 flex flex-col">
+            <div className="p-2.5 sm:p-4 flex-1 flex flex-col">
               {/* Title */}
               <div className="mb-2">
                 <h3 
-                  className="font-semibold text-gray-900 text-[15px] leading-tight line-clamp-2 mb-2 group-hover:text-primary transition-colors"
+                  className="font-medium text-gray-900 text-[14px] leading-tight line-clamp-2 mb-1.5 group-hover:text-primary transition-colors"
                   title={product.name}
                 >
                   {product.name}
                 </h3>
                 
                 {/* Category and Location Row */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                <div className="flex items-center gap-1.5 mb-1.5 overflow-hidden">
                   {/* Category Tag */}
-                  <span className="inline-flex items-center bg-blue-50/80 text-blue-800 text-[12px] font-bold px-2 py-0.5 rounded-md border border-blue-100 transition-colors">
+                  <span className="inline-flex items-center bg-blue-50/80 text-blue-800 text-[12px] font-bold px-2 py-0.5 rounded-md border border-blue-100 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
                     <svg className="w-2 h-2 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 8 8">
                       <circle cx="4" cy="4" r="3" />
                     </svg>

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RouterWrapper } from "./components/RouterWrapper";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { CategoriesProvider } from "@/context/CategoriesContext";
 import Index from "./pages/Index";
 import AuctionsPage from "./pages/AuctionPage";
 import AuctionDetail from "./pages/ProductDetailPage";
@@ -34,7 +35,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <WishlistProvider>
-        <div className="overflow-x-hidden">
+        <CategoriesProvider>
+          <div className="overflow-x-hidden">
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -65,8 +67,9 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </RouterWrapper>
-          </BrowserRouter>
-        </div>
+            </BrowserRouter>
+          </div>
+        </CategoriesProvider>
       </WishlistProvider>
     </TooltipProvider>
   </QueryClientProvider>
