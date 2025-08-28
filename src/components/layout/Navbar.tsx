@@ -3,17 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useCategories } from '@/context/useCategories';
 import salesBidLogo from "@/assets/logo.png";
-import {
-  Search,
-  Menu,
-  X,
-  ShoppingCart,
-  Bell,
-  User,
-  ChevronDown,
-  Heart,
-} from "lucide-react";
+import { Search, Menu, X, ShoppingCart, Bell, User, ChevronDown, Heart, Loader2 } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Sheet,
   SheetContent,
@@ -30,6 +23,7 @@ const Navbar = () => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const isMobile = useIsMobile();
   const { wishlistCount, bidsCount } = useWishlist();
+  const { categories, loading: categoriesLoading } = useCategories();
   const navigate = useNavigate();
 
   // Check for token in cookies
@@ -109,48 +103,32 @@ const Navbar = () => {
                 <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               <div className="absolute top-full left-0 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 antialiased">
-                <div className="py-1" role="menu" aria-orientation="vertical">
-                  <Link
-                    to="/categories/electronics"
-                    className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
-                    role="menuitem"
-                  >
-                    <span className="relative">
-                      Electronics
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover/item:w-full"></span>
-                    </span>
-                  </Link>
-                  <Link
-                    to="/categories/apparel"
-                    className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
-                    role="menuitem"
-                  >
-                    <span className="relative">
-                      Apparel
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover/item:w-full"></span>
-                    </span>
-                  </Link>
-                  <Link
-                    to="/categories/home-goods"
-                    className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
-                    role="menuitem"
-                  >
-                    <span className="relative">
-                      Home Goods
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover/item:w-full"></span>
-                    </span>
-                  </Link>
-                  <Link
-                    to="/categories/jewelry"
-                    className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
-                    role="menuitem"
-                  >
-                    <span className="relative">
-                      Jewelry
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover/item:w-full"></span>
-                    </span>
-                  </Link>
-                </div>
+                {categoriesLoading ? (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                  </div>
+                ) : categories.length > 0 ? (
+                  <div className="py-1 max-h-96 overflow-y-auto" role="menu" aria-orientation="vertical">
+                    {categories.map((category) => (
+                      <Link
+                        key={category}
+                        to={`/auctions?category=${encodeURIComponent(category)}`}
+                        className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
+                        role="menuitem"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <span className="relative">
+                          {category}
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover/item:w-full"></span>
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-sm text-gray-500">
+                    No categories available
+                  </div>
+                )}
               </div>
             </div>
             <div className="relative group">
@@ -305,36 +283,80 @@ const Navbar = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="w-[300px] sm:w-[400px] bg-white">
-                <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
+              <SheetContent className="w-[300px] sm:w-[400px] bg-white p-0">
+                <SheetHeader className="p-4 border-b">
+                  <SheetTitle className="text-left">Menu</SheetTitle>
                 </SheetHeader>
-                <div className="py-4">
-                  <div className="flex flex-col space-y-4">
-                    <Link to="/categories" className="text-lg font-medium">
-                      Categories
-                    </Link>
-                    <Link to="/auctions" className="text-lg font-medium">
-                      All Auctions
-                    </Link>
-                    <Link to="/sellers" className="text-lg font-medium">
-                      For Sellers
-                    </Link>
-                    <Link to="/how-it-works" className="text-lg font-medium">
-                      How It Works
-                    </Link>
-                    <hr className="my-2" />
+                <div className="flex-1 overflow-y-auto">
+                  <Accordion type="single" collapsible className="w-full flex flex-col">
+                    <AccordionItem value="categories" className="border-b border-gray-100">
+                      <AccordionTrigger className="px-4 py-3 text-base font-medium hover:no-underline hover:text-amber-600">
+                        Categories
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-2 max-h-48 overflow-y-auto">
+                        {categoriesLoading ? (
+                          <div className="flex items-center justify-center p-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                          </div>
+                        ) : categories.length > 0 ? (
+                          <div className="space-y-0">
+                            {categories.map((category) => (
+                              <Link
+                                key={`mobile-${category}`}
+                                to={`/auctions?category=${encodeURIComponent(category)}`}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-amber-600 transition-colors"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                {category}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="px-4 text-sm text-gray-500">No categories available</p>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="auctions" className="border-b border-gray-100">
+                      <Link 
+                        to="/auctions" 
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        All Auctions
+                      </Link>
+                    </AccordionItem>
+
+                    <AccordionItem value="sellers" className="border-b border-gray-100">
+                      <Link 
+                        to="/sellers" 
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        For Sellers
+                      </Link>
+                    </AccordionItem>
+
+                    <AccordionItem value="how-it-works" className="border-b border-gray-100">
+                      <Link 
+                        to="/how-it-works" 
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        How It Works
+                      </Link>
+                    </AccordionItem>
+                  </Accordion>
+                  <div className="border-t border-gray-100">
                     {!token && (
-                      <div className="group/menu-item">
-                        <Link
-                          to="/signin"
-                          className="text-lg font-medium flex items-center relative"
-                        >
-                          <User className="mr-2 h-5 w-5" />
-                          <span>Sign In</span>
-                          <span className="absolute -bottom-1 left-8 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 transform origin-left scale-x-0 group-hover/menu-item:scale-x-100"></span>
-                        </Link>
-                      </div>
+                      <Link
+                        to="/signin"
+                        className="flex items-center px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User className="mr-3 h-5 w-5" />
+                        Sign In
+                      </Link>
                     )}
                   </div>
                 </div>
