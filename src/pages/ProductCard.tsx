@@ -30,11 +30,12 @@ const formatPrice = (amount: number): string => {
   });
 };
 
+
 const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' }) => {
   const navigate = useNavigate();
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isUrgent, setIsUrgent] = useState(false);
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(product.isWishlisted);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const { triggerWishlistUpdate } = useWishlist();
   
@@ -49,21 +50,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
     navigate(`/auctions/${product.id}`);
   };
 
-  // Check wishlist status on component mount
+  // Update wishlist state when product prop changes
   useEffect(() => {
-    const checkWishlistStatus = async () => {
-      try {
-        const userId = getUserIdFromToken();
-        if (!userId) return;
-        const isInWishlist = await checkWishlistItem(product.id.toString(), userId);
-        setIsInWishlist(isInWishlist);
-      } catch (error) {
-        console.error('Error checking wishlist status:', error);
-      }
-    };
-
-    checkWishlistStatus();
-  }, [product.id]);
+    setIsInWishlist(product.isWishlisted);
+  }, [product.isWishlisted]);
 
   // Toggle wishlist status
   const toggleWishlist = async (e: React.MouseEvent) => {

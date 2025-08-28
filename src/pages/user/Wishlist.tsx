@@ -352,9 +352,15 @@ const Wishlist: React.FC = () => {
                       {item.name}
                     </h3>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-600">Current Bid</span>
+                      <span className="text-sm font-bold text-gray-600">
+                        {!item.bid_amount || item.bid_amount === '0' ? 'Starting Price' : 'Current Bid'}
+                      </span>
                       <span className="text-sm font-bold text-primary">
-                        {formatPrice(parseFloat(item.bid_amount))}
+                        {item.bid_amount && item.bid_amount !== '0' 
+                          ? formatPrice(parseFloat(item.bid_amount))
+                          : item.retail_value 
+                              ? formatPrice(parseFloat(item.retail_value))
+                              : 'N/A'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between mb-3">

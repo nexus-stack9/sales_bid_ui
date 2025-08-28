@@ -162,6 +162,11 @@ export const getProducts = async (
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      // Get user ID from token and add it to query params
+      const userId = getUserIdFromToken();
+      if (userId) {
+        queryParams.append('userId', userId);
+      }
     }
 
     const response = await fetch(`${API_BASE_URL}/api/v1/products?${queryParams.toString()}`, {

@@ -25,6 +25,7 @@ export interface ApiProduct {
   no_watching: string;
 }
 
+// In your types/auction.ts file
 export interface Product {
   id: string;
   name: string;
@@ -38,9 +39,9 @@ export interface Product {
   category_name: string;
   seller: string;
   startingBid: number;
-  buyNowPrice?: number;
+  buyNowPrice: number;
   condition: string;
-  isWishlisted?: boolean;
+  isWishlisted: boolean; 
   retail_value?: number;
 }
   
