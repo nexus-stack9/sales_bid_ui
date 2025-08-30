@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
 interface WishlistItem {
+  starting_price: string;
   id: number;
   product_id: number;
   name: string;
@@ -358,8 +359,8 @@ const Wishlist: React.FC = () => {
                       <span className="text-sm font-bold text-primary">
                         {item.bid_amount && item.bid_amount !== '0' 
                           ? formatPrice(parseFloat(item.bid_amount))
-                          : item.retail_value 
-                              ? formatPrice(parseFloat(item.retail_value))
+                          : item.starting_price 
+                              ? formatPrice(parseFloat(item.starting_price))
                               : 'N/A'}
                       </span>
                     </div>
