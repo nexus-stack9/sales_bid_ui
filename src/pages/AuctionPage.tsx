@@ -38,6 +38,8 @@ const AuctionPage: React.FC = () => {
   // Use ref to prevent initial load race conditions
   const hasInitiallyLoaded = useRef(false);
   const lastRequestRef = useRef<string>("");
+  const [maxPrice, setMaxPrice] = useState<number>(50000);
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
 
   const {
     products: apiProducts,
@@ -48,9 +50,20 @@ const AuctionPage: React.FC = () => {
     loadProducts,
     loadNextPage,
     loadPrevPage,
-    loadSpecificPage,
+    loadSpecificPage
   } = usePaginatedProducts();
 
+  // Calculate dynamic max price from API products
+  const calculateMaxPrice = (): number => {
+    if (!apiProducts || apiProducts.length === 0) return 50000;
+    const calculatedMaxPrice = Math.max(...apiProducts
+      .map(p => typeof p.retail_value === 'string' ? parseFloat(p.retail_value) : (p.retail_value || 0))
+      .filter(Number.isFinite)
+    );
+    return calculatedMaxPrice > 0 ? calculatedMaxPrice : 50000;
+  };
+
+  // Initialize filters state with null priceRange initially
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     locations: [],
@@ -59,6 +72,22 @@ const AuctionPage: React.FC = () => {
     condition: [],
     searchQuery: "",
   });
+
+  // Update maxPrice and initialize filters properly when products first load
+  useEffect(() => {
+    if (apiProducts && apiProducts.length > 0 && !filtersInitialized) {
+      const newMaxPrice = calculateMaxPrice();
+      setMaxPrice(newMaxPrice);
+      
+      // Initialize filters with the correct max price
+      setFilters(prev => ({
+        ...prev,
+        priceRange: [0, newMaxPrice] as [number, number]
+      }));
+      
+      setFiltersInitialized(true);
+    }
+  }, [apiProducts, filtersInitialized]);
 
   // Hide bottom navbar on mobile when filters are open
   useEffect(() => {
@@ -73,75 +102,70 @@ const AuctionPage: React.FC = () => {
   }, [isFilterOpen]);
 
   // Function to map API products to Product type
-// Function to map API products to Product type
-const mapApiProductToProduct = (apiProduct): Product => {
-  // Ensure we handle the API product structure correctly
-  const productData = apiProduct.product_id ? apiProduct : apiProduct;
+  const mapApiProductToProduct = (apiProduct): Product => {
+    const productData = apiProduct.product_id ? apiProduct : apiProduct;
 
-  // Use the condition as provided by the API
-  const condition = productData.condition
-    ? productData.condition.toString()
-    : "Unknown";
+    const condition = productData.condition
+      ? productData.condition.toString()
+      : "Unknown";
 
-  const startingPrice = parseFloat(
-    productData.starting_price?.toString() || "0"
-  );
-  const maxBidAmount = productData.max_bid_amount
-    ? parseFloat(productData.max_bid_amount.toString())
-    : startingPrice;
-  const retailValue = productData.retail_value
-    ? parseFloat(productData.retail_value.toString())
-    : undefined;
-  const categoryName =
-    productData.category_name?.toString() || "Uncategorized";
+    const startingPrice = parseFloat(
+      productData.starting_price?.toString() || "0"
+    );
+    const maxBidAmount = productData.max_bid_amount
+      ? parseFloat(productData.max_bid_amount.toString())
+      : startingPrice;
+    const retailValue = productData.retail_value
+      ? parseFloat(productData.retail_value.toString())
+      : undefined;
+    const categoryName =
+      productData.category_name?.toString() || "Uncategorized";
 
-  // Get wishlist status from API response (0 or 1)
-  const isWishlisted = Boolean(productData.is_in_wishlist);
+    const isWishlisted = Boolean(productData.is_in_wishlist);
 
-  try {
-    return {
-      id: productData.product_id?.toString() || Math.random().toString(),
-      name: productData.name?.toString() || "Unnamed Product",
-      image:
-        productData.image_path?.split(",")[0] || "/placeholder-product.jpg",
-      description:
-        productData.description?.toString() || "No description available",
-      currentBid: maxBidAmount,
-      totalBids: parseInt(productData.total_bids?.toString() || "0", 10),
-      timeLeft: productData.auction_end || new Date().toISOString(),
-      location: productData.location?.toString() || "Unknown",
-      category: categoryName,
-      category_name: categoryName,
-      seller: productData.vendor_name?.toString() || "Unknown Seller",
-      startingBid: startingPrice,
-      buyNowPrice: startingPrice * 1.5,
-      condition,
-      isWishlisted,
-      retail_value: retailValue,
-    };
-  } catch (error) {
-    console.error("Error mapping product:", productData, error);
-    // Return a fallback product to prevent the entire list from breaking
-    return {
-      id: Math.random().toString(),
-      name: "Product Error",
-      image: "/placeholder-product.jpg",
-      description: "Error loading product data",
-      currentBid: 0,
-      totalBids: 0,
-      timeLeft: new Date().toISOString(),
-      location: "Unknown",
-      category: "Uncategorized",
-      category_name: "Uncategorized",
-      seller: "Unknown Seller",
-      startingBid: 0,
-      buyNowPrice: 0,
-      condition: "Fair",
-      isWishlisted: false,
-      retail_value: 0,
-    };
-  }
-};
+    try {
+      return {
+        id: productData.product_id?.toString() || Math.random().toString(),
+        name: productData.name?.toString() || "Unnamed Product",
+        image:
+          productData.image_path?.split(",")[0] || "/placeholder-product.jpg",
+        description:
+          productData.description?.toString() || "No description available",
+        currentBid: maxBidAmount,
+        totalBids: parseInt(productData.total_bids?.toString() || "0", 10),
+        timeLeft: productData.auction_end || new Date().toISOString(),
+        location: productData.location?.toString() || "Unknown",
+        category: categoryName,
+        category_name: categoryName,
+        seller: productData.vendor_name?.toString() || "Unknown Seller",
+        startingBid: startingPrice,
+        buyNowPrice: startingPrice * 1.5,
+        condition,
+        isWishlisted,
+        retail_value: retailValue,
+      };
+    } catch (error) {
+      console.error("Error mapping product:", productData, error);
+      return {
+        id: Math.random().toString(),
+        name: "Product Error",
+        image: "/placeholder-product.jpg",
+        description: "Error loading product data",
+        currentBid: 0,
+        totalBids: 0,
+        timeLeft: new Date().toISOString(),
+        location: "Unknown",
+        category: "Uncategorized",
+        category_name: "Uncategorized",
+        seller: "Unknown Seller",
+        startingBid: 0,
+        buyNowPrice: 0,
+        condition: "Fair",
+        isWishlisted: false,
+        retail_value: 0,
+      };
+    }
+  };
 
   // Show error toast when API error occurs
   useEffect(() => {
@@ -171,7 +195,6 @@ const mapApiProductToProduct = (apiProduct): Product => {
             new Date(a.timeLeft).getTime() - new Date(b.timeLeft).getTime()
         );
       case "newest":
-        // Assuming newer products have higher IDs or we could use a created_at field
         return sortedProducts.sort((a, b) => parseInt(b.id) - parseInt(a.id));
       case "popularity":
         return sortedProducts.sort((a, b) => b.totalBids - a.totalBids);
@@ -181,10 +204,9 @@ const mapApiProductToProduct = (apiProduct): Product => {
   };
 
   // Map and sort products
-  const mappedProducts = (): Product[] => {
+  const getMappedProducts = (): Product[] => {
     if (!apiProducts.length) return [];
     const mapped = apiProducts.map(mapApiProductToProduct);
-    // Apply client-side sorting
     return sortProducts(mapped, sortBy);
   };
 
@@ -218,7 +240,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
           ? currentFilters.priceRange[0]
           : undefined,
       maxPrice:
-        currentFilters.priceRange[1] < 50000
+        currentFilters.priceRange[1] < maxPrice
           ? currentFilters.priceRange[1]
           : undefined,
       sortBy: currentSortBy,
@@ -226,10 +248,8 @@ const mapApiProductToProduct = (apiProduct): Product => {
       limit: limit,
     };
 
-    // Create a unique request identifier
     const requestId = JSON.stringify({ searchParams, page, limit });
     
-    // Prevent duplicate requests
     if (lastRequestRef.current === requestId) {
       return;
     }
@@ -239,7 +259,6 @@ const mapApiProductToProduct = (apiProduct): Product => {
     try {
       await loadProducts(page, limit, searchParams);
     } catch (error) {
-      // Reset the request ref on error so retries can happen
       lastRequestRef.current = "";
       throw error;
     }
@@ -259,12 +278,11 @@ const mapApiProductToProduct = (apiProduct): Product => {
 
   // Separate effect for filters and sorting changes with debouncing
   useEffect(() => {
-    // Skip if this is the initial load
     if (!hasInitiallyLoaded.current) return;
 
     const timer = setTimeout(() => {
       loadProductsWithParams(1, 20, filters, sortBy);
-    }, 300); // 300ms debounce
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [filters, sortBy]);
@@ -272,13 +290,11 @@ const mapApiProductToProduct = (apiProduct): Product => {
   // Reset to first page when filters or sort change
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    // Reset the request ref when filters change
     lastRequestRef.current = "";
   };
 
   const handleSortChange = (newSortBy: SortOption) => {
     setSortBy(newSortBy);
-    // Reset the request ref when sort changes
     lastRequestRef.current = "";
   };
 
@@ -312,41 +328,33 @@ const mapApiProductToProduct = (apiProduct): Product => {
     const currentPage = pagination.currentPage;
 
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total pages is less than max visible pages
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always show first page
       pages.push(1);
 
-      // Calculate start and end page
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-      // Adjust if we're near the start or end
       if (currentPage <= 3) {
         endPage = Math.min(4, totalPages - 1);
       } else if (currentPage >= totalPages - 2) {
         startPage = Math.max(totalPages - 3, 2);
       }
 
-      // Add ellipsis if needed
       if (startPage > 2) {
         pages.push("...");
       }
 
-      // Add middle pages
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
 
-      // Add ellipsis if needed
       if (endPage < totalPages - 1) {
         pages.push("...");
       }
 
-      // Always show last page
       if (totalPages > 1) {
         pages.push(totalPages);
       }
@@ -360,12 +368,11 @@ const mapApiProductToProduct = (apiProduct): Product => {
     setFilters({
       categories: [],
       locations: [],
-      priceRange: [0, 50000],
+      priceRange: [0, maxPrice],
       timeLeft: [],
       condition: [],
       searchQuery: "",
     });
-    // Reset the request ref when clearing filters
     lastRequestRef.current = "";
   };
 
@@ -377,7 +384,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
       filters.timeLeft.length +
       filters.condition.length +
       (filters.searchQuery ? 1 : 0) +
-      (filters.priceRange[0] > 0 || filters.priceRange[1] < 50000 ? 1 : 0)
+      (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice ? 1 : 0)
     );
   };
 
@@ -397,7 +404,6 @@ const mapApiProductToProduct = (apiProduct): Product => {
           of {pagination.totalRecords} results
         </span>
 
-        {/* Desktop Sorting UI - Add sorting options here */}
         <div className="hidden lg:block">
           <Select
             value={sortBy}
@@ -477,7 +483,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
 
   // No products message
   const NoProductsMessage = () => {
-    if (isLoading || mappedProducts().length > 0) return null;
+    if (isLoading || getMappedProducts().length > 0) return null;
 
     return (
       <div className="text-center py-12">
@@ -495,13 +501,9 @@ const mapApiProductToProduct = (apiProduct): Product => {
 
   // Force refresh function
   const forceRefresh = () => {
-    // Reset the request ref to allow the refresh
     lastRequestRef.current = "";
     loadProductsWithParams(1, 20);
   };
-
-  // Create a stable key for filter panels to prevent re-rendering
-  const filterPanelKey = "filter-panel";
 
   // Skeleton Loader Component
   const SkeletonLoader = () => (
@@ -511,13 +513,11 @@ const mapApiProductToProduct = (apiProduct): Product => {
           {/* Desktop Filter Sidebar Skeleton */}
           <div className="hidden lg:block w-80 flex-shrink-0 space-y-6">
             <div className="sticky top-24 space-y-6">
-              {/* Search Filter */}
               <div className="space-y-2">
                 <Skeleton className="h-5 w-1/3 mb-2" />
                 <Skeleton className="h-10 w-full rounded-md" />
               </div>
               
-              {/* Categories Filter */}
               <div className="space-y-3">
                 <Skeleton className="h-5 w-1/3" />
                 <div className="space-y-2">
@@ -531,7 +531,6 @@ const mapApiProductToProduct = (apiProduct): Product => {
                 </div>
               </div>
 
-              {/* Price Range Filter */}
               <div className="space-y-3">
                 <Skeleton className="h-5 w-1/3" />
                 <div className="space-y-4">
@@ -547,13 +546,11 @@ const mapApiProductToProduct = (apiProduct): Product => {
 
           {/* Main Content Skeleton */}
           <div className="flex-1 min-w-0">
-            {/* Mobile Filter Bar */}
             <div className="flex items-center justify-between mb-6 lg:hidden">
               <Skeleton className="h-10 w-28 rounded-md" />
               <Skeleton className="h-10 w-40 rounded-md" />
             </div>
 
-            {/* Results Info Skeleton */}
             <div className="flex items-center justify-between mb-6">
               <Skeleton className="h-4 w-48" />
               <div className="hidden lg:block">
@@ -561,7 +558,6 @@ const mapApiProductToProduct = (apiProduct): Product => {
               </div>
             </div>
 
-            {/* Product Grid Skeleton */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div 
@@ -594,7 +590,6 @@ const mapApiProductToProduct = (apiProduct): Product => {
               ))}
             </div>
 
-            {/* Pagination Skeleton */}
             <div className="mt-8 flex justify-center">
               <div className="flex items-center space-x-1">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -608,28 +603,31 @@ const mapApiProductToProduct = (apiProduct): Product => {
     </Layout>
   );
 
-  // Show skeleton while loading
-  if (isLoading) {
+  // Show skeleton while loading OR while waiting for maxPrice calculation
+  if (isLoading || !filtersInitialized) {
     return <SkeletonLoader />;
   }
+
+  const mappedProducts = getMappedProducts();
+  const activeFiltersCount = getActiveFiltersCount();
 
   return (
     <Layout>
       <div className="container mx-auto px-3 sm:px-4 py-6">
         <div className="flex gap-6">
-          {/* Desktop Filter Sidebar */}
+          {/* Desktop Filter Sidebar - Only render when filters are initialized */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-24">
               <FilterPanel
-                key={filterPanelKey}
                 isOpen={true}
                 onClose={() => {}}
                 filters={filters}
                 filterOptions={filterOptions}
-                products={mappedProducts()}
+                products={mappedProducts}
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={clearFilters}
                 forceRefresh={forceRefresh}
+                maxPrice={maxPrice}
               />
             </div>
           </div>
@@ -645,9 +643,9 @@ const mapApiProductToProduct = (apiProduct): Product => {
               >
                 <Filter className="h-4 w-4" />
                 Filters
-                {getActiveFiltersCount() > 0 && (
+                {activeFiltersCount > 0 && (
                   <Badge variant="secondary" className="ml-1">
-                    {getActiveFiltersCount()}
+                    {activeFiltersCount}
                   </Badge>
                 )}
               </Button>
@@ -675,9 +673,8 @@ const mapApiProductToProduct = (apiProduct): Product => {
 
             {/* Products Grid */}
             <div className="space-y-6" key={`products-${isLoading}`}>
-              {/* Always use grid view for desktop since we removed the view toggle */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
-                {mappedProducts().map((product) => (
+                {mappedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
@@ -694,15 +691,15 @@ const mapApiProductToProduct = (apiProduct): Product => {
 
       {/* Mobile Filter Panel */}
       <FilterPanel
-        key={`mobile-${filterPanelKey}`}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         filters={filters}
         filterOptions={filterOptions}
-        products={mappedProducts()}
+        products={mappedProducts}
         onFiltersChange={handleFiltersChange}
         onClearFilters={clearFilters}
         forceRefresh={forceRefresh}
+        maxPrice={maxPrice}
       />
     </Layout>
   );

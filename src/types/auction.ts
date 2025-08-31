@@ -43,6 +43,8 @@ export interface Product {
   condition: string;
   isWishlisted: boolean; 
   retail_value?: number;
+  maxPrice?: number;
+  maxMsrp?: number;
 }
   
 export interface FilterState {

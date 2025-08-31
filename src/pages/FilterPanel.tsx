@@ -1,4 +1,4 @@
-import React, { useMemo, memo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Filter, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -25,16 +25,8 @@ interface FilterPanelProps {
   onFiltersChange: (filters: FilterState) => void;
   onClearFilters: () => void;
   forceRefresh?: () => void;
+  maxPrice?: number;
 }
-
-// Format text to have the first letter of each word capitalized
-const formatText = (text: string): string => {
-  if (!text) return "";
-  return text
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-};
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
   isOpen,
@@ -45,8 +37,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onFiltersChange,
   onClearFilters,
   forceRefresh,
+  maxPrice = 50000,
 }) => {
-  // Add local state for temporary filters
   const [tempFilters, setTempFilters] = useState<FilterState>(filters);
 
   // Update tempFilters when parent filters change
@@ -54,88 +46,65 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     setTempFilters(filters);
   }, [filters]);
 
-  // Memoize the filter options to prevent recreation
-  const uniqueCategories = useMemo(
-    () => filterOptions.categories || [],
-    [filterOptions.categories]
-  );
-  const uniqueConditions = useMemo(
-    () => filterOptions.conditions || [],
-    [filterOptions.conditions]
-  );
-  const uniqueLocations = useMemo(
-    () => filterOptions.locations || [],
-    [filterOptions.locations]
-  );
+  // Update tempFilters when maxPrice changes
+  useEffect(() => {
+    if (maxPrice && maxPrice !== 50000) {
+      setTempFilters(prev => ({
+        ...prev,
+        priceRange: [prev.priceRange[0], Math.min(prev.priceRange[1], maxPrice)] as [number, number]
+      }));
+    }
+  }, [maxPrice]);
 
-  // Generate time left options
-  const timeLeftOptions = useMemo(
-    () => [
-      { value: "1h", label: "Less than 1 hour" },
-      { value: "12h", label: "Less than 12 hours" },
-      { value: "24h", label: "Less than 24 hours" },
-      { value: "1d+", label: "More than 1 day" },
-    ],
-    []
-  );
+  // Time left options
+  const timeLeftOptions = [
+    { value: "1h", label: "Less than 1 hour" },
+    { value: "12h", label: "Less than 12 hours" },
+    { value: "24h", label: "Less than 24 hours" },
+    { value: "1d+", label: "More than 1 day" },
+  ];
 
-  // Calculate price range
-  const priceRange = useMemo(() => {
-    const defaultMin = 0;
-    const defaultMax = 50000;
-    return [defaultMin, defaultMax] as [number, number];
-  }, []);
+  // Checkbox change handler
+  const handleCheckboxChange = (field: keyof FilterState, value: string, checked: boolean) => {
+    const currentValues = Array.isArray(tempFilters[field])
+      ? [...(tempFilters[field] as string[])]
+      : [];
 
-  // Memoize the checkbox change handler - update tempFilters instead of parent filters
-  const handleCheckboxChange = useMemo(
-    () => (field: keyof FilterState, value: string, checked: boolean) => {
-      const currentValues = Array.isArray(tempFilters[field])
-        ? [...(tempFilters[field] as string[])]
-        : [];
+    let newValues: string[];
 
-      let newValues: string[];
-
-      if (checked) {
-        if (!currentValues.includes(value)) {
-          newValues = [...currentValues, value];
-        } else {
-          newValues = [...currentValues];
-        }
+    if (checked) {
+      if (!currentValues.includes(value)) {
+        newValues = [...currentValues, value];
       } else {
-        newValues = currentValues.filter((v) => v !== value);
+        newValues = [...currentValues];
       }
+    } else {
+      newValues = currentValues.filter((v) => v !== value);
+    }
 
+    setTempFilters({
+      ...tempFilters,
+      [field]: newValues,
+    });
+  };
+
+  // Price range change handler
+  const handlePriceRangeChange = (value: number[]) => {
+    if (value.length === 2 && value[0] <= value[1]) {
       setTempFilters({
         ...tempFilters,
-        [field]: newValues,
+        priceRange: [value[0], value[1]] as [number, number],
       });
-    },
-    [tempFilters]
-  );
+    }
+  };
 
-  // Memoize the price range change handler - update tempFilters
-  const handlePriceRangeChange = useMemo(
-    () => (value: number[]) => {
-      if (value.length === 2 && value[0] <= value[1]) {
-        setTempFilters({
-          ...tempFilters,
-          priceRange: [value[0], value[1]] as [number, number],
-        });
-      }
-    },
-    [tempFilters]
-  );
-
-  // Memoize the search change handler - update tempFilters
-  const handleSearchChange = useMemo(
-    () => (value: string) => {
-      setTempFilters({
-        ...tempFilters,
-        searchQuery: value,
-      });
-    },
-    [tempFilters]
-  );
+  // Search change handler
+  const handleSearchChange = (value: string) => {
+    setTempFilters({
+      ...tempFilters,
+      searchQuery: value,
+    });
+  };
 
   // Apply filters function
   const applyFilters = () => {
@@ -151,7 +120,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     const clearedFilters: FilterState = {
       categories: [],
       locations: [],
-      priceRange: [0, 50000] as [number, number],
+      priceRange: [0, maxPrice] as [number, number],
       timeLeft: [],
       condition: [],
       searchQuery: "",
@@ -160,44 +129,34 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     onClearFilters();
   };
 
-  // Memoize the active filters count
-  const getActiveFiltersCount = useMemo(() => {
+  // Calculate active filters count
+  const getActiveFiltersCount = () => {
     return (
-      (Array.isArray(tempFilters.categories)
-        ? tempFilters.categories.length
-        : 0) +
-      (Array.isArray(tempFilters.locations)
-        ? tempFilters.locations.length
-        : 0) +
+      (Array.isArray(tempFilters.categories) ? tempFilters.categories.length : 0) +
+      (Array.isArray(tempFilters.locations) ? tempFilters.locations.length : 0) +
       (Array.isArray(tempFilters.timeLeft) ? tempFilters.timeLeft.length : 0) +
-      (Array.isArray(tempFilters.condition)
-        ? tempFilters.condition.length
-        : 0) +
+      (Array.isArray(tempFilters.condition) ? tempFilters.condition.length : 0) +
       (tempFilters.searchQuery ? 1 : 0) +
       (tempFilters.priceRange &&
-      (tempFilters.priceRange[0] > 0 || tempFilters.priceRange[1] < 50000)
-        ? 1
-        : 0)
+      (tempFilters.priceRange[0] > 0 || tempFilters.priceRange[1] < maxPrice) ? 1 : 0)
     );
-  }, [tempFilters]);
+  };
 
   // Check if any filters are different from the applied filters
-  const hasUnappliedChanges = useMemo(() => {
-    // Compare tempFilters with filters to see if there are any differences
+  const hasUnappliedChanges = () => {
     return (
-      JSON.stringify(tempFilters.categories) !==
-        JSON.stringify(filters.categories) ||
-      JSON.stringify(tempFilters.locations) !==
-        JSON.stringify(filters.locations) ||
-      JSON.stringify(tempFilters.timeLeft) !==
-        JSON.stringify(filters.timeLeft) ||
-      JSON.stringify(tempFilters.condition) !==
-        JSON.stringify(filters.condition) ||
+      JSON.stringify(tempFilters.categories) !== JSON.stringify(filters.categories) ||
+      JSON.stringify(tempFilters.locations) !== JSON.stringify(filters.locations) ||
+      JSON.stringify(tempFilters.timeLeft) !== JSON.stringify(filters.timeLeft) ||
+      JSON.stringify(tempFilters.condition) !== JSON.stringify(filters.condition) ||
       tempFilters.searchQuery !== filters.searchQuery ||
       tempFilters.priceRange[0] !== filters.priceRange[0] ||
       tempFilters.priceRange[1] !== filters.priceRange[1]
     );
-  }, [tempFilters, filters]);
+  };
+
+  const activeFiltersCount = getActiveFiltersCount();
+  const unappliedChanges = hasUnappliedChanges();
 
   return (
     <AnimatePresence>
@@ -217,7 +176,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            // Remove animation for desktop by setting transition to 0
             transition={{
               x: { type: "tween", duration: 0 },
               opacity: { duration: 0 },
@@ -230,14 +188,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <Filter className="h-5 w-5 text-primary" />
                   <h2 className="font-semibold text-lg">Filters</h2>
-                  {getActiveFiltersCount > 0 && (
+                  {activeFiltersCount > 0 && (
                     <Badge variant="secondary" className="ml-2">
-                      {getActiveFiltersCount}
+                      {activeFiltersCount}
                     </Badge>
                   )}
 
-                  {/* Apply Filters Button - Only show when there are unapplied changes */}
-                  {hasUnappliedChanges && (
+                  {/* Apply Filters Button */}
+                  {unappliedChanges && (
                     <Button
                       variant="default"
                       size="sm"
@@ -249,8 +207,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* Clear All Button - Only show when there are active filters */}
-                  {getActiveFiltersCount > 0 && (
+                  {/* Clear All Button */}
+                  {activeFiltersCount > 0 && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -283,7 +241,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     <Slider
                       value={tempFilters.priceRange}
                       onValueChange={handlePriceRangeChange}
-                      max={50000}
+                      max={maxPrice}
                       min={0}
                       step={100}
                       className="w-full"
@@ -294,17 +252,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Categories</Label>
                     <div className="space-y-2">
-                      {uniqueCategories.length > 0 ? (
-                        uniqueCategories.map((category) => (
+                      {filterOptions.categories.length > 0 ? (
+                        filterOptions.categories.map((category) => (
                           <div
                             key={category}
                             className="flex items-center space-x-2"
                           >
                             <Checkbox
                               id={`category-${category}`}
-                              checked={tempFilters.categories.includes(
-                                category
-                              )}
+                              checked={tempFilters.categories.includes(category)}
                               onCheckedChange={(checked) =>
                                 handleCheckboxChange(
                                   "categories",
@@ -340,9 +296,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         >
                           <Checkbox
                             id={option.value}
-                            checked={tempFilters.timeLeft.includes(
-                              option.value
-                            )}
+                            checked={tempFilters.timeLeft.includes(option.value)}
                             onCheckedChange={(checked) =>
                               handleCheckboxChange(
                                 "timeLeft",
@@ -366,8 +320,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Locations</Label>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {uniqueLocations.length > 0 ? (
-                        uniqueLocations.map((location) => (
+                      {filterOptions.locations.length > 0 ? (
+                        filterOptions.locations.map((location) => (
                           <div
                             key={location}
                             className="flex items-center space-x-2"
@@ -403,17 +357,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">Condition</Label>
                     <div className="space-y-2">
-                      {uniqueConditions.length > 0 ? (
-                        uniqueConditions.map((condition) => (
+                      {filterOptions.conditions.length > 0 ? (
+                        filterOptions.conditions.map((condition) => (
                           <div
                             key={condition}
                             className="flex items-center space-x-2"
                           >
                             <Checkbox
                               id={`condition-${condition}`}
-                              checked={tempFilters.condition.includes(
-                                condition
-                              )}
+                              checked={tempFilters.condition.includes(condition)}
                               onCheckedChange={(checked) =>
                                 handleCheckboxChange(
                                   "condition",
@@ -437,8 +389,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       )}
                     </div>
                   </div>
-
-                  {/* Removed the Apply Filters button from here */}
                 </div>
               </ScrollArea>
             </Card>
@@ -449,5 +399,4 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 
-// Memoize the FilterPanel to prevent unnecessary re-renders
-export default memo(FilterPanel);
+export default FilterPanel;
