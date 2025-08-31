@@ -25,6 +25,7 @@ interface FilterPanelProps {
   onFiltersChange: (filters: FilterState) => void;
   onClearFilters: () => void;
   forceRefresh?: () => void;
+  maxPrice?: number; // Add maxPrice prop
 }
 
 // Format text to have the first letter of each word capitalized
@@ -45,6 +46,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onFiltersChange,
   onClearFilters,
   forceRefresh,
+  maxPrice = 50000, // Default to 50000 if not provided
 }) => {
   // Add local state for temporary filters
   const [tempFilters, setTempFilters] = useState<FilterState>(filters);
@@ -53,6 +55,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   useEffect(() => {
     setTempFilters(filters);
   }, [filters]);
+
+  // Update tempFilters when maxPrice changes
+  useEffect(() => {
+    if (maxPrice && maxPrice !== 50000) {
+      setTempFilters(prev => ({
+        ...prev,
+        priceRange: [prev.priceRange[0], Math.min(prev.priceRange[1], maxPrice)] as [number, number]
+      }));
+    }
+  }, [maxPrice]);
 
   // Memoize the filter options to prevent recreation
   const uniqueCategories = useMemo(
@@ -79,12 +91,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     []
   );
 
-  // Calculate price range
+  // Calculate price range using dynamic maxPrice
   const priceRange = useMemo(() => {
     const defaultMin = 0;
-    const defaultMax = 50000;
+    const defaultMax = maxPrice;
     return [defaultMin, defaultMax] as [number, number];
-  }, []);
+  }, [maxPrice]);
 
   // Memoize the checkbox change handler - update tempFilters instead of parent filters
   const handleCheckboxChange = useMemo(
@@ -146,12 +158,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     }
   };
 
-  // Clear filters function
+  // Clear filters function - Updated to use dynamic maxPrice
   const handleClearFilters = () => {
     const clearedFilters: FilterState = {
       categories: [],
       locations: [],
-      priceRange: [0, 50000] as [number, number],
+      priceRange: [0, maxPrice] as [number, number],
       timeLeft: [],
       condition: [],
       searchQuery: "",
@@ -160,7 +172,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     onClearFilters();
   };
 
-  // Memoize the active filters count
+  // Memoize the active filters count - Updated to use dynamic maxPrice
   const getActiveFiltersCount = useMemo(() => {
     return (
       (Array.isArray(tempFilters.categories)
@@ -175,11 +187,11 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         : 0) +
       (tempFilters.searchQuery ? 1 : 0) +
       (tempFilters.priceRange &&
-      (tempFilters.priceRange[0] > 0 || tempFilters.priceRange[1] < 50000)
+      (tempFilters.priceRange[0] > 0 || tempFilters.priceRange[1] < maxPrice)
         ? 1
         : 0)
     );
-  }, [tempFilters]);
+  }, [tempFilters, maxPrice]);
 
   // Check if any filters are different from the applied filters
   const hasUnappliedChanges = useMemo(() => {
@@ -273,7 +285,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
               <ScrollArea className="flex-1 px-4 pb-4">
                 <div className="space-y-6 py-4">
-                  {/* Price Range */}
+                  {/* Price Range - Updated to use dynamic maxPrice */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium">
                       Price Range: ₹
@@ -283,7 +295,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     <Slider
                       value={tempFilters.priceRange}
                       onValueChange={handlePriceRangeChange}
-                      max={50000}
+                      max={maxPrice}
                       min={0}
                       step={100}
                       className="w-full"

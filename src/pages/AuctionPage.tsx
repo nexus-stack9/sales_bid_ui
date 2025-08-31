@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,17 +48,41 @@ const AuctionPage: React.FC = () => {
     loadProducts,
     loadNextPage,
     loadPrevPage,
-    loadSpecificPage,
+    loadSpecificPage
   } = usePaginatedProducts();
+
+  // Calculate dynamic max price from products' retail values or fallback to 50000
+  const maxPrice = useMemo(() => {
+    if (!apiProducts || apiProducts.length === 0) return 50000;
+    const maxRetail = Math.max(...apiProducts
+      .map(p => typeof p.retail_value === 'string' ? parseFloat(p.retail_value) : (p.retail_value || 0))
+      .filter(Number.isFinite)
+    );
+    return maxRetail > 0 ? maxRetail : 50000;
+  }, [apiProducts]);
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     locations: [],
-    priceRange: [0, 50000],
+    priceRange: [0, maxPrice],
     timeLeft: [],
     condition: [],
     searchQuery: "",
   });
+
+  // Update price range when maxPrice changes
+  useEffect(() => {
+    setFilters(prev => {
+      // Only update if the max price has actually changed
+      if (prev.priceRange[1] !== maxPrice) {
+        return {
+          ...prev,
+          priceRange: [prev.priceRange[0], maxPrice] as [number, number]
+        };
+      }
+      return prev;
+    });
+  }, [maxPrice]);
 
   // Hide bottom navbar on mobile when filters are open
   useEffect(() => {
@@ -73,75 +97,74 @@ const AuctionPage: React.FC = () => {
   }, [isFilterOpen]);
 
   // Function to map API products to Product type
-// Function to map API products to Product type
-const mapApiProductToProduct = (apiProduct): Product => {
-  // Ensure we handle the API product structure correctly
-  const productData = apiProduct.product_id ? apiProduct : apiProduct;
+  const mapApiProductToProduct = (apiProduct): Product => {
+    // Ensure we handle the API product structure correctly
+    const productData = apiProduct.product_id ? apiProduct : apiProduct;
 
-  // Use the condition as provided by the API
-  const condition = productData.condition
-    ? productData.condition.toString()
-    : "Unknown";
+    // Use the condition as provided by the API
+    const condition = productData.condition
+      ? productData.condition.toString()
+      : "Unknown";
 
-  const startingPrice = parseFloat(
-    productData.starting_price?.toString() || "0"
-  );
-  const maxBidAmount = productData.max_bid_amount
-    ? parseFloat(productData.max_bid_amount.toString())
-    : startingPrice;
-  const retailValue = productData.retail_value
-    ? parseFloat(productData.retail_value.toString())
-    : undefined;
-  const categoryName =
-    productData.category_name?.toString() || "Uncategorized";
+    const startingPrice = parseFloat(
+      productData.starting_price?.toString() || "0"
+    );
+    const maxBidAmount = productData.max_bid_amount
+      ? parseFloat(productData.max_bid_amount.toString())
+      : startingPrice;
+    const retailValue = productData.retail_value
+      ? parseFloat(productData.retail_value.toString())
+      : undefined;
+    const categoryName =
+      productData.category_name?.toString() || "Uncategorized";
 
-  // Get wishlist status from API response (0 or 1)
-  const isWishlisted = Boolean(productData.is_in_wishlist);
+    // Get wishlist status from API response (0 or 1)
+    const isWishlisted = Boolean(productData.is_in_wishlist);
 
-  try {
-    return {
-      id: productData.product_id?.toString() || Math.random().toString(),
-      name: productData.name?.toString() || "Unnamed Product",
-      image:
-        productData.image_path?.split(",")[0] || "/placeholder-product.jpg",
-      description:
-        productData.description?.toString() || "No description available",
-      currentBid: maxBidAmount,
-      totalBids: parseInt(productData.total_bids?.toString() || "0", 10),
-      timeLeft: productData.auction_end || new Date().toISOString(),
-      location: productData.location?.toString() || "Unknown",
-      category: categoryName,
-      category_name: categoryName,
-      seller: productData.vendor_name?.toString() || "Unknown Seller",
-      startingBid: startingPrice,
-      buyNowPrice: startingPrice * 1.5,
-      condition,
-      isWishlisted,
-      retail_value: retailValue,
-    };
-  } catch (error) {
-    console.error("Error mapping product:", productData, error);
-    // Return a fallback product to prevent the entire list from breaking
-    return {
-      id: Math.random().toString(),
-      name: "Product Error",
-      image: "/placeholder-product.jpg",
-      description: "Error loading product data",
-      currentBid: 0,
-      totalBids: 0,
-      timeLeft: new Date().toISOString(),
-      location: "Unknown",
-      category: "Uncategorized",
-      category_name: "Uncategorized",
-      seller: "Unknown Seller",
-      startingBid: 0,
-      buyNowPrice: 0,
-      condition: "Fair",
-      isWishlisted: false,
-      retail_value: 0,
-    };
-  }
-};
+    try {
+      return {
+        id: productData.product_id?.toString() || Math.random().toString(),
+        name: productData.name?.toString() || "Unnamed Product",
+        image:
+          productData.image_path?.split(",")[0] || "/placeholder-product.jpg",
+        description:
+          productData.description?.toString() || "No description available",
+        currentBid: maxBidAmount,
+        totalBids: parseInt(productData.total_bids?.toString() || "0", 10),
+        timeLeft: productData.auction_end || new Date().toISOString(),
+        location: productData.location?.toString() || "Unknown",
+        category: categoryName,
+        category_name: categoryName,
+        seller: productData.vendor_name?.toString() || "Unknown Seller",
+        startingBid: startingPrice,
+        buyNowPrice: startingPrice * 1.5,
+        condition,
+        isWishlisted,
+        retail_value: retailValue,
+      };
+    } catch (error) {
+      console.error("Error mapping product:", productData, error);
+      // Return a fallback product to prevent the entire list from breaking
+      return {
+        id: Math.random().toString(),
+        name: "Product Error",
+        image: "/placeholder-product.jpg",
+        description: "Error loading product data",
+        currentBid: 0,
+        totalBids: 0,
+        timeLeft: new Date().toISOString(),
+        location: "Unknown",
+        category: "Uncategorized",
+        category_name: "Uncategorized",
+        seller: "Unknown Seller",
+        startingBid: 0,
+        buyNowPrice: 0,
+        condition: "Fair",
+        isWishlisted: false,
+        retail_value: 0,
+      };
+    }
+  };
 
   // Show error toast when API error occurs
   useEffect(() => {
@@ -218,7 +241,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
           ? currentFilters.priceRange[0]
           : undefined,
       maxPrice:
-        currentFilters.priceRange[1] < 50000
+        currentFilters.priceRange[1] < maxPrice
           ? currentFilters.priceRange[1]
           : undefined,
       sortBy: currentSortBy,
@@ -355,12 +378,12 @@ const mapApiProductToProduct = (apiProduct): Product => {
     return pages;
   };
 
-  // Clear filters handler
+  // Clear filters handler - Updated to use dynamic maxPrice
   const clearFilters = () => {
     setFilters({
       categories: [],
       locations: [],
-      priceRange: [0, 50000],
+      priceRange: [0, maxPrice],
       timeLeft: [],
       condition: [],
       searchQuery: "",
@@ -369,7 +392,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
     lastRequestRef.current = "";
   };
 
-  // Get active filters count
+  // Get active filters count - Updated to use dynamic maxPrice
   const getActiveFiltersCount = () => {
     return (
       filters.categories.length +
@@ -377,7 +400,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
       filters.timeLeft.length +
       filters.condition.length +
       (filters.searchQuery ? 1 : 0) +
-      (filters.priceRange[0] > 0 || filters.priceRange[1] < 50000 ? 1 : 0)
+      (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice ? 1 : 0)
     );
   };
 
@@ -630,6 +653,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={clearFilters}
                 forceRefresh={forceRefresh}
+                maxPrice={maxPrice} // Pass maxPrice as prop
               />
             </div>
           </div>
@@ -703,6 +727,7 @@ const mapApiProductToProduct = (apiProduct): Product => {
         onFiltersChange={handleFiltersChange}
         onClearFilters={clearFilters}
         forceRefresh={forceRefresh}
+        maxPrice={maxPrice} // Pass maxPrice as prop
       />
     </Layout>
   );
