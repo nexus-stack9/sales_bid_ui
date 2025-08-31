@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import * as React from "react";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +38,8 @@ const AuctionPage: React.FC = () => {
   // Use ref to prevent initial load race conditions
   const hasInitiallyLoaded = useRef(false);
   const lastRequestRef = useRef<string>("");
+  const [maxPrice, setMaxPrice] = useState<number>(50000);
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
 
   const {
     products: apiProducts,
@@ -51,38 +53,41 @@ const AuctionPage: React.FC = () => {
     loadSpecificPage
   } = usePaginatedProducts();
 
-  // Calculate dynamic max price from products' retail values or fallback to 50000
-  const maxPrice = useMemo(() => {
+  // Calculate dynamic max price from API products
+  const calculateMaxPrice = (): number => {
     if (!apiProducts || apiProducts.length === 0) return 50000;
-    const maxRetail = Math.max(...apiProducts
+    const calculatedMaxPrice = Math.max(...apiProducts
       .map(p => typeof p.retail_value === 'string' ? parseFloat(p.retail_value) : (p.retail_value || 0))
       .filter(Number.isFinite)
     );
-    return maxRetail > 0 ? maxRetail : 50000;
-  }, [apiProducts]);
+    return calculatedMaxPrice > 0 ? calculatedMaxPrice : 50000;
+  };
 
+  // Initialize filters state with null priceRange initially
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     locations: [],
-    priceRange: [0, maxPrice],
+    priceRange: [0, 50000],
     timeLeft: [],
     condition: [],
     searchQuery: "",
   });
 
-  // Update price range when maxPrice changes
+  // Update maxPrice and initialize filters properly when products first load
   useEffect(() => {
-    setFilters(prev => {
-      // Only update if the max price has actually changed
-      if (prev.priceRange[1] !== maxPrice) {
-        return {
-          ...prev,
-          priceRange: [prev.priceRange[0], maxPrice] as [number, number]
-        };
-      }
-      return prev;
-    });
-  }, [maxPrice]);
+    if (apiProducts && apiProducts.length > 0 && !filtersInitialized) {
+      const newMaxPrice = calculateMaxPrice();
+      setMaxPrice(newMaxPrice);
+      
+      // Initialize filters with the correct max price
+      setFilters(prev => ({
+        ...prev,
+        priceRange: [0, newMaxPrice] as [number, number]
+      }));
+      
+      setFiltersInitialized(true);
+    }
+  }, [apiProducts, filtersInitialized]);
 
   // Hide bottom navbar on mobile when filters are open
   useEffect(() => {
@@ -98,10 +103,8 @@ const AuctionPage: React.FC = () => {
 
   // Function to map API products to Product type
   const mapApiProductToProduct = (apiProduct): Product => {
-    // Ensure we handle the API product structure correctly
     const productData = apiProduct.product_id ? apiProduct : apiProduct;
 
-    // Use the condition as provided by the API
     const condition = productData.condition
       ? productData.condition.toString()
       : "Unknown";
@@ -118,7 +121,6 @@ const AuctionPage: React.FC = () => {
     const categoryName =
       productData.category_name?.toString() || "Uncategorized";
 
-    // Get wishlist status from API response (0 or 1)
     const isWishlisted = Boolean(productData.is_in_wishlist);
 
     try {
@@ -144,7 +146,6 @@ const AuctionPage: React.FC = () => {
       };
     } catch (error) {
       console.error("Error mapping product:", productData, error);
-      // Return a fallback product to prevent the entire list from breaking
       return {
         id: Math.random().toString(),
         name: "Product Error",
@@ -194,7 +195,6 @@ const AuctionPage: React.FC = () => {
             new Date(a.timeLeft).getTime() - new Date(b.timeLeft).getTime()
         );
       case "newest":
-        // Assuming newer products have higher IDs or we could use a created_at field
         return sortedProducts.sort((a, b) => parseInt(b.id) - parseInt(a.id));
       case "popularity":
         return sortedProducts.sort((a, b) => b.totalBids - a.totalBids);
@@ -204,10 +204,9 @@ const AuctionPage: React.FC = () => {
   };
 
   // Map and sort products
-  const mappedProducts = (): Product[] => {
+  const getMappedProducts = (): Product[] => {
     if (!apiProducts.length) return [];
     const mapped = apiProducts.map(mapApiProductToProduct);
-    // Apply client-side sorting
     return sortProducts(mapped, sortBy);
   };
 
@@ -249,10 +248,8 @@ const AuctionPage: React.FC = () => {
       limit: limit,
     };
 
-    // Create a unique request identifier
     const requestId = JSON.stringify({ searchParams, page, limit });
     
-    // Prevent duplicate requests
     if (lastRequestRef.current === requestId) {
       return;
     }
@@ -262,7 +259,6 @@ const AuctionPage: React.FC = () => {
     try {
       await loadProducts(page, limit, searchParams);
     } catch (error) {
-      // Reset the request ref on error so retries can happen
       lastRequestRef.current = "";
       throw error;
     }
@@ -282,12 +278,11 @@ const AuctionPage: React.FC = () => {
 
   // Separate effect for filters and sorting changes with debouncing
   useEffect(() => {
-    // Skip if this is the initial load
     if (!hasInitiallyLoaded.current) return;
 
     const timer = setTimeout(() => {
       loadProductsWithParams(1, 20, filters, sortBy);
-    }, 300); // 300ms debounce
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [filters, sortBy]);
@@ -295,13 +290,11 @@ const AuctionPage: React.FC = () => {
   // Reset to first page when filters or sort change
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    // Reset the request ref when filters change
     lastRequestRef.current = "";
   };
 
   const handleSortChange = (newSortBy: SortOption) => {
     setSortBy(newSortBy);
-    // Reset the request ref when sort changes
     lastRequestRef.current = "";
   };
 
@@ -335,41 +328,33 @@ const AuctionPage: React.FC = () => {
     const currentPage = pagination.currentPage;
 
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total pages is less than max visible pages
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always show first page
       pages.push(1);
 
-      // Calculate start and end page
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-      // Adjust if we're near the start or end
       if (currentPage <= 3) {
         endPage = Math.min(4, totalPages - 1);
       } else if (currentPage >= totalPages - 2) {
         startPage = Math.max(totalPages - 3, 2);
       }
 
-      // Add ellipsis if needed
       if (startPage > 2) {
         pages.push("...");
       }
 
-      // Add middle pages
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
 
-      // Add ellipsis if needed
       if (endPage < totalPages - 1) {
         pages.push("...");
       }
 
-      // Always show last page
       if (totalPages > 1) {
         pages.push(totalPages);
       }
@@ -378,7 +363,7 @@ const AuctionPage: React.FC = () => {
     return pages;
   };
 
-  // Clear filters handler - Updated to use dynamic maxPrice
+  // Clear filters handler
   const clearFilters = () => {
     setFilters({
       categories: [],
@@ -388,11 +373,10 @@ const AuctionPage: React.FC = () => {
       condition: [],
       searchQuery: "",
     });
-    // Reset the request ref when clearing filters
     lastRequestRef.current = "";
   };
 
-  // Get active filters count - Updated to use dynamic maxPrice
+  // Get active filters count
   const getActiveFiltersCount = () => {
     return (
       filters.categories.length +
@@ -420,7 +404,6 @@ const AuctionPage: React.FC = () => {
           of {pagination.totalRecords} results
         </span>
 
-        {/* Desktop Sorting UI - Add sorting options here */}
         <div className="hidden lg:block">
           <Select
             value={sortBy}
@@ -500,7 +483,7 @@ const AuctionPage: React.FC = () => {
 
   // No products message
   const NoProductsMessage = () => {
-    if (isLoading || mappedProducts().length > 0) return null;
+    if (isLoading || getMappedProducts().length > 0) return null;
 
     return (
       <div className="text-center py-12">
@@ -518,13 +501,9 @@ const AuctionPage: React.FC = () => {
 
   // Force refresh function
   const forceRefresh = () => {
-    // Reset the request ref to allow the refresh
     lastRequestRef.current = "";
     loadProductsWithParams(1, 20);
   };
-
-  // Create a stable key for filter panels to prevent re-rendering
-  const filterPanelKey = "filter-panel";
 
   // Skeleton Loader Component
   const SkeletonLoader = () => (
@@ -534,13 +513,11 @@ const AuctionPage: React.FC = () => {
           {/* Desktop Filter Sidebar Skeleton */}
           <div className="hidden lg:block w-80 flex-shrink-0 space-y-6">
             <div className="sticky top-24 space-y-6">
-              {/* Search Filter */}
               <div className="space-y-2">
                 <Skeleton className="h-5 w-1/3 mb-2" />
                 <Skeleton className="h-10 w-full rounded-md" />
               </div>
               
-              {/* Categories Filter */}
               <div className="space-y-3">
                 <Skeleton className="h-5 w-1/3" />
                 <div className="space-y-2">
@@ -554,7 +531,6 @@ const AuctionPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Price Range Filter */}
               <div className="space-y-3">
                 <Skeleton className="h-5 w-1/3" />
                 <div className="space-y-4">
@@ -570,13 +546,11 @@ const AuctionPage: React.FC = () => {
 
           {/* Main Content Skeleton */}
           <div className="flex-1 min-w-0">
-            {/* Mobile Filter Bar */}
             <div className="flex items-center justify-between mb-6 lg:hidden">
               <Skeleton className="h-10 w-28 rounded-md" />
               <Skeleton className="h-10 w-40 rounded-md" />
             </div>
 
-            {/* Results Info Skeleton */}
             <div className="flex items-center justify-between mb-6">
               <Skeleton className="h-4 w-48" />
               <div className="hidden lg:block">
@@ -584,7 +558,6 @@ const AuctionPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Product Grid Skeleton */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div 
@@ -617,7 +590,6 @@ const AuctionPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Pagination Skeleton */}
             <div className="mt-8 flex justify-center">
               <div className="flex items-center space-x-1">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -631,29 +603,31 @@ const AuctionPage: React.FC = () => {
     </Layout>
   );
 
-  // Show skeleton while loading
-  if (isLoading) {
+  // Show skeleton while loading OR while waiting for maxPrice calculation
+  if (isLoading || !filtersInitialized) {
     return <SkeletonLoader />;
   }
+
+  const mappedProducts = getMappedProducts();
+  const activeFiltersCount = getActiveFiltersCount();
 
   return (
     <Layout>
       <div className="container mx-auto px-3 sm:px-4 py-6">
         <div className="flex gap-6">
-          {/* Desktop Filter Sidebar */}
+          {/* Desktop Filter Sidebar - Only render when filters are initialized */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-24">
               <FilterPanel
-                key={filterPanelKey}
                 isOpen={true}
                 onClose={() => {}}
                 filters={filters}
                 filterOptions={filterOptions}
-                products={mappedProducts()}
+                products={mappedProducts}
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={clearFilters}
                 forceRefresh={forceRefresh}
-                maxPrice={maxPrice} // Pass maxPrice as prop
+                maxPrice={maxPrice}
               />
             </div>
           </div>
@@ -669,9 +643,9 @@ const AuctionPage: React.FC = () => {
               >
                 <Filter className="h-4 w-4" />
                 Filters
-                {getActiveFiltersCount() > 0 && (
+                {activeFiltersCount > 0 && (
                   <Badge variant="secondary" className="ml-1">
-                    {getActiveFiltersCount()}
+                    {activeFiltersCount}
                   </Badge>
                 )}
               </Button>
@@ -699,9 +673,8 @@ const AuctionPage: React.FC = () => {
 
             {/* Products Grid */}
             <div className="space-y-6" key={`products-${isLoading}`}>
-              {/* Always use grid view for desktop since we removed the view toggle */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
-                {mappedProducts().map((product) => (
+                {mappedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
@@ -718,16 +691,15 @@ const AuctionPage: React.FC = () => {
 
       {/* Mobile Filter Panel */}
       <FilterPanel
-        key={`mobile-${filterPanelKey}`}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         filters={filters}
         filterOptions={filterOptions}
-        products={mappedProducts()}
+        products={mappedProducts}
         onFiltersChange={handleFiltersChange}
         onClearFilters={clearFilters}
         forceRefresh={forceRefresh}
-        maxPrice={maxPrice} // Pass maxPrice as prop
+        maxPrice={maxPrice}
       />
     </Layout>
   );
