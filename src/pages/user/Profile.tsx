@@ -14,10 +14,10 @@ import { User, LogOut, Home, Briefcase, Gavel,Package, Heart } from 'lucide-reac
 import Cookies from 'js-cookie';
 import { updateProfile, getProfileDetails, getUserIdFromToken } from '@/services/crudService';
 import { addUserAddress, updateUserAddress, deleteUserAddress } from '@/services/addressService';
-
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from "@/components/ui/badge";
 
+import { toast } from "@/components/ui/use-toast";
 
 // Define the ProfileDetails interface
 interface ProfileDetails {
@@ -63,6 +63,29 @@ const Profile = () => {
 
   const [profileDetails, setProfileDetails] = useState<ProfileDetails | null>(null);
 
+  const setProfileDataFromDetails = (data: ProfileDetails) => {
+    // Support both addresses (array) and address (object)
+    const addresses =
+      Array.isArray(data.profile.addresses)
+        ? data.profile.addresses
+        // : data.profile.address
+        //   ? [data.profile.address]
+          : [];
+
+    const primaryAddress = addresses.find(addr => addr.isPrimary) || addresses[0];
+    const addressString = primaryAddress
+      ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`
+      : "";
+
+    setProfileData({
+      firstName: data.profile.user.firstName || "",
+      lastName: data.profile.user.lastName || "",
+      email: data.profile.user.email || "",
+      phone: data.profile.user.phone || "",
+      address: addressString,
+    });
+  };
+
   useEffect(() => {
     const fetchProfileDetails = async () => {
       try {
@@ -73,19 +96,26 @@ const Profile = () => {
           return;
         }
         const data = await getProfileDetails(userId);
-        setProfileDetails(data);
-
-        const primaryAddress = data.profile.addresses?.find(addr => addr.isPrimary) || data.profile.addresses?.[0];
-        const addressString = primaryAddress
-          ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`
-          : "";
-
-        setProfileData({
-          firstName: data.profile.user.firstName || "",
-          lastName: data.profile.user.lastName || "",
-          email: data.profile.user.email || "",
-          phone: data.profile.user.phone || "",
-          address: addressString,
+        // Patch response to always have addresses array
+        const addresses =
+          Array.isArray(data.profile.addresses)
+            ? data.profile.addresses
+            : data.profile.address
+              ? [data.profile.address]
+              : [];
+        setProfileDetails({
+          ...data,
+          profile: {
+            ...data.profile,
+            addresses
+          }
+        });
+        setProfileDataFromDetails({
+          ...data,
+          profile: {
+            ...data.profile,
+            addresses
+          }
         });
       } catch (error) {
         console.error('Error fetching profile details:', error);
@@ -102,6 +132,13 @@ const Profile = () => {
     fetchProfileDetails();
   }, [toast, navigate]);
 
+  useEffect(() => {
+    // Sync form fields with profileDetails when not editing
+    if (profileDetails && !isEditing) {
+      setProfileDataFromDetails(profileDetails);
+    }
+  }, [profileDetails, isEditing]);
+
   const handleSaveProfile = async () => {
     try {
       await updateProfile(profileData);
@@ -114,6 +151,7 @@ const Profile = () => {
       if (userId) {
         const data = await getProfileDetails(userId);
         setProfileDetails(data);
+        setProfileDataFromDetails(data); // <-- update form after save
       }
     } catch (error) {
       toast({
@@ -285,144 +323,253 @@ Track
       <CardFooter className="border-t px-6 py-4">
         {isEditing ? (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditing(false);
+                if (profileDetails) setProfileDataFromDetails(profileDetails); // Reset form on cancel
+              }}
+            >
+              Cancel
+            </Button>
             <Button onClick={handleSaveProfile}>Save</Button>
           </div>
         ) : (
-          <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+          <Button
+            onClick={() => {
+              setIsEditing(true);
+              if (profileDetails) setProfileDataFromDetails(profileDetails); // Reset form on edit
+            }}
+          >
+            Edit Profile
+          </Button>
         )}
       </CardFooter>
     </Card>
   );
 
   // ============== Address Content ==============
-  const AddressContent = () => {
-    const [formData, setFormData] = useState({
-      label: "",
-      street: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "",
-    });
-    const [editingId, setEditingId] = useState<number | null>(null);
+ const [addressFormData, setAddressFormData] = useState({
+  label: "",
+  street: "",
+  city: "",
+  state: "",
+  postalCode: "",
+  country: "",
+});
+const [addressEditingId, setAddressEditingId] = useState<number | null>(null);
 
-    const autofillFromLocation = () => {
-      if (!navigator.geolocation) {
-        toast({ variant: "destructive", title: "Geolocation not supported" });
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-          const data = await res.json();
-          setFormData({
-            ...formData,
-            street: data.address.road || "",
-            city: data.address.city || data.address.town || data.address.village || "",
-            state: data.address.state || "",
-            postalCode: data.address.postcode || "",
-            country: data.address.country || "",
-          });
-          toast({ title: "Address autofilled" });
-        } catch (err) {
-          console.error(err);
-          toast({ variant: "destructive", title: "Failed to fetch location" });
-        }
-      });
-    };
+const autofillAddressForm = () => {
+  if (!navigator.geolocation) {
+    toast({ variant: "destructive", title: "Geolocation not supported" });
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const { latitude, longitude } = pos.coords;
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+      );
+      const data = await res.json();
+      const street =
+        data.address.road ||
+        data.address.suburb ||
+        data.address.city_district ||
+        data.address.neighbourhood ||
+        data.address.pedestrian ||
+        data.address.village ||
+        "";
+      const autofilled = {
+        label: "",
+        street,
+        city: data.address.city || data.address.town || data.address.village || "",
+        state: data.address.state || data.address.state_district || "",
+        postalCode: data.address.postcode || "",
+        country: data.address.country || "",
+      };
+      setAddressFormData(autofilled);
+      toast({ title: "Address autofilled" });
+      console.log("FormData after autofill:", autofilled);
+    } catch (err) {
+      console.error(err);
+      toast({ variant: "destructive", title: "Failed to fetch location" });
+    }
+  });
+};
 
-    const handleSave = async () => {
-      try {
-        if (editingId) {
-          await updateUserAddress(editingId, formData);
-          toast({ title: "Address updated" });
-        } else {
-          await addUserAddress(formData);
-          toast({ title: "Address added" });
-        }
-        setFormData({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
-        setEditingId(null);
-        const userId = getUserIdFromToken();
-        if (userId) {
-          const data = await getProfileDetails(userId);
-          setProfileDetails(data);
-        }
-      } catch (error) {
-        console.error(error);
-        toast({ variant: "destructive", title: "Failed to save address" });
-      }
-    };
+const handleAddressSave = async () => {
+  try {
+    const userId = getUserIdFromToken();
+    const addressDataWithUserId = { ...addressFormData, userId };
+    if (addressEditingId) {
+      await updateUserAddress(addressEditingId, addressDataWithUserId);
+      toast({ title: "Address updated" });
+    } else {
+      await addUserAddress(addressDataWithUserId);
+      toast({ title: "Address added" });
+    }
+    setAddressFormData({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
+    setAddressEditingId(null);
+    if (userId) {
+      const data = await getProfileDetails(userId);
+      setProfileDetails(data);
+    }
+  } catch (error) {
+    console.error(error);
+    toast({ variant: "destructive", title: "Failed to save address" });
+  }
+};
 
-    const handleEdit = (addr: any) => {
-      setFormData(addr);
-      setEditingId(addr.addressId);
-    };
+const handleAddressEdit = (addr: any) => {
+  setAddressFormData({
+    label: addr.label || "",
+    street: addr.street || "",
+    city: addr.city || "",
+    state: addr.state || "",
+    postalCode: addr.postalCode || "",
+    country: addr.country || "",
+  });
+  setAddressEditingId(addr.addressId);
+};
 
-    const handleDelete = async (id: number) => {
-      try {
-        await deleteUserAddress(id);
-        toast({ title: "Address deleted" });
-        setProfileDetails((prev) =>
-          prev ? { ...prev, profile: { ...prev.profile, addresses: prev.profile.addresses?.filter((a) => a.addressId !== id) } } : prev
-        );
-      } catch (err) {
-        console.error(err);
-        toast({ variant: "destructive", title: "Failed to delete address" });
-      }
-    };
+const handleAddressCancelEdit = () => {
+  setAddressFormData({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
+  setAddressEditingId(null);
+};
 
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>My Addresses</CardTitle>
-          <CardDescription>Manage your saved addresses</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            {profileDetails?.profile.addresses?.map(addr => (
-              <div key={addr.addressId} className="p-3 border rounded-lg flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">
-                    {addr.label} {addr.isPrimary && <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">Primary</span>}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{addr.street}, {addr.city}, {addr.state} {addr.postalCode}, {addr.country}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleEdit(addr)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(addr.addressId)}>Delete</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-2 border-t pt-4">
-            <h3 className="font-semibold">{editingId ? "Edit Address" : "Add New Address"}</h3>
-            <Input placeholder="Label (Home/Office)" value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} />
-            <Input placeholder="Street" value={formData.street} onChange={(e) => setFormData({ ...formData, street: e.target.value })} />
-            <Input placeholder="City" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
-            <Input placeholder="State" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
-            <Input placeholder="Postal Code" value={formData.postalCode} onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })} />
-            <Input placeholder="Country" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
-
-            <div className="flex gap-3">
-              <Button onClick={handleSave}>{editingId ? "Update" : "Add"} Address</Button>
-              <Button variant="outline" onClick={autofillFromLocation}>Autofill from Location</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+const handleAddressDelete = async (id: number) => {
+  try {
+    await deleteUserAddress(id);
+    toast({ title: "Address deleted" });
+    setProfileDetails((prev) =>
+      prev
+        ? {
+            ...prev,
+            profile: {
+              ...prev.profile,
+              addresses: prev.profile.addresses?.filter((a: any) => a.addressId !== id),
+            },
+          }
+        : prev
     );
-  };
+  } catch (err) {
+    console.error(err);
+    toast({ variant: "destructive", title: "Failed to delete address" });
+  }
+};
 
+  const AddressContent = ({
+    formData,
+    setFormData,
+    editingId,
+    setEditingId,
+    autofillFromLocation,
+    handleSave,
+    handleEdit,
+    handleDelete,
+    handleCancelEdit,
+    profileDetails,
+  }: {
+    formData: typeof addressFormData;
+    setFormData: typeof setAddressFormData;
+    editingId: typeof addressEditingId;
+    setEditingId: typeof setAddressEditingId;
+    autofillFromLocation: () => void;
+    handleSave: () => void;
+    handleEdit: (addr: any) => void;
+    handleDelete: (id: number) => void;
+    handleCancelEdit: () => void;
+    profileDetails: ProfileDetails | null;
+  }) => (
+    <Card>
+      <CardHeader>
+        <CardTitle>My Addresses</CardTitle>
+        <CardDescription>Manage your saved addresses</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-3">
+          {profileDetails?.profile.addresses?.map(addr => (
+            <div key={addr.addressId} className="p-3 border rounded-lg flex justify-between items-center">
+              <div>
+                <p className="font-semibold">
+                  {addr.label} {addr.isPrimary && <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">Primary</span>}
+                </p>
+                <p className="text-sm text-muted-foreground">{addr.street}, {addr.city}, {addr.state} {addr.postalCode}, {addr.country}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => handleEdit(addr)}>Edit</Button>
+                <Button size="sm" variant="destructive" onClick={() => handleDelete(addr.addressId)}>Delete</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-2 border-t pt-4">
+          <h3 className="font-semibold">{editingId ? "Edit Address" : "Add New Address"}</h3>
+          <Input
+            placeholder="Label (Home/Office)"
+            value={formData.label}
+            onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+          />
+          <Input
+            placeholder="Street"
+            value={formData.street}
+            onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+          />
+          <Input
+            placeholder="City"
+            value={formData.city}
+            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+          />
+          <Input
+            placeholder="State"
+            value={formData.state}
+            onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+          />
+          <Input
+            placeholder="Postal Code"
+            value={formData.postalCode}
+            onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
+          />
+          <Input
+            placeholder="Country"
+            value={formData.country}
+            onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+          />
+
+          <div className="flex gap-3">
+            <Button onClick={handleSave}>{editingId ? "Update" : "Add"} Address</Button>
+            <Button variant="outline" onClick={autofillFromLocation}>Autofill from Location</Button>
+            {editingId && (
+              <Button variant="outline" onClick={handleCancelEdit}>
+                Cancel Edit
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
   // ============== Render ==============
   const renderContent = () => {
     switch (activeTab) {
       case 'profile':
         return <ProfileContent />;
       case 'address':
-        return <AddressContent />;
+        return (
+          <AddressContent
+            formData={addressFormData}
+            setFormData={setAddressFormData}
+            editingId={addressEditingId}
+            setEditingId={setAddressEditingId}
+            autofillFromLocation={autofillAddressForm}
+            handleSave={handleAddressSave}
+            handleEdit={handleAddressEdit}
+            handleDelete={handleAddressDelete}
+            handleCancelEdit={handleAddressCancelEdit}
+            profileDetails={profileDetails}
+          />
+        );
       case 'OrdersContent':
         return <OrdersContent />;  
       default:
@@ -503,3 +650,4 @@ Track
 };
 
 export default Profile;
+

@@ -30,6 +30,18 @@ import { SearchResultsPage } from "./pages/SearchResultsPage";
 const queryClient = new QueryClient();
 
 import OrderTrackingPage from "./pages/OrderTrackingPage";
+import UpcomingAuctions from "./pages/UpcomingAuctions";
+import HowItWorks from "./pages/HowItWorks";
+import SellingServices from "./pages/SellingServices";
+import BuyerProtection from "./pages/BuyerProtection";
+import CategoryPage from "./pages/CategoryPage";
+import HelpCenter from "./pages/support/HelpCenter";
+import ShippingLogistics from "./pages/support/ShippingLogistics";
+import ReturnsRefunds from "./pages/support/ReturnsRefunds";
+import ContactUs from "./pages/support/ContactUs";
+import FAQ from "./pages/support/FAQ";
+import VerifyOTP from './pages/VerifyOTP';
+import ResetPassword from './pages/ResetPassword';
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -44,9 +56,12 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auctions" element={<AuctionsPage />} />
+                <Route path="/auctions/upcoming" element={<UpcomingAuctions />} />
                 <Route path="/auctions/:id" element={<AuctionDetail />} />
                 <Route path="/user/profile" element={<Profile />} />
                 <Route path="/user/wishlist" element={<Wishlist />} />
+                <Route path="/verify-otp" element={<VerifyOTP />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />
                 {/* <Route path="/cart" element={<Cart />} /> */}
@@ -59,7 +74,20 @@ const App = () => (
                 <Route path="/search" element={<SearchResultsPage />} />
                 <Route path="/checkout/address" element={<CheckoutAddressPage />} />
 
+                   {/* Marketing/Info */}
+                   <Route path="/how-it-works" element={<HowItWorks />} />
+                   <Route path="/selling-services" element={<SellingServices />} />
+                   <Route path="/buyer-protection" element={<BuyerProtection />} />
 
+                   {/* Category route (generic) */}
+                   <Route path="/category/:slug" element={<CategoryPage />} />
+
+                   {/* Support */}
+                   <Route path="/support/help-center" element={<HelpCenter />} />
+                   <Route path="/support/shipping-logistics" element={<ShippingLogistics />} />
+                   <Route path="/support/returns-refunds" element={<ReturnsRefunds />} />
+                   <Route path="/support/contact-us" element={<ContactUs />} />
+                   <Route path="/support/faq" element={<FAQ />} />
 
                 <Route path="/buyers" element={<BuyersPage />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

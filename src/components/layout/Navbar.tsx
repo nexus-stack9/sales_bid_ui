@@ -131,7 +131,7 @@ const Navbar = () => {
                 )}
               </div>
             </div>
-            <div className="relative group">
+            {/* <div className="relative group">
               <button className="font-bold text-gray-800 hover:text-gray-900 relative group flex items-center antialiased text-[15px] tracking-wide subpixel-antialiased">
                 All Sellers
                 <ChevronDown className="ml-1 h-4 w-4" />
@@ -177,7 +177,11 @@ const Navbar = () => {
                   </Link>
                 </div>
               </div>
-            </div>
+            </div> */}
+            <Link to="/allSellersPage" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
+              ALL Sellers
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
+            </Link>
             <Link to="/buyers" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
               For Buyers
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
