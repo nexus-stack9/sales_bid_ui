@@ -179,16 +179,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 {/* Category and Location Row */}
                 <div className="flex items-center gap-1.5 mb-1.5 overflow-hidden">
                   {/* Category Tag */}
-                  <span className="inline-flex items-center bg-blue-50/80 text-blue-800 text-[12px] font-bold px-2 py-0.5 rounded-md border border-blue-100 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
-                    <svg className="w-2 h-2 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 8 8">
-                      <circle cx="4" cy="4" r="3" />
-                    </svg>
-                    {product.category || 'Category'}
-                  </span>
-                  
+                  <span className="inline-flex items-center bg-gray-200 text-gray-900 text-[12px] font-semibold px-2 py-0.5 rounded-full border border-gray-300 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
+  <svg className="w-2 h-2 mr-1 text-gray-700" fill="currentColor" viewBox="0 0 8 8">
+    <circle cx="4" cy="4" r="3" />
+  </svg>
+  {product.category || 'Category'}
+</span>
+
+                 
                   {/* Location Tag */}
-                  <div className="flex items-center gap-1 text-[12px] text-gray-800 bg-gray-200 px-2 py-0.5 rounded-md border border-gray-300">
-                    <MapPin className="h-2.5 w-2.5 text-gray-900" />
+                  <div className="flex items-center gap-1 text-xs text-gray-600 bg-blue-100 px-2 py-1 rounded-full">
+                    <MapPin className="h-3 w-3 text-gray-700" />
                     <span className="truncate max-w-[90px] font-bold" title={product.location}>
                       {product.location}
                     </span>

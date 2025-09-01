@@ -48,6 +48,12 @@ const Wishlist: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleCardClick = (productId: number) => {
+    window.scrollTo(0, 0);
+    navigate(`/auctions/${productId}`);
+  };
+
   const { triggerWishlistUpdate } = useWishlist();
   const [bidModal, setBidModal] = useState({
     isOpen: false,
@@ -329,76 +335,79 @@ const Wishlist: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {wishlistItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow w-[320px] sm:w-auto sm:max-w-[280px] mx-auto"
+                <div 
+                  key={item.id} 
+                  className="relative group cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-blue-500"
+                  onClick={() => handleCardClick(item.product_id)}
                 >
-                  <div className="relative pt-[75%] overflow-hidden">
-                    <img
-                      src={getFirstImage(item.image_path)}
-                      alt={item.name}
-                      className="absolute top-0 left-0 w-full h-full object-cover"
-                    />
-                    <button
-                      onClick={(e) => removeFromWishlist(e, item.id)}
-                      className="absolute top-2 right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors border border-gray-300 shadow-sm"
-                      aria-label="Remove from wishlist"
-                    >
-                      <XIcon className="w-3 h-3 text-gray-700" />
-                    </button>
-                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow w-[320px] sm:w-auto sm:max-w-[280px] mx-auto">
+                    <div className="relative pt-[75%] overflow-hidden">
+                      <img
+                        src={getFirstImage(item.image_path)}
+                        alt={item.name}
+                        className="absolute top-0 left-0 w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={(e) => removeFromWishlist(e, item.id)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors border border-gray-300 shadow-sm"
+                        aria-label="Remove from wishlist"
+                      >
+                        <XIcon className="w-3 h-3 text-gray-700" />
+                      </button>
+                    </div>
 
-                  <div className="p-5 border-t border-gray-50">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {item.name}
-                    </h3>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-600">
-                        {!item.bid_amount || item.bid_amount === '0' ? 'Starting Price' : 'Current Bid'}
-                      </span>
-                      <span className="text-sm font-bold text-primary">
-                        {item.bid_amount && item.bid_amount !== '0' 
-                          ? formatPrice(parseFloat(item.bid_amount))
-                          : item.starting_price 
-                              ? formatPrice(parseFloat(item.starting_price))
-                              : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-600">Retail Value</span>
-                      <span className="text-sm font-bold text-gray-700">
-                        {item.retail_value ? formatPrice(parseFloat(item.retail_value)) : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-600">Time Remaining</span>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Clock className="w-4 h-4" />
-                        {isAuctionEnded(item.auction_end) ? (
-                          <span className="text-red-500 font-medium">Ended</span>
-                        ) : (
-                          <span>{getTimeRemaining(item.auction_end)}</span>
-                        )}
+                    <div className="p-5 border-t border-gray-50">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {item.name}
+                      </h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-bold text-gray-600">
+                          {!item.bid_amount || item.bid_amount === '0' ? 'Starting Price' : 'Current Bid'}
+                        </span>
+                        <span className="text-sm font-bold text-primary">
+                          {item.bid_amount && item.bid_amount !== '0' 
+                            ? formatPrice(parseFloat(item.bid_amount))
+                            : item.starting_price 
+                                ? formatPrice(parseFloat(item.starting_price))
+                                : 'N/A'}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => navigate(`/auctions/${item.product_id}`)}
-                        className="flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-bold text-sm"
-                      >
-                        View Details
-                      </button>
-                      <button 
-                        onClick={() => !isAuctionEnded(item.auction_end) && openBidModal(item.product_id, parseFloat(item.bid_amount) || 0)}
-                        className={`px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
-                          isAuctionEnded(item.auction_end)
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg'
-                        }`}
-                        disabled={isAuctionEnded(item.auction_end)}
-                      >
-                        {isAuctionEnded(item.auction_end) ? 'Ended' : 'Bid Now'}
-                      </button>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-bold text-gray-600">Retail Value</span>
+                        <span className="text-sm font-bold text-gray-700">
+                          {item.retail_value ? formatPrice(parseFloat(item.retail_value)) : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-bold text-gray-600">Time Remaining</span>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="w-4 h-4" />
+                          {isAuctionEnded(item.auction_end) ? (
+                            <span className="text-red-500 font-medium">Ended</span>
+                          ) : (
+                            <span>{getTimeRemaining(item.auction_end)}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => navigate(`/auctions/${item.product_id}`)}
+                          className="flex-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-bold text-sm"
+                        >
+                          View Details
+                        </button>
+                        <button 
+                          onClick={() => !isAuctionEnded(item.auction_end) && openBidModal(item.product_id, parseFloat(item.bid_amount) || 0)}
+                          className={`px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
+                            isAuctionEnded(item.auction_end)
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg'
+                          }`}
+                          disabled={isAuctionEnded(item.auction_end)}
+                        >
+                          {isAuctionEnded(item.auction_end) ? 'Ended' : 'Bid Now'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
