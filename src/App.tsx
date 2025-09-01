@@ -18,6 +18,8 @@ import SignUp from "./pages/auth/SignUp";
 import PaymentPage from "./pages/PaymentPage";
 import SellersPage from "./pages/sellers/SellersPage";
 import ForgotPassword from './pages/ForgotPassword';
+import VerifyOTP from './pages/VerifyOTP';
+import ResetPassword from './pages/ResetPassword';
 import MyBids from "./pages/user/MyBids";
 import Wishlist from "./pages/user/Wishlist";
 import BuyersPage from "./pages/buyers/BuyersPage"
@@ -63,6 +65,8 @@ const App = () => (
 
                 <Route path="/buyers" element={<BuyersPage />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/verify-otp" element={<VerifyOTP />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

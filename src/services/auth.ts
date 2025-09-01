@@ -18,9 +18,15 @@ interface ForgotPasswordData {
   contact: string; // Can be either email or phone number
 }
 
+interface VerifyOTPData {
+  contact: string;
+  otp: string;
+}
+
 interface ResetPasswordData {
-  user_id: string;
-  password: string;
+  credentials: string;
+  otp: string;
+  newPassword: string;
 }
 
 // Get the API base URL from environment variables
@@ -84,6 +90,28 @@ export const loginUser = async (userData: LoginUserData) => {
   }
 };
 
+export const verifyOTP = async (data: VerifyOTPData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/password/verify-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to verify OTP');
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const forgotPassword = async (data: ForgotPasswordData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/password/request-reset`, {
@@ -107,17 +135,18 @@ export const forgotPassword = async (data: ForgotPasswordData) => {
 
 export const resetPassword = async (data: ResetPasswordData) => {
   try {
-    const encryptedData = {
-      user_id: data.user_id,
-      password: encryptPassword(data.password)
+    const requestData = {
+      credentials: data.credentials,
+      otp: data.otp,
+      newPassword: encryptPassword(data.newPassword)
     };
 
-    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+    const response = await fetch(`${API_BASE_URL}/password/verify-reset`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(encryptedData),
+      body: JSON.stringify(requestData),
     });
 
     if (!response.ok) {
