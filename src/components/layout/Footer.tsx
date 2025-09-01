@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const links = {
   marketplace: [
-    { label: 'Live Auctions', href: '#' },
-    { label: 'Upcoming Auctions', href: '#' },
-    { label: 'How it Works', href: '#' },
-    { label: 'Selling Services', href: '#' },
-    { label: 'Buyer Protection', href: '#' },
+    { label: 'Live Auctions', href: '/auctions' },
+    { label: 'Upcoming Auctions', href: '/auctions/upcoming' },
+    { label: 'How it Works', href: '/how-it-works' },
+    { label: 'Selling Services', href: '/selling-services' },
+    { label: 'Buyer Protection', href: '/buyer-protection' },
   ],
   categories: [
-    { label: 'Electronics', href: '#' },
-    { label: 'Apparel', href: '#' },
-    { label: 'Home & Kitchen', href: '#' },
-    { label: 'Sports & Fitness', href: '#' },
-    { label: 'Toys & Games', href: '#' },
+    { label: 'Electronics', href: '/category/electronics' },
+    { label: 'Apparel', href: '/category/apparel' },
+    { label: 'Home & Kitchen', href: '/category/home-kitchen' },
+    { label: 'Sports & Fitness', href: '/category/sports-fitness' },
+    { label: 'Toys & Games', href: '/category/toys-games' },
   ],
   support: [
-    { label: 'Help Center', href: '#' },
-    { label: 'Shipping & Logistics', href: '#' },
-    { label: 'Returns & Refunds', href: '#' },
-    { label: 'Contact Us', href: '#' },
-    { label: 'FAQ', href: '#' },
+    { label: 'Help Center', href: '/support/help-center' },
+    { label: 'Shipping & Logistics', href: '/support/shipping-logistics' },
+    { label: 'Returns & Refunds', href: '/support/returns-refunds' },
+    { label: 'Contact Us', href: '/support/contact-us' },
+    { label: 'FAQ', href: '/support/faq' },
   ],
 };
 
@@ -52,7 +53,7 @@ const Footer = () => {
   return (
     <footer className="bg-slate-950 text-slate-300 border-t border-slate-800">
       {/* Top CTA banner */}
-      <section className="relative overflow-hidden">
+      {/* <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-700/20 via-sky-500/10 to-transparent pointer-events-none" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -82,7 +83,7 @@ const Footer = () => {
             </form>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Main footer content */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
@@ -106,7 +107,7 @@ const Footer = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.5 8h4V23h-4zM8.5 8h3.8v2.05h.05c.53-1 1.82-2.05 3.74-2.05 4 0 4.74 2.63 4.74 6.05V23h-4v-6.5c0-1.55-.03-3.55-2.17-3.55-2.17 0-2.5 1.7-2.5 3.45V23h-4z"/></svg>
               </SocialIcon>
               <SocialIcon name="Instagram" href="#">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.9.2 2.4.4.6.2 1 .5 1.5 1 .5.5.8.9 1 1.5.2.5.3 1.2.4 2.4.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.2 1.9-.4 2.4-.2.6-.5 1-1 1.5-.5.5-.9.8-1.5 1-.5.2-1.2.3-2.4.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.9-.2-2.4-.4-.6-.2-1-.5-1.5-1-.5-.5-.8-.9-1-1.5-.2-.5-.3-1.2-.4-2.4C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.9.4-2.4.2-.6.5-1 1-1.5.5-.5.9-.8 1.5-1 .5-.2 1.2-.3 2.4-.4C8.4 2.2 8.8 2.2 12 2.2m0-2.2C8.7 0 8.3 0 7 .1 5.7.2 4.8.3 4 .6c-.9.3-1.7.7-2.4 1.4C.9 2.6.5 3.4.2 4.3c-.3.8-.4 1.7-.5 3C-.4 8.6-.4 9 0 12s.4 3.4.7 4.7c.3 1.3.4 2.2.7 3 .3.9.7 1.7 1.4 2.4.7.7 1.5 1.1 2.4 1.4.8.3 1.7.4 3 .5 1.3.1 1.7.1 4.7.1s3.4 0 4.7-.1c1.3-.1 2.2-.2 3-.5.9-.3 1.7-.7 2.4-1.4.7-.7 1.1-1.5 1.4-2.4.3-.8.4-1.7.5-3 .1-1.3.1-1.7.1-4.7s0-3.4-.1-4.7c-.1-1.3-.2-2.2-.5-3-.3-.9-.7-1.7-1.4-2.4C21.4.9 20.6.5 19.7.2 18.9-.1 18 .1 16.7 0 15.4 0 15 0 12 0z"/><path d="M12 5.8A6.2 6.2 0 1 0 18.2 12 6.2 6.2 0 0 0 12 5.8m0 10.2A4 4 0 1 1 16 12a4 4 0 0 1-4 4z"/><circle cx="18.5" cy="5.5" r="1.3"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.9.2 2.4.4.6.2 1 .5 1.5 1 .5.5.8.9 1 1.5.2.5.3 1.2.4 2.4.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.2 1.9-.4 2.4-.2.6-.5 1-1.5 1.5-.5.5-.9.8-1.5 1-.5.2-1.2.3-2.4.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.9-.2-2.4-.4-.6-.2-1-.5-1.5-1-.5-.5-.8-.9-1-1.5-.2-.5-.3-1.2-.4-2.4C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.9.4-2.4.2-.6.5-1 1-1.5.5-.5.9-.8 1.5-1 .5-.2 1.2-.3 2.4-.4C8.4 2.2 8.8 2.2 12 2.2m0-2.2C8.7 0 8.3 0 7 .1 5.7.2 4.8.3 4 .6c-.9.3-1.7.7-2.4 1.4C.9 2.6.5 3.4.2 4.3c-.3.8-.4 1.7-.5 3C-.4 8.6-.4 9 0 12s.4 3.4.7 4.7c.3 1.3.4 2.2.7 3 .3.9.7 1.7 1.4 2.4.7.7 1.5 1.1 2.4 1.4.8.3 1.7.4 3 .5 1.3.1 1.7.1 4.7.1s3.4 0 4.7-.1c1.3-.1 2.2-.2 3-.5.9-.3 1.7-.7 2.4-1.4.7-.7 1.1-1.5 1.4-2.4.3-.8.4-1.7.5-3 .1-1.3.1-1.7.1-4.7s0-3.4-.1-4.7c-.1-1.3-.2-2.2-.5-3-.3-.9-.7-1.7-1.4-2.4C21.4.9 20.6.5 19.7.2 18.9-.1 18 .1 16.7 0 15.4 0 15 0 12 0z"/><path d="M12 5.8A6.2 6.2 0 1 0 18.2 12 6.2 6.2 0 0 0 12 5.8m0 10.2A4 4 0 1 1 16 12a4 4 0 0 1-4 4z"/><circle cx="18.5" cy="5.5" r="1.3"/></svg>
               </SocialIcon>
               <SocialIcon name="Facebook" href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.3V12h2.3V9.7c0-2.3 1.4-3.6 3.5-3.6 1 0 2 .2 2 .2v2.2H15c-1.1 0-1.5.7-1.5 1.5V12h2.6l-.4 2.9h-2.2v7A10 10 0 0 0 22 12z"/></svg>
@@ -120,13 +121,13 @@ const Footer = () => {
             <ul className="mt-4 space-y-3 text-sm">
               {links.marketplace.map((l) => (
                 <li key={l.label}>
-                  <a
-                    href={l.href}
+                  <Link
+                    to={l.href}
                     className="inline-flex items-center gap-2 text-slate-400 transition hover:text-sky-400"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
                     {l.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -138,13 +139,14 @@ const Footer = () => {
             <ul className="mt-4 space-y-3 text-sm">
               {links.categories.map((l) => (
                 <li key={l.label}>
-                  <a
-                    href={l.href}
+                  {/* Clicking this link routes to auctions page with category as query param */}
+                  <Link
+                    to={`/auctions?category=${encodeURIComponent(l.label)}`}
                     className="inline-flex items-center gap-2 text-slate-400 transition hover:text-sky-400"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
                     {l.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -156,13 +158,13 @@ const Footer = () => {
             <ul className="mt-4 space-y-3 text-sm">
               {links.support.map((l) => (
                 <li key={l.label}>
-                  <a
-                    href={l.href}
+                  <Link
+                    to={l.href}
                     className="inline-flex items-center gap-2 text-slate-400 transition hover:text-sky-400"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
                     {l.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -170,42 +172,15 @@ const Footer = () => {
 
           {/* Contact & Apps */}
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold tracking-wide text-slate-200">Get the app</h4>
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
-              <a
-                href="#"
-                className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2 text-slate-300 transition hover:border-slate-700 hover:bg-slate-800"
-              >
-                <div className="grid place-items-center h-8 w-8 rounded-md bg-slate-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M12 2c2.2 0 2.5 0 3.4.1.8.1 1.4.3 1.9.6.6.3 1 .7 1.5 1.2.5.5.9.9 1.2 1.5.3.5.5 1.1.6 1.9.1.9.1 1.2.1 3.4s0 2.5-.1 3.4c-.1.8-.3 1.4-.6 1.9-.3.6-.7 1-1.2 1.5-.5.5-.9.9-1.5 1.2-.5.3-1.1.5-1.9.6-.9.1-1.2.1-3.4.1s-2.5 0-3.4-.1c-.8-.1-1.4-.3-1.9-.6-.6-.3-1-.7-1.5-1.2-.5-.5-.9-.9-1.2-1.5-.3-.5-.5-1.1-.6-1.9C4 14.5 4 14.2 4 12s0-2.5.1-3.4c.1-.8.3-1.4.6-1.9.3-.6.7-1 1.2-1.5.5-.5.9-.9 1.5-1.2.5-.3 1.1-.5 1.9-.6C9.5 2 9.8 2 12 2z"/></svg>
-                </div>
-                <div className="leading-tight">
-                  <div className="text-[10px] text-slate-400">Download on the</div>
-                  <div className="text-sm font-semibold text-white">App Store</div>
-                </div>
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2 text-slate-300 transition hover:border-slate-700 hover:bg-slate-800"
-              >
-                <div className="grid place-items-center h-8 w-8 rounded-md bg-slate-800">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M1 21l22-9L1 3v7l15 1-15 1z"/></svg>
-                </div>
-                <div className="leading-tight">
-                  <div className="text-[10px] text-slate-400">Get it on</div>
-                  <div className="text-sm font-semibold text-white">Google Play</div>
-                </div>
-              </a>
-            </div>
+            
 
-            <div className="pt-2">
+            
               <h4 className="text-sm font-semibold tracking-wide text-slate-200">Contact</h4>
               <ul className="mt-3 space-y-2 text-sm text-slate-400">
                 <li className="flex items-center gap-2"><span className="text-slate-500">Address:</span> 123 Commerce St, Suite 400</li>
                 <li className="flex items-center gap-2"><span className="text-slate-500">Phone:</span> +1 (555) 123-4567</li>
-                <li className="flex items-center gap-2"><span className="text-slate-500">Email:</span> support@Sales Bid.com</li>
+                <li className="flex items-center gap-2"><span className="text-slate-500">Email:</span> support@SalesBid.com</li>
               </ul>
-            </div>
           </div>
         </div>
 

@@ -191,12 +191,18 @@ export const getProducts = async (
 /**
  * Legacy function for backward compatibility
  * Fetches all products without pagination (returns first 1000 records)
+ * Accepts optional category filter.
  * @deprecated Use getProducts() with pagination instead
+ * @param category Optional category to filter products
  * @returns Promise with all products
  */
-export const getAllProducts = async (): Promise<LegacyProductResponse> => {
+export const getAllProducts = async (category?: string): Promise<LegacyProductResponse> => {
   try {
-    const response = await getProducts(1, 1000); // Get first 1000 records
+    const filters: Partial<SearchParams> = {};
+    if (category) {
+      filters.categories = [category];
+    }
+    const response = await getProducts(1, 1000, filters); // Get first 1000 records
     return {
       success: response.success,
       count: response.data.length,

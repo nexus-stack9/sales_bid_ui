@@ -10,7 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000
  */
 export const getUserAddresses = async (userId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/address/getUserAddresses/${userId}`);
+    const response = await axios.get(`${API_BASE_URL}/addres/address/${userId}`);
     return response.data.addresses;
   } catch (err) {
     throw err.response?.data || err;
@@ -24,7 +24,7 @@ export const getUserAddresses = async (userId) => {
  */
 export const addUserAddress = async (addressData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/address/addAddress`, addressData);
+    const response = await axios.post(`${API_BASE_URL}/addres/addAddress`, addressData);
     return response.data.address;
   } catch (err) {
     throw err.response?.data || err;
@@ -32,18 +32,18 @@ export const addUserAddress = async (addressData) => {
 };
 
 
-export const deleteUserAddress = async (addressData) => {
+export const deleteUserAddress = async (addressId) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/address/addAddress`, addressData);
+    const response = await axios.delete(`${API_BASE_URL}/addres/deleteAddress/${addressId}`);
     return response.data.address;
   } catch (err) {
     throw err.response?.data || err;
   }
 };
 
-export const updateUserAddress = async (addressData) => {
+export const updateUserAddress = async (addressId, addressData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/address/addAddress`, addressData);
+    const response = await axios.put(`${API_BASE_URL}/addres/editAddress/${addressId}`, addressData);
     return response.data.address;
   } catch (err) {
     throw err.response?.data || err;

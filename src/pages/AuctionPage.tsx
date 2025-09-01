@@ -27,6 +27,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMediaQuery } from "../hooks/use-media-query";
 import Layout from "@/components/layout/Layout";
+import { useLocation } from "react-router-dom";
 
 const AuctionPage: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -34,6 +35,7 @@ const AuctionPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>("ending_soon");
   const { toast } = useToast();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const location = useLocation();
   
   // Use ref to prevent initial load race conditions
   const hasInitiallyLoaded = useRef(false);
@@ -72,6 +74,22 @@ const AuctionPage: React.FC = () => {
     condition: [],
     searchQuery: "",
   });
+
+  // Helper to get query param
+  const getCategoryFromQuery = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get("category");
+  };
+
+  // Set category from query param whenever location.search changes
+  useEffect(() => {
+    const category = getCategoryFromQuery();
+    setFilters(prev => ({
+      ...prev,
+      categories: category ? [category] : [],
+    }));
+    lastRequestRef.current = ""; // Reset request so API is called
+  }, [location.search]);
 
   // Update maxPrice and initialize filters properly when products first load
   useEffect(() => {
