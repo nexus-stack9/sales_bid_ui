@@ -5,7 +5,6 @@ import styles from "./ProductDetailPage.module.css";
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import fridgeWebp from "@/assets/fridge.webp";
 import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock, FaShoppingCart } from 'react-icons/fa';
 import { Heart, Share2 } from 'lucide-react';
 import ShippingOptionsModal from '@/components/modals/ShippingOptionsModal';
@@ -26,7 +25,7 @@ const ProductDetailPage = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [bidAmount, setBidAmount] = useState<number | ''>('');
   const [mobileAccordionOpen, setMobileAccordionOpen] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(fridgeWebp);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [showShippingModal, setShowShippingModal] = useState(false);

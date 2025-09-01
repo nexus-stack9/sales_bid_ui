@@ -46,6 +46,22 @@ const MyBids = () => {
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const [newBidAmount, setNewBidAmount] = useState('');
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  const handleCardClick = (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation();
+    window.scrollTo(0, 0);
+    navigate(`/auctions/${productId}`);
+  };
+
+  const handleCardContainerClick = (e: React.MouseEvent, productId: number) => {
+    // Only navigate if the click wasn't on a button, link, or other interactive element
+    const target = e.target as HTMLElement;
+    if (!target.closest('button, a, [role="button"]')) {
+      window.scrollTo(0, 0);
+      navigate(`/auctions/${productId}`);
+    }
+  };
 
   // Memoize the fetchBids function to prevent unnecessary re-renders
   const fetchBids = React.useCallback(async () => {
@@ -134,7 +150,6 @@ const MyBids = () => {
           </Badge>
         );
       case 'ended':
-        const isWinning = parseFloat(bidAmount) >= parseFloat(maxBidAmount);
         if (isWinning) {
           return (
             <Badge className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 font-medium shadow-sm">
@@ -206,16 +221,6 @@ const MyBids = () => {
   const winningBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount));
   const losingBids = items.filter(item => item.status === 'active' && parseFloat(item.bid_amount) < parseFloat(item.max_bid_amount));
 
-  const navigate = useNavigate();
-
-  const handleCardClick = (productId: number, e: React.MouseEvent) => {
-    // Prevent navigation if the click was on a button or link inside the card
-    const target = e.target as HTMLElement;
-    if (target.closest('button, a')) {
-      return;
-    }
-    navigate(`/auctions/${productId}`);
-  };
 
   const CountdownTimer = ({ endDate }: { endDate: string }) => {
     const [timeLeft, setTimeLeft] = useState(getPaymentTimeLeft(endDate));
@@ -244,7 +249,10 @@ const MyBids = () => {
     const isWon = item.status === 'active' && parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount);
 
     return (
-      <div className="w-[320px] sm:max-w-[280px] mx-auto bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <div 
+        className="w-[320px] sm:max-w-[280px] mx-auto bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+        onClick={(e) => handleCardContainerClick(e, item.product_id)}
+      >
         <div className="relative pt-[75%] overflow-hidden">
           <img 
             src={item.image_path.split(',')[0]} 
@@ -293,7 +301,7 @@ const MyBids = () => {
   <button 
     onClick={(e) => {
       e.stopPropagation();
-      navigate(`/auctions/${item.product_id}`);
+      handleCardClick(e, item.product_id);
     }}
     className="w-full px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm"
   >
@@ -403,85 +411,85 @@ const MyBids = () => {
           </div>
           
           <Tabs defaultValue="active" className="w-full">
-            <TabsList className="grid grid-cols-4 w-full mb-8 sm:mb-10 bg-transparent p-0 border-b border-gray-200">
+            <TabsList className="grid grid-cols-4 w-full mb-6 sm:mb-8 bg-transparent p-0 border-b border-gray-200 gap-0.5">
               <TabsTrigger 
                 value="active" 
-                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                className="relative px-1 py-2 text-xs font-medium transition-all duration-200
                   text-gray-500 hover:text-primary data-[state=active]:text-primary data-[state=active]:font-semibold
                   group flex flex-col items-center justify-center"
               >
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 flex-shrink-0" />
                   <span>Active</span>
                   <span className={cn(
-                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "bg-gray-100 text-gray-600 rounded-full px-1 py-0.5 text-[10px] font-medium min-w-[18px] h-4 flex items-center justify-center",
                     "group-data-[state=active]:bg-primary/10 group-data-[state=active]:text-primary",
                     "group-hover:bg-gray-200"
                   )}>
                     {activeBids.length}
                   </span>
                 </div>
-                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-primary group-data-[state=active]:h-[2px] transition-all duration-200" />
+                <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-transparent group-data-[state=active]:bg-primary group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
               
               <TabsTrigger 
                 value="winning" 
-                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                className="relative px-1 py-2 text-xs font-medium transition-all duration-200
                   text-gray-500 hover:text-emerald-600 data-[state=active]:text-emerald-600
                   data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
-                <div className="flex items-center gap-1.5">
-                  <Trophy className="w-3.5 h-3.5 flex-shrink-0" />
+                <div className="flex items-center gap-1">
+                  <Trophy className="w-3 h-3 flex-shrink-0" />
                   <span>Winning</span>
                   <span className={cn(
-                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "bg-gray-100 text-gray-600 rounded-full px-1 py-0.5 text-[10px] font-medium min-w-[18px] h-4 flex items-center justify-center",
                     "group-data-[state=active]:bg-emerald-50 group-data-[state=active]:text-emerald-700",
                     "group-hover:bg-gray-200"
                   )}>
                     {winningBids.length}
                   </span>
                 </div>
-                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-emerald-500 group-data-[state=active]:h-[2px] transition-all duration-200" />
+                <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-transparent group-data-[state=active]:bg-emerald-500 group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
               
               <TabsTrigger 
                 value="losing" 
-                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                className="relative px-1 py-2 text-xs font-medium transition-all duration-200
                   text-gray-500 hover:text-red-600 data-[state=active]:text-red-600
                   data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
-                <div className="flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                <div className="flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3 flex-shrink-0" />
                   <span>Losing</span>
                   <span className={cn(
-                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "bg-gray-100 text-gray-600 rounded-full px-1 py-0.5 text-[10px] font-medium min-w-[18px] h-4 flex items-center justify-center",
                     "group-data-[state=active]:bg-red-50 group-data-[state=active]:text-red-700",
                     "group-hover:bg-gray-200"
                   )}>
                     {losingBids.length}
                   </span>
                 </div>
-                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-red-500 group-data-[state=active]:h-[2px] transition-all duration-200" />
+                <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-transparent group-data-[state=active]:bg-red-500 group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
               
               <TabsTrigger 
                 value="ended" 
-                className="relative px-1 py-2.5 text-xs font-medium transition-all duration-200
+                className="relative px-1 py-2 text-xs font-medium transition-all duration-200
                   text-gray-500 hover:text-gray-700 data-[state=active]:text-gray-800
                   data-[state=active]:font-semibold group flex flex-col items-center justify-center"
               >
-                <div className="flex items-center gap-1.5">
-                  <Gavel className="w-3.5 h-3.5 flex-shrink-0" />
+                <div className="flex items-center gap-1">
+                  <Gavel className="w-3 h-3 flex-shrink-0" />
                   <span>Ended</span>
                   <span className={cn(
-                    "bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5 text-[10px] font-medium min-w-[20px] text-center",
+                    "bg-gray-100 text-gray-600 rounded-full px-1 py-0.5 text-[10px] font-medium min-w-[18px] h-4 flex items-center justify-center",
                     "group-data-[state=active]:bg-gray-200 group-data-[state=active]:text-gray-800",
                     "group-hover:bg-gray-200"
                   )}>
                     {endedBids.length}
                   </span>
                 </div>
-                <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-transparent group-data-[state=active]:bg-gray-600 group-data-[state=active]:h-[2px] transition-all duration-200" />
+                <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-transparent group-data-[state=active]:bg-gray-600 group-data-[state=active]:h-[2px] transition-all duration-200" />
               </TabsTrigger>
             </TabsList>
             
