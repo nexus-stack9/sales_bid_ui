@@ -10,8 +10,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-// Replace with your actual logo import
-const logoNoBg = '/logo.png';
+import logo from '@/assets/logo.png';
 
 // Google OAuth client ID from environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -131,8 +130,8 @@ const SignIn = () => {
     <div className="flex min-h-screen">
       {/* Left side - Auction themed background */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-800 to-indigo-900 text-white p-12 flex-col justify-center relative overflow-hidden">
-        <div className="flex justify-start mb-8">
-          <img src={logoNoBg} alt="Logo" className="h-16 w-auto" />
+        <div className="flex justify-center mb-8">
+          <img src={logo} alt="Logo" className="h-16" />
         </div>
         <div className="relative z-10">
           <div className="flex items-center mb-8">
@@ -175,7 +174,7 @@ const SignIn = () => {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12">
         {/* Mobile logo - only visible on mobile */}
         <div className="lg:hidden flex justify-center w-full mb-8">
-          <img src={logoNoBg} alt="Logo" className="h-16 w-auto" />
+          <img src={logo} alt="Logo" className="h-16 w-auto" />
         </div>
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">

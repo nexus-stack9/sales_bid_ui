@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { forgotPassword } from "@/services/auth"; // Import the forgotPassword function
+import { forgotPassword } from "@/services/auth";
+import logo from "@/assets/logo.png";
 
 const ForgotPassword: React.FC = () => {
   const [contact, setContact] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,11 +32,14 @@ const ForgotPassword: React.FC = () => {
 
     try {
       // Call the forgotPassword function from auth service
-      await forgotPassword({ contact });
-
-      toast({
-        title: "Reset link sent!",
-        description: "Check your email or phone for instructions to reset your password.",
+      const response = await forgotPassword({ contact });
+      
+      // Navigate to OTP verification page with contact info and expiration time
+      navigate('/verify-otp', { 
+        state: { 
+          contact,
+          expiresIn: response.expiresIn || '10 minutes' 
+        } 
       });
       
       // Clear the input
@@ -66,7 +71,7 @@ const ForgotPassword: React.FC = () => {
       <Card className="w-full max-w-md shadow-xl border-0">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <img src="/logo.svg" alt="Sales Bid" className="h-12" />
+            <img src={logo} alt="Logo" className="h-12" />
           </div>
           <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
           <CardDescription>
@@ -103,7 +108,7 @@ const ForgotPassword: React.FC = () => {
                   Please wait
                 </>
               ) : (
-                "Send Reset Link"
+                "Submit"
               )}
             </Button>
           </form>
