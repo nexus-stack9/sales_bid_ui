@@ -42,8 +42,6 @@ import ShippingLogistics from "./pages/support/ShippingLogistics";
 import ReturnsRefunds from "./pages/support/ReturnsRefunds";
 import ContactUs from "./pages/support/ContactUs";
 import FAQ from "./pages/support/FAQ";
-import VerifyOTP from './pages/VerifyOTP';
-import ResetPassword from './pages/ResetPassword';
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
