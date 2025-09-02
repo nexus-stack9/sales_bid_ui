@@ -1,4 +1,4 @@
- import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import styles from "./ProductDetailPage.module.css";
@@ -1190,6 +1190,13 @@ const ProductDetailPage = () => {
         productId={parseInt(productId)}
         price={String(productData?.sale_price || '0')}
         shippingOptions={productData?.shipping?.split(',').map(s => s.trim()) || []}
+        productDetails={{
+          weight: productData?.weight || 0,
+          length: productData?.length || 0,
+          breadth: productData?.breadth || 0,
+          height: productData?.height || 0,
+          seller_pincode: productData?.seller_pincode || ''
+        }}
       />
       <BidModal
         isOpen={showBidModal}
