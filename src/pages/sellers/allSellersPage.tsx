@@ -7,12 +7,13 @@ import axios from 'axios';
 import sellerService from '@/services/sellerService';
 
 interface Seller {
-  id: number;
-  name: string;
+  vendor_id: number;
+  vendor_name: string;
   email: string;
-  phone: string;
+  phone_number: string;
   business_type: string;
   business_name: string;
+  profilepicturepath: string | null;
   status: 'active' | 'pending' | 'suspended';
   created_at: string;
   product_count: number;
@@ -145,7 +146,7 @@ const AllSellersPage = () => {
   // Filter sellers based on search query and filters
   const filteredSellers = sellers.filter(seller => {
     const matchesSearch = filters.searchQuery 
-      ? seller.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) || 
+      ? seller.vendor_name.toLowerCase().includes(filters.searchQuery.toLowerCase()) || 
         (seller.business_name && seller.business_name.toLowerCase().includes(filters.searchQuery.toLowerCase()))
       : true;
       
@@ -168,12 +169,29 @@ const AllSellersPage = () => {
 
   // Update total pages when filters change
   useEffect(() => {
+    const filtered = sellers.filter(seller => {
+      const matchesSearch = filters.searchQuery 
+        ? seller.vendor_name.toLowerCase().includes(filters.searchQuery.toLowerCase()) || 
+          (seller.business_name && seller.business_name.toLowerCase().includes(filters.searchQuery.toLowerCase()))
+        : true;
+        
+      const matchesBusinessType = filters.businessType 
+        ? seller.business_type === filters.businessType 
+        : true;
+        
+      const matchesStatus = filters.status 
+        ? seller.status === filters.status 
+        : true;
+        
+      return matchesSearch && matchesBusinessType && matchesStatus;
+    });
+
     setPagination(prev => ({
       ...prev,
-      totalPages: Math.ceil(filteredSellers.length / prev.itemsPerPage),
-      totalItems: filteredSellers.length
+      totalPages: Math.ceil(filtered.length / prev.itemsPerPage),
+      totalItems: filtered.length
     }));
-  }, [filteredSellers]);
+  }, [sellers, filters, pagination.itemsPerPage]);
 
   if (loading) {
     return (
@@ -313,16 +331,24 @@ const AllSellersPage = () => {
           <div className="space-y-4">
             {paginatedSellers.length > 0 ? (
               paginatedSellers.map(seller => (
-                <div key={seller.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
+                <div key={seller.vendor_id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
                   <div className="flex flex-col md:flex-row">
                     {/* Seller Logo */}
                     <div className="md:w-1/5 bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
                       <div className="relative">
-                        <div className="w-20 h-20 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-2xl font-bold text-purple-600">
-                          {seller.business_name ? 
-                            seller.business_name.charAt(0).toUpperCase() : 
-                            seller.name.charAt(0).toUpperCase()}
-                        </div>
+                        {seller.profilepicturepath ? (
+                          <img
+                            src={seller.profilepicturepath}
+                            alt={seller.business_name || seller.vendor_name}
+                            className="w-20 h-20 rounded-xl bg-white shadow-sm border border-gray-100 object-cover"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-2xl font-bold text-purple-600">
+                            {seller.business_name ? 
+                              seller.business_name.charAt(0).toUpperCase() : 
+                              seller.vendor_name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         {seller.status === 'active' && (
                           <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-sm">
                             <MdVerified className="text-emerald-500 text-xl" />
@@ -345,7 +371,7 @@ const AllSellersPage = () => {
                           <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                             <div>
                               <h2 className="text-xl font-bold text-gray-800">
-                                {seller.business_name || seller.name}
+                                {seller.business_name || seller.vendor_name}
                               </h2>
                               <p className="text-gray-500 text-sm flex items-center mt-1">
                                 <MdBusiness className="mr-1" />
@@ -369,7 +395,7 @@ const AllSellersPage = () => {
                               <MdPhone className="text-purple-500 mt-1 mr-2 flex-shrink-0" />
                               <div>
                                 <p className="text-gray-500 text-xs">Phone</p>
-                                <p className="text-gray-800 font-medium">{seller.phone || 'Not provided'}</p>
+                                <p className="text-gray-800 font-medium">{seller.phone_number || 'Not provided'}</p>
                               </div>
                             </div>
                             <div className="flex items-start">
