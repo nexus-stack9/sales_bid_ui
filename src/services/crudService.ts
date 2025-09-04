@@ -379,13 +379,23 @@ export interface Bid {
  * @param bidderId The ID of the user whose bids to fetch
  * @returns Promise<Bid[]> Array of bid objects with product details
  */
-export const getUserBids = async (bidderId: string): Promise<Bid[]> => {
+// types.ts
+export interface GroupedUserBids {
+  winning: Bid[];
+  losing: Bid[];
+  won: Bid[];
+  lost: Bid[];
+}
+
+// crudService.ts
+export const getUserBids = async (bidderId: string): Promise<GroupedUserBids> => {
   try {
     const token = Cookies.get('authToken');
     if (!token) {
       throw new Error('No authentication token found');
     }
 
+    // 🔁 Changed endpoint to return grouped data
     const response = await fetch(`${API_BASE_URL}/bids/userBids/${bidderId}`, {
       method: 'GET',
       headers: {
@@ -396,35 +406,20 @@ export const getUserBids = async (bidderId: string): Promise<Bid[]> => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Error fetching user bids: ${errorData.message || response.statusText}`);
+      throw new Error(`Error fetching grouped bids: ${errorData.message || response.statusText}`);
     }
 
-    const data = await response.json();
-    // Normalize the response to match our Bid interface
-    if (Array.isArray(data)) {
-      return data.map(item => ({
-        bid_id: item.bid_id,
-        bidder_id: item.bidder_id,
-        product_id: item.product_id,
-        bid_amount: item.bid_amount?.toString() || '0',
-        bid_time: item.bid_time,
-        is_auto_bid: item.is_auto_bid || false,
-        product_name: item.product_name || 'Unknown Product',
-        description: item.description || '',
-        starting_price: item.starting_price?.toString() || '0',
-        auction_start: item.auction_start,
-        auction_end: item.auction_end,
-        status: item.status || 'active',
-        image_path: item.image_path || '',
-        location: item.location || '',
-        quantity: item.quantity || 1,
-        tags: item.tags || '',
-        max_bid_amount: item.max_bid_amount?.toString() || '0'
-      }));
-    }
-    return [];
+    const data: GroupedUserBids = await response.json();
+
+    // Validate structure
+    return {
+      winning: Array.isArray(data.winning) ? data.winning : [],
+      losing: Array.isArray(data.losing) ? data.losing : [],
+      won: Array.isArray(data.won) ? data.won : [],
+      lost: Array.isArray(data.lost) ? data.lost : []
+    };
   } catch (error) {
-    console.error('Error fetching user bids:', error);
-    throw new Error('Failed to fetch your bids. Please try again later.');
+    console.error('Error fetching grouped user bids:', error);
+    return { winning: [], losing: [], won: [], lost: [] };
   }
 };
