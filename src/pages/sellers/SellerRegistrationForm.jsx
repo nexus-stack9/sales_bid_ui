@@ -214,39 +214,57 @@ const SellerRegistrationPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    
     e.preventDefault();
-    
+
     if (!validateStep(6)) return;
-    
+
     setIsSubmitting(true);
     setApiError('');
-    
+
     try {
+      // Build file paths
+      const email = formData.email;
+      const profilePictureFile = formData.profilePicture;
+      const panCardFile = formData.panCard;
+      const aadhaarFrontFile = formData.aadhaarFront;
+      const aadhaarBackFile = formData.aadhaarBack;
+      const bankProofFile = formData.bankProof;
+
+      // Add file path fields to formData
+      const filePathPrefix = "https://pub-a9806e1f673d447a94314a6d53e85114.r2.dev";
+      const updatedFormData = {
+        ...formData,
+        profilePicturePath: profilePictureFile ? `${filePathPrefix}/sellerProfile/${email}/${profilePictureFile.name}` : "",
+        pan_card_path: panCardFile ? `${filePathPrefix}/sellersPanCard/${email}/${panCardFile.name}` : "",
+        aadhaar_front_path: aadhaarFrontFile ? `${filePathPrefix}/sellerAdhaarFront/${email}/${aadhaarFrontFile.name}` : "",
+        aadhaar_back_path: aadhaarBackFile ? `${filePathPrefix}/sellerAdhaarBack/${email}/${aadhaarBackFile.name}` : "",
+        bank_proof_path: bankProofFile ? `${filePathPrefix}/sellerBankProof/${email}/${bankProofFile.name}` : ""
+      };
+
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== undefined) {
-          formDataToSend.append(key, formData[key]);
+      Object.keys(updatedFormData).forEach(key => {
+        if (updatedFormData[key] !== null && updatedFormData[key] !== undefined) {
+          formDataToSend.append(key, updatedFormData[key]);
         }
       });
       console.log(formDataToSend)
-      console.log(formData)
-      
-      const response = await sellerService.createSeller(formData)
+      console.log(updatedFormData)
+
+      const response = await sellerService.createSeller(updatedFormData)
       if (response.message == "Seller created successfully") {
           // Upload required KYC and bank proof
-          const filerResponse1 = await fileService.uploadFile(formData.panCard, 'sellersPanCard',response.data.id)
+          const filerResponse1 = await fileService.uploadFile(formData.panCard, 'sellersPanCard',response.data.email)
           console.log(filerResponse1)
-          const filerResponse2 = await fileService.uploadFile(formData.aadhaarFront, 'sellerAdhaarFront',response.data.id)
+          const filerResponse2 = await fileService.uploadFile(formData.aadhaarFront, 'sellerAdhaarFront',response.data.email)
           console.log(filerResponse2)
-          const filerResponse3 = await fileService.uploadFile(formData.aadhaarBack, 'sellerAdhaarBack',response.data.id)
+          const filerResponse3 = await fileService.uploadFile(formData.aadhaarBack, 'sellerAdhaarBack',response.data.email)
           console.log(filerResponse3)
-          const filerResponse4 = await fileService.uploadFile(formData.bankProof, 'sellerBankProof',response.data.id)
+          const filerResponse4 = await fileService.uploadFile(formData.bankProof, 'sellerBankProof',response.data.email)
           console.log(filerResponse4)
 
           // Upload profile picture if provided
           if (formData.profilePicture) {
-            const profileUpload = await fileService.uploadFile(formData.profilePicture, 'sellerProfile', response.data.id)
+            const profileUpload = await fileService.uploadFile(formData.profilePicture, 'sellerProfile', response.data.email)
             console.log(profileUpload)
           }
 
