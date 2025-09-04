@@ -30,6 +30,14 @@ import Layout from "@/components/layout/Layout";
 import { useLocation } from "react-router-dom";
 
 const AuctionPage: React.FC = () => {
+  const { pathname } = useLocation();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<SortOption>("ending_soon");
