@@ -30,7 +30,6 @@ const formatPrice = (amount: number): string => {
   });
 };
 
-
 const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' }) => {
   const navigate = useNavigate();
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -125,12 +124,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
     <motion.div className="group relative overflow-hidden w-full">
       <Card 
         onClick={handleCardClick}
-        className="relative overflow-hidden group h-full w-full max-w-none flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-400 hover:border-primary/70 hover:shadow-md sm:max-w-[340px] lg:max-w-[380px] xl:max-w-[420px] sm:rounded-xl mx-auto w-[calc(100%-16px)] sm:w-full"
+        className="relative overflow-hidden group h-full w-full max-w-none flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-gray-300 hover:border-gray-500 hover:shadow-md sm:max-w-[340px] lg:max-w-[380px] xl:max-w-[420px] rounded-lg mx-auto w-[calc(100%-16px)] sm:w-full"
       >
         {viewMode === 'grid' ? (
           <div className="flex flex-col h-full">
             {/* Image Container */}
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-50">
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-50 rounded-t-lg">
               <img
                 src={product.image}
                 alt={product.name}
@@ -166,7 +165,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
             </div>
 
             {/* Content */}
-            <div className="p-2.5 sm:p-4 flex-1 flex flex-col">
+            <div className="p-2.5 sm:p-4 flex-1 flex flex-col rounded-b-lg">
               {/* Title */}
               <div className="mb-2">
                 <h3 
@@ -180,13 +179,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 <div className="flex items-center gap-1.5 mb-1.5 overflow-hidden">
                   {/* Category Tag */}
                   <span className="inline-flex items-center bg-gray-200 text-gray-900 text-[12px] font-semibold px-2 py-0.5 rounded-full border border-gray-300 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
-  <svg className="w-2 h-2 mr-1 text-gray-700" fill="currentColor" viewBox="0 0 8 8">
-    <circle cx="4" cy="4" r="3" />
-  </svg>
-  {product.category || 'Category'}
-</span>
+                    <svg className="w-2 h-2 mr-1 text-gray-700" fill="currentColor" viewBox="0 0 8 8">
+                      <circle cx="4" cy="4" r="3" />
+                    </svg>
+                    {product.category || 'Category'}
+                  </span>
 
-                 
                   {/* Location Tag */}
                   <div className="flex items-center gap-1 text-xs text-gray-600 bg-blue-100 px-2 py-1 rounded-full">
                     <MapPin className="h-3 w-3 text-gray-700" />
@@ -254,7 +252,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
               </div>
             </div>
           ) : (
-            <div className="space-y-3 p-4 h-full flex flex-col">
+            <div className="space-y-3 p-4 h-full flex flex-col rounded-lg">
               <div className="flex items-center gap-4">
                 <div className="relative h-20 w-20 flex-shrink-0">
                   <img
@@ -296,7 +294,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-1"> {/* Added pt-1 for tighter spacing */}
+            <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-2">
                 <span className="text-base font-semibold text-foreground">{formatPrice(product.currentBid)}</span>
                 {product.retail_value !== undefined ? (
@@ -336,7 +334,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-1"> {/* Added pt-1 for tighter spacing */}
+            <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-sm text-primary border-primary/50">
                   <Gavel className="h-3 w-3 mr-1 text-primary" />

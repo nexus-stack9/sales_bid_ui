@@ -54,13 +54,12 @@ const ProductDetailPage = () => {
   };
 
   const getHighestBid = (bids) => {
-    if (!bids || bids.length === 0) return null;
+    if (!bids || bids.length === 0) return parseFloat(productData.starting_price);
     return Math.max(...bids.map(bid => bid.bid_amount));
   };
 
   const getCurrentBid = () => {
-    if (!productData) return 0;
-    return getHighestBid(productData.bids) || parseFloat(productData.starting_price);
+    return getHighestBid(productData.bids);
   };
 
   // Check if buy option is available
@@ -72,15 +71,12 @@ const ProductDetailPage = () => {
   const handleBuyNow = async () => {
     try {
       const userId = getUserIdFromToken();
-      
       if (!userId) {
         navigate('/login', { state: { from: location.pathname } });
         return;
       }
-
       // Show shipping options modal
       setShowShippingModal(true);
-      
     } catch (error) {
       console.error('Error processing buy now:', error);
       toast({
@@ -92,7 +88,7 @@ const ProductDetailPage = () => {
     }
   };
 
-  const handleProceedToCheckout = (shippingOption: string) => {
+  const handleProceedToCheckout = (shippingOption) => {
     navigate(`/checkout/${productId}?type=buy-now&price=${productData.sale_price}&shipping=${encodeURIComponent(shippingOption)}`);
     setShowShippingModal(false);
   };
@@ -153,12 +149,11 @@ const ProductDetailPage = () => {
       return;
     }
 
-    const handleWebSocketMessage = (message: WebSocketMessage) => {
+    const handleWebSocketMessage = (message) => {
       if (message.type === 'product_update' && message.data) {
         setProductData(prevData => ({
           ...prevData,
           ...message.data,
-          // Ensure we don't overwrite other product data
           id: prevData?.id || message.data.id,
           name: prevData?.name || message.data.name,
         }));
@@ -167,13 +162,9 @@ const ProductDetailPage = () => {
       }
     };
 
-    // Disconnect any existing connection
     webSocketService.disconnect();
-    
-    // Connect with the new product ID
     webSocketService.connect(productId, handleWebSocketMessage);
-    
-    // Cleanup on unmount or when productId changes
+
     return () => {
       webSocketService.disconnect();
     };
@@ -185,32 +176,19 @@ const ProductDetailPage = () => {
       const now = new Date().getTime();
       const endTime = new Date(productData.auction_end).getTime();
       const difference = endTime - now;
-      if (difference > 0) {
-        setTimeRemaining(Math.floor(difference / 1000));
-      } else {
-        setTimeRemaining(0);
-      }
+      setTimeRemaining(difference > 0 ? Math.floor(difference / 1000) : 0);
     };
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, [productData?.auction_end]);
 
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
+  const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
 
   const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 50) {
-      nextImage();
-    }
-    if (touchStart - touchEnd < -50) {
-      prevImage();
-    }
+    if (touchStart - touchEnd > 50) nextImage();
+    if (touchStart - touchEnd < -50) prevImage();
   };
 
   const nextImage = () => {
@@ -231,25 +209,18 @@ const ProductDetailPage = () => {
 
   const handleBidSuccess = () => {
     setBidAmount('');
-    
-    // Force a WebSocket reconnect to get the latest bid data
     if (productId) {
       webSocketService.disconnect();
-      const handleWebSocketMessage = (message: WebSocketMessage) => {
+      const handleWebSocketMessage = (message) => {
         if (message.type === 'product_update' && message.data) {
           setProductData(prevData => ({
             ...prevData,
             ...message.data,
-            // Ensure we don't overwrite other product data
             id: prevData?.id || message.data.id,
             name: prevData?.name || message.data.name,
           }));
-          setLoading(false);
-          setConnectionError(false);
         }
       };
-      
-      // Small delay to ensure the server has processed the bid
       setTimeout(() => {
         webSocketService.connect(productId, handleWebSocketMessage);
       }, 500);
@@ -269,6 +240,7 @@ const ProductDetailPage = () => {
     }
     setShowBidModal(true);
   };
+
   const handleQuickBid = (amount) => {
     if (timeRemaining > 0) {
       setBidAmount(amount);
@@ -292,7 +264,6 @@ const ProductDetailPage = () => {
     try {
       setIsWishlistLoading(true);
       const userId = getUserIdFromToken();
-      
       if (!userId) {
         toast({
           variant: 'default',
@@ -302,16 +273,7 @@ const ProductDetailPage = () => {
         });
         return;
       }
-
-      if (!productId) {
-        toast({
-          variant: 'default',
-          title: 'Error',
-          description: 'Product not found',
-          className: 'bg-white border border-red-200 text-foreground shadow-lg'
-        });
-        return;
-      }
+      if (!productId) return;
 
       if (isInWishlist) {
         await removeFromWishlist(productId, userId);
@@ -333,7 +295,6 @@ const ProductDetailPage = () => {
         });
       }
     } catch (error) {
-      console.error('Error updating wishlist:', error);
       toast({
         variant: 'default',
         title: 'Error',
@@ -352,31 +313,23 @@ const ProductDetailPage = () => {
       text: `Check out this product: ${productData?.name}`,
       url: shareUrl,
     };
+
     try {
       if (navigator.share) {
-        try {
-          await navigator.share(shareData);
-          return;
-        } catch (err) {
-          console.log('Share was not completed', err);
-        }
+        await navigator.share(shareData);
+        return;
       }
       if (navigator.clipboard) {
-        try {
-          await navigator.clipboard.writeText(shareUrl);
-          toast({
-            title: 'Success',
-            description: 'Product link copied to clipboard!',
-            className: 'bg-white border border-green-200 text-foreground shadow-lg'
-          });
-          return;
-        } catch (err) {
-          console.error('Failed to copy to clipboard:', err);
-        }
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: 'Success',
+          description: 'Link copied to clipboard!',
+          className: 'bg-white border border-green-200 text-foreground shadow-lg'
+        });
+        return;
       }
       alert(`Share this product: ${shareUrl}`);
     } catch (error) {
-      console.error('Error sharing product:', error);
       toast({
         variant: 'default',
         title: 'Error',
@@ -504,9 +457,10 @@ const ProductDetailPage = () => {
     <Layout>
       <div className={styles.container}>
         <div className={styles.contentWrapper}>
+          {/* Left Column: Images & Desktop Bid Form */}
           <div className={styles.leftColumn}>
             <div className={styles.imageGallery}>
-              <div 
+              <div
                 className={styles.mainImage}
                 ref={imageRef}
                 onTouchStart={handleTouchStart}
@@ -519,7 +473,7 @@ const ProductDetailPage = () => {
                   <div className={styles.imagePlaceholder}>No Image Available</div>
                 )}
                 <div className={styles.buttonContainer}>
-                  <button 
+                  <button
                     className={`${styles.wishlistButton} ${isInWishlist ? styles.inWishlist : ''}`}
                     onClick={handleWishlistToggle}
                     disabled={isWishlistLoading}
@@ -527,7 +481,7 @@ const ProductDetailPage = () => {
                   >
                     <Heart className={styles.heartIcon} fill={isInWishlist ? 'currentColor' : 'none'} />
                   </button>
-                  <button 
+                  <button
                     className={styles.wishlistButton}
                     onClick={handleShare}
                     aria-label="Share product"
@@ -536,6 +490,7 @@ const ProductDetailPage = () => {
                   </button>
                 </div>
               </div>
+
               <div className={`${styles.thumbnailStrip} ${styles.desktopThumbnails}`}>
                 {images.map((image, index) => (
                   <div
@@ -549,6 +504,7 @@ const ProductDetailPage = () => {
                   </div>
                 ))}
               </div>
+
               <div className={`${styles.dotsIndicator} ${styles.mobileDots}`}>
                 {images.map((_, index) => (
                   <div
@@ -564,6 +520,7 @@ const ProductDetailPage = () => {
                 ))}
               </div>
             </div>
+
             <div className={styles.desktopPlaceBidCard}>
               <div className={styles.placeBidCard}>
                 <div className={styles.bidHeader}>
@@ -580,10 +537,11 @@ const ProductDetailPage = () => {
                       <p className="text-sm font-medium text-amber-800">
                         Next minimum bid: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
                       </p>
-                      <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher than current bid</p>
+                      <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher</p>
                     </div>
                   </div>
                 </div>
+
                 <form onSubmit={handleBidSubmit} className={styles.bidForm}>
                   <div className={styles.bidInputGroup}>
                     <div className={styles.inputWrapper}>
@@ -591,10 +549,7 @@ const ProductDetailPage = () => {
                       <input
                         type="number"
                         value={bidAmount}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setBidAmount(value === '' ? '' : parseFloat(value));
-                        }}
+                        onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
                         min={getCurrentBid() + 50}
                         step={50}
                         placeholder="Enter your bid"
@@ -604,17 +559,17 @@ const ProductDetailPage = () => {
                     </div>
                   </div>
                   <div className={styles.bidButtonContainer}>
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className={styles.placeBidButton}
                       disabled={isSubmitting || timeRemaining === 0}
                     >
                       {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Bid Now'}
                       <FaGavel className={styles.buttonIcon} />
                     </button>
-                    {productData.buy_option === 1 && getCurrentBid() < parseFloat(productData.sale_price) && (
-                      <button 
-                        type="button" 
+                    {hasBuyOption() && getCurrentBid() < parseFloat(productData.sale_price) && (
+                      <button
+                        type="button"
                         className={`${styles.placeBidButton} ${styles.buyNowButton}`}
                         disabled={timeRemaining === 0}
                         onClick={handleBuyNow}
@@ -624,23 +579,18 @@ const ProductDetailPage = () => {
                     )}
                   </div>
                 </form>
+
                 <div className={styles.quickBidSection}>
                   <h3>Quick Bid Options</h3>
                   <div className={styles.quickBidOptions}>
-                    {[
-                      { amount: getCurrentBid() + 50, label: '' },
-                      { amount: getCurrentBid() + 150, label: '' },
-                      { amount: getCurrentBid() + 250, label: '' },
-                      { amount: getCurrentBid() + 500, label: '' },
-                    ].map((option, index) => (
+                    {[50, 150, 250, 500].map((increment, index) => (
                       <button
                         key={index}
-                        className={`${styles.quickBidButton} ${bidAmount === option.amount ? styles.selected : ""}`}
-                        onClick={() => handleQuickBid(option.amount)}
+                        className={`${styles.quickBidButton} ${bidAmount === getCurrentBid() + increment ? styles.selected : ""}`}
+                        onClick={() => handleQuickBid(getCurrentBid() + increment)}
                         disabled={timeRemaining === 0}
                       >
-                        {formatCurrency(option.amount)}
-                        {option.label && <span className={styles.quickBidLabel}>{option.label}</span>}
+                        {formatCurrency(getCurrentBid() + increment)}
                       </button>
                     ))}
                   </div>
@@ -648,53 +598,41 @@ const ProductDetailPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Right Column: Product Info & Mobile Bid */}
           <div className={styles.rightColumn}>
             <div className={styles.productHeader}>
-              <div className="flex justify-between items-start w-full">
-                <h1 className={styles.productTitle}>{productData.name}</h1>
-              </div>
+              <h1 className={styles.productTitle}>{productData.name}</h1>
               <div className={styles.metaGrid}>
                 <div className={`${styles.metaItem} ${styles.categoryItem}`}>
                   <span className={styles.metaLabel}><FaTag className={styles.metaIcon} /> Category</span>
-                  <span className={styles.metaValue}>
-                    {productData.category}
-                  </span>
+                  <span className={styles.metaValue}>{productData.category}</span>
                 </div>
                 <div className={`${styles.metaItem} ${styles.conditionItem}`}>
                   <span className={styles.metaLabel}><FaShieldAlt className={styles.metaIcon} /> Condition</span>
-                  <span className={`${styles.metaValue}`}>
-                    {productData.condition || 'Used'}
-                  </span>
+                  <span className={styles.metaValue}>{productData.condition || 'Used'}</span>
                 </div>
                 <div className={`${styles.metaItem} ${styles.locationItem}`}>
                   <span className={styles.metaLabel}><FaMapMarkerAlt className={styles.metaIcon} /> Location</span>
-                  <div className={styles.metaValue}>
-                    <span>{productData.location}</span>
-                  </div>
+                  <span className={styles.metaValue}>{productData.location}</span>
                 </div>
               </div>
+
               <div className={styles.priceInfo}>
                 <div className={styles.priceItem}>
-                  <div>
-                    <span className={styles.priceLabel}>Current Bid</span>
-                    <span className={styles.priceValue}>{formatCurrency(getCurrentBid())}</span>
-                  </div>
+                  <span className={styles.priceLabel}>Current Bid</span>
+                  <span className={styles.priceValue}>{formatCurrency(getCurrentBid())}</span>
                 </div>
                 <div className={styles.priceItem}>
-                  <div>
-                    <span className={styles.priceLabel}>MSRP</span>
-                    <span className={styles.priceValue}>{formatCurrency(productData.retail_value)}</span>
-                  </div>
+                  <span className={styles.priceLabel}>MSRP</span>
+                  <span className={styles.priceValue}>{formatCurrency(productData.retail_value)}</span>
                 </div>
                 <div className={styles.priceItem}>
-                  <div>
-                    <span className={styles.priceLabel}>Quantity</span>
-                    <span className={styles.priceValue}>
-                      {productData.quantity} {productData.quantity === 1 ? 'unit' : 'units'}
-                    </span>
-                  </div>
+                  <span className={styles.priceLabel}>Quantity</span>
+                  <span className={styles.priceValue}>{productData.quantity} {productData.quantity === 1 ? 'unit' : 'units'}</span>
                 </div>
               </div>
+
               <div className={styles.countdownContainer}>
                 <div className={styles.countdownLabel}>
                   <FaClock className={styles.clockIcon} />
@@ -703,30 +641,22 @@ const ProductDetailPage = () => {
                 {timeRemaining > 0 ? (
                   <div className={styles.auctionStatus}>
                     <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>
-                        {Math.floor(timeRemaining / 86400).toString().padStart(2, '0')}
-                      </span>
+                      <span className={styles.timeValue}>{String(Math.floor(timeRemaining / 86400)).padStart(2, '0')}</span>
                       <span className={styles.timeLabel}>Days</span>
                     </div>
                     <span className={styles.separator}>:</span>
                     <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>
-                        {Math.floor((timeRemaining % 86400) / 3600).toString().padStart(2, '0')}
-                      </span>
+                      <span className={styles.timeValue}>{String(Math.floor((timeRemaining % 86400) / 3600)).padStart(2, '0')}</span>
                       <span className={styles.timeLabel}>Hrs</span>
                     </div>
                     <span className={styles.separator}>:</span>
                     <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>
-                        {Math.floor((timeRemaining % 3600) / 60).toString().padStart(2, '0')}
-                      </span>
+                      <span className={styles.timeValue}>{String(Math.floor((timeRemaining % 3600) / 60)).padStart(2, '0')}</span>
                       <span className={styles.timeLabel}>Mins</span>
                     </div>
                     <span className={styles.separator}>:</span>
                     <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>
-                        {(timeRemaining % 60).toString().padStart(2, '0')}
-                      </span>
+                      <span className={styles.timeValue}>{String(timeRemaining % 60).padStart(2, '0')}</span>
                       <span className={styles.timeLabel}>Secs</span>
                     </div>
                   </div>
@@ -734,38 +664,35 @@ const ProductDetailPage = () => {
                   <span className={styles.endsInText}>Auction Ended</span>
                 )}
               </div>
+
               <div className={styles.descriptionPreview}>
                 <h3>Description</h3>
                 <Tooltip content={productData.description}>
-                  <p className={styles.descriptionText}>
-                    {productData.description}
-                  </p>
+                  <p className={styles.descriptionText}>{productData.description}</p>
                 </Tooltip>
               </div>
             </div>
 
-            {/* New Mobile Bid Card */}
+            {/* Mobile Bid Card */}
             <div className={styles.mobileBidCard}>
               <div className={styles.mobileBidAmount}>
-              Current Bid: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
+                Current Bid: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
               </div>
               <div className={styles.retailPercentageContainer}>
                 <div className={styles.retailPercentageText}>
                   {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
                 </div>
                 <div className={styles.mobileProgressBar}>
-                  <div 
-                    className={styles.mobileProgressFill} 
-                    style={{ 
-                      width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` 
-                    }}
+                  <div
+                    className={styles.mobileProgressFill}
+                    style={{ width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` }}
                   ></div>
                 </div>
               </div>
               <div className={styles.mobileRetailValue}>
                 MSRP: {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
               </div>
-              <div className={styles.mobileBidForm}>
+              <form onSubmit={handleBidSubmit} className={styles.mobileBidForm}>
                 <div className={styles.mobileBidLabel}>Place a new max bid</div>
                 <input
                   type="number"
@@ -773,18 +700,19 @@ const ProductDetailPage = () => {
                   placeholder={`Enter max bid (${formatCurrency(getCurrentBid() + 50)}+)`}
                   min={getCurrentBid() + 50}
                   value={bidAmount}
-                  onChange={(e) => setBidAmount(parseFloat(e.target.value))}
+                  onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
                 />
                 <div className={styles.mobileButtonContainer}>
-                  <button 
+                  <button
+                    type="submit"
                     className={styles.mobileBidButton}
-                    onClick={handleBidSubmit}
                     disabled={isSubmitting || timeRemaining === 0}
                   >
                     Bid Now
                   </button>
-                  {productData.buy_option === 1 && getCurrentBid() < parseFloat(productData.sale_price) && (
-                    <button 
+                  {hasBuyOption() && getCurrentBid() < parseFloat(productData.sale_price) && (
+                    <button
+                      type="button"
                       className={`${styles.mobileBidButton} ${styles.mobileBuyNowButton}`}
                       disabled={timeRemaining === 0}
                       onClick={handleBuyNow}
@@ -793,7 +721,7 @@ const ProductDetailPage = () => {
                     </button>
                   )}
                 </div>
-              </div>
+              </form>
             </div>
 
             <div className={`${styles.topBox} ${styles.hideOnMobile}`}>
@@ -802,86 +730,49 @@ const ProductDetailPage = () => {
                   <span className={styles.bidLabel}>CURRENT BID</span>
                 </div>
                 <div className={styles.bidAmount}>
-                {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
+                  {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
                 </div>
                 <div className={styles.progressBar}>
-                  <div className={styles.progressFill} style={{ width: `${(getCurrentBid() / productData.retail_value) * 100}%` }}></div>
-                </div>
-                {/* <div className={styles.bidStats}>
-                  <div className={styles.bidCount}>
-                    <FaGavel className={styles.statIcon} />
-                    {productData.bids?.length || 0} bids
-                  </div>
-                  <div className={styles.retailPercentageContainer}>
-                <div className={styles.retailPercentageText}>
-                  {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
-                </div>
-                <div className={styles.mobileProgressBar}>
-                  <div 
-                    className={styles.mobileProgressFill} 
-                    style={{ 
-                      width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` 
-                    }}
+                  <div
+                    className={styles.progressFill}
+                    style={{ width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` }}
                   ></div>
                 </div>
-              </div>
-                </div> */}
               </div>
               <div className={styles.auctionDetails}>
                 <h3>Auction Details</h3>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>MSRP:</span>
                   <span className={styles.detailValue}>
-                  {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
+                    {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
                   </span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Starting Bid:</span>
                   <span className={styles.detailValue}>{formatCurrency(productData.starting_price)}</span>
                 </div>
-                {/* <div className={`${styles.detailItem} ${styles.hideOnMobile}`}> 
-                  <span className={styles.detailLabel}>Min Increment:</span>
-                  <span className={styles.detailValue}>+{formatCurrency(50)}</span>
-                </div>
-                <div className={`${styles.detailItem} ${styles.hideOnMobile}`}> 
-                  <span className={styles.detailLabel}>Quantity:</span>
-                  <span className={styles.detailValue}>{productData.quantity} units</span>
-                </div> */}
               </div>
             </div>
           </div>
         </div>
+
         <div className={styles.mobileSpacer}></div>
+
+        {/* Desktop Tabs */}
         <div className={styles.tabbedInfoDesktop}>
           <div className={styles.tabHeaders}>
-            {[
-              "description",
-              "shipping",
-              "returns",
-              "manifest",
-              "bid-history",
-              "seller",
-            ].map((tab) => (
+            {["description", "shipping", "returns", "manifest", "bid-history", "seller"].map((tab) => (
               <button
                 key={tab}
-                className={`${styles.tabHeader} ${
-                  activeTab === tab ? styles.active : ""
-                }`}
+                className={`${styles.tabHeader} ${activeTab === tab ? styles.active : ""}`}
                 onClick={() => setActiveTab(tab)}
               >
-                {tab
-                  .split("-")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")}
+                {tab.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
               </button>
             ))}
           </div>
           <div className={styles.tabContent}>
-            {activeTab === "description" && (
-              <div className={styles.description}>
-                <p>{productData.description}</p>
-              </div>
-            )}
+            {activeTab === "description" && <div className={styles.description}><p>{productData.description}</p></div>}
             {activeTab === "shipping" && (
               <div className={styles.shippingInfo}>
                 <h4>Shipping Information</h4>
@@ -889,32 +780,12 @@ const ProductDetailPage = () => {
                   <div className={styles.shippingRow}>
                     <span className={styles.shippingLabel}>Shipping:</span>
                     <span className={styles.shippingValue}>
-                      {productData.shipping 
-                        ? productData.shipping
-                            .split(',')
-                            .map(item => item.trim()
-                                .split(' ')
-                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                                .join(' ')
-                            )
-                            .join(', ')
-                        : 'Standard Shipping'}
+                      {productData.shipping?.split(',').map(s => s.trim().replace(/\b\w/g, l => l.toUpperCase())).join(', ') || 'Standard'}
                     </span>
                   </div>
                   <div className={styles.shippingRow}>
                     <span className={styles.shippingLabel}>Location:</span>
-                    <span className={styles.shippingValue}>
-                      {productData.location 
-                        ? productData.location
-                            .split(',')
-                            .map(item => item.trim()
-                                .split(' ')
-                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                                .join(' ')
-                            )
-                            .join(', ')
-                        : 'Not Specified'}
-                    </span>
+                    <span className={styles.shippingValue}>{productData.location || 'Not Specified'}</span>
                   </div>
                 </div>
               </div>
@@ -922,19 +793,14 @@ const ProductDetailPage = () => {
             {activeTab === "returns" && (
               <div className={styles.returnsInfo}>
                 <h4>Returns Policy</h4>
-                <p>
-                  All sales are final. Please inspect items upon delivery as
-                  returns are not accepted for this auction.
-                </p>
+                <p>All sales are final. No returns accepted.</p>
               </div>
             )}
             {activeTab === "manifest" && (
               <div className={styles.manifestTable}>
                 <div className={styles.tableHeader}>
                   <h3>Full Manifest</h3>
-                  <button className={styles.downloadButton}>
-                    Download Manifest
-                  </button>
+                  <button className={styles.downloadButton}>Download Manifest</button>
                 </div>
                 <div className={styles.tableWrapper}>
                   <table>
@@ -944,7 +810,7 @@ const ProductDetailPage = () => {
                         <th>MANUFACTURER</th>
                         <th>MODEL</th>
                         <th>ITEM #</th>
-                        <th>ITEM DESCRIPTION</th>
+                        <th>DESCRIPTION</th>
                         <th>QTY</th>
                         <th>UNIT RETAIL</th>
                         <th>UNIT WEIGHT</th>
@@ -953,32 +819,10 @@ const ProductDetailPage = () => {
                     </thead>
                     <tbody>
                       {[
-                        {
-                          lotId: "3284U",
-                          manufacturer: "Mirooka",
-                          model: "E1ET2/200MV",
-                          itemNumber: "485104276",
-                          description: "27 inch electric vertical laundry...",
-                          quantity: 1,
-                          unitRetail: 2349.0 * 85,
-                          unitWeight: "346 lbs",
-                          condition: "Used Good",
-                          category: "Electronics"
-                        },
-                        {
-                          lotId: "3284U",
-                          manufacturer: "Mirooka",
-                          model: "E1ET2/400MT",
-                          itemNumber: "485107514",
-                          description: "27 inch electric vertical laundry...",
-                          quantity: 1,
-                          unitRetail: 3049.0 * 85,
-                          unitWeight: "346 lbs",
-                          condition: "Used Good",
-                          category: "Electronics"
-                        },
-                      ].map((item, index) => (
-                        <tr key={index}>
+                        { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/200MV", itemNumber: "485104276", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 2349 * 85, unitWeight: "346 lbs", condition: "Used Good" },
+                        { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/400MT", itemNumber: "485107514", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 3049 * 85, unitWeight: "346 lbs", condition: "Used Good" },
+                      ].map((item, i) => (
+                        <tr key={i}>
                           <td>{item.lotId}</td>
                           <td>{item.manufacturer}</td>
                           <td>{item.model}</td>
@@ -1008,8 +852,8 @@ const ProductDetailPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {productData.bids?.map((bid, index) => (
-                        <tr key={index}>
+                      {(productData.bids || []).map((bid, i) => (
+                        <tr key={i}>
                           <td>{bid.user_name}</td>
                           <td>{formatCurrency(bid.bid_amount)}</td>
                           <td>{new Date(bid.bid_time).toLocaleString()}</td>
@@ -1031,171 +875,112 @@ const ProductDetailPage = () => {
             )}
           </div>
         </div>
+
+        {/* Mobile Accordions */}
         <div className={styles.tabbedInfoMobile}>
-          {[
-            "description",
-            "shipping",
-            "returns",
-            "manifest",
-            "bid-history",
-            "seller",
-          ].map((tab) => (
+          {["description", "shipping", "returns", "manifest", "bid-history", "seller"].map((tab) => (
             <div key={tab} className={styles.accordionItem}>
               <button
-                className={`${styles.accordionHeader} ${
-                  mobileAccordionOpen === tab ? styles.active : ""
-                }`}
+                className={`${styles.accordionHeader} ${mobileAccordionOpen === tab ? styles.active : ""}`}
                 onClick={() => toggleMobileAccordion(tab)}
               >
-                {tab
-                  .split("-")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")}
-                <span className={styles.accordionIcon}>
-                  {mobileAccordionOpen === tab ? "−" : "+"}
-                </span>
+                {tab.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
+                <span className={styles.accordionIcon}>{mobileAccordionOpen === tab ? "−" : "+"}</span>
               </button>
               <div
-                className={`${styles.accordionContent} ${
-                  mobileAccordionOpen === tab ? styles.open : ""
-                }`}
+                className={`${styles.accordionContent} ${mobileAccordionOpen === tab ? styles.open : ""}`}
               >
-                {tab === "description" && (
-                  <div className={styles.description}>
-                    <p>{productData.description}</p>
-                  </div>
-                )}
-                {tab === "shipping" && (
-                  <div className={styles.shippingInfo}>
-                    <p>Shipping: {productData.shipping}</p>
-                    <p>Location: {productData.location}</p>
-                  </div>
-                )}
-                {tab === "returns" && (
-                  <div className={styles.returnsInfo}>
-                    <p>All sales are final.</p>
-                  </div>
-                )}
-                {tab === "manifest" && (
-                  <div className={styles.mobileManifestContainer}>
-                    <div className={styles.scrollableTableContainer}>
-                      <table className={styles.fullManifestTable}>
+                <div className={styles.accordionContentPadding}>
+                  {tab === "description" && <p>{productData.description}</p>}
+                  {tab === "shipping" && (
+                    <>
+                      <p><strong>Shipping:</strong> {productData.shipping || 'Standard'}</p>
+                      <p><strong>Location:</strong> {productData.location || 'Not Specified'}</p>
+                    </>
+                  )}
+                  {tab === "returns" && <p>All sales are final. No returns accepted.</p>}
+                  {tab === "manifest" && (
+                    <>
+                      <div className={styles.scrollableTableContainer}>
+                        <table className={styles.fullManifestTable}>
+                          <thead>
+                            <tr>
+                              <th>LOT ID</th>
+                              <th>MANUFACTURER</th>
+                              <th>MODEL</th>
+                              <th>ITEM #</th>
+                              <th>DESCRIPTION</th>
+                              <th>QTY</th>
+                              <th>UNIT RETAIL</th>
+                              <th>UNIT WEIGHT</th>
+                              <th>CONDITION</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/200MV", itemNumber: "485104276", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 2349 * 85, unitWeight: "346 lbs", condition: "Used Good" },
+                              { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/400MT", itemNumber: "485107514", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 3049 * 85, unitWeight: "346 lbs", condition: "Used Good" },
+                            ].map((item, i) => (
+                              <tr key={i}>
+                                <td>{item.lotId}</td>
+                                <td>{item.manufacturer}</td>
+                                <td>{item.model}</td>
+                                <td>{item.itemNumber}</td>
+                                <td>{item.description}</td>
+                                <td>{item.quantity}</td>
+                                <td>{formatCurrency(item.unitRetail)}</td>
+                                <td>{item.unitWeight}</td>
+                                <td>{item.condition}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <button className={styles.downloadButton}>Download Full Manifest</button>
+                    </>
+                  )}
+                  {tab === "bid-history" && (
+                    <div className={styles.historyTable}>
+                      <table>
                         <thead>
                           <tr>
-                            <th>LOT ID</th>
-                            <th>MANUFACTURER</th>
-                            <th>MODEL</th>
-                            <th>ITEM #</th>
-                            <th>DESCRIPTION</th>
-                            <th>QTY</th>
-                            <th>UNIT RETAIL</th>
-                            <th>UNIT WEIGHT</th>
-                            <th>CONDITION</th>
+                            <th>Bidder</th>
+                            <th>Amount</th>
+                            <th>Time</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {[
-                            {
-                              lotId: "3284U",
-                              manufacturer: "Mirooka",
-                              model: "E1ET2/200MV",
-                              itemNumber: "485104276",
-                              description: "27 inch electric vertical laundry...",
-                              quantity: 1,
-                              unitRetail: 2349.0 * 85,
-                              unitWeight: "346 lbs",
-                              condition: "Used Good",
-                            },
-                            {
-                              lotId: "3284U",
-                              manufacturer: "Mirooka",
-                              model: "E1ET2/400MT",
-                              itemNumber: "485107514",
-                              description: "27 inch electric vertical laundry...",
-                              quantity: 1,
-                              unitRetail: 3049.0 * 85,
-                              unitWeight: "346 lbs",
-                              condition: "Used Good",
-                            },
-                          ].slice(0, 2).map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.lotId}</td>
-                              <td>{item.manufacturer}</td>
-                              <td>{item.model}</td>
-                              <td>{item.itemNumber}</td>
-                              <td>{item.description}</td>
-                              <td>{item.quantity}</td>
-                              <td>{formatCurrency(item.unitRetail)}</td>
-                              <td>{item.unitWeight}</td>
-                              <td>{item.condition}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <button className={styles.downloadButton}>
-                      Download Full Manifest
-                    </button>
-                  </div>
-                )}
-                {tab === "bid-history" && (
-                  <div className={styles.bidHistoryTab}>
-                    <div className={styles.historyTable}>
-                      <table>
-                        <tbody>
-                          {productData.bids?.slice(0, 3).map((bid, index) => (
-                            <tr key={index}>
+                          {(productData.bids || []).map((bid, i) => (
+                            <tr key={i}>
                               <td>{bid.user_name}</td>
                               <td>{formatCurrency(bid.bid_amount)}</td>
+                              <td>{new Date(bid.bid_time).toLocaleString()}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
-                  </div>
-                )}
-                {tab === "seller" && (
-                  <div className={styles.sellerInfo}>
-                    <div className={styles.sellerDetails}>
-                      <div className={styles.sellerNameRating}>
-                        <span className={styles.sellerName}>{productData.seller}</span>
-                        <span className={styles.sellerRating}>
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <span
-                              key={i}
-                              className={
-                                i < 4 ? styles.starFilled : styles.starEmpty
-                              }
-                            >
-                              ★
-                            </span>
-                          ))}
-                          (4.8)
-                        </span>
-                      </div>
-                      <div className={styles.sellerTerms}>
-                        <strong>Terms:</strong> Standard auction terms apply
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  )}
+                  {tab === "seller" && <p>Seller: {productData.seller}</p>}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
       <ShippingOptionsModal
         isOpen={showShippingModal}
         onClose={() => setShowShippingModal(false)}
         productId={parseInt(productId)}
-        price={String(productData?.sale_price || '0')}
-        shippingOptions={productData?.shipping?.split(',').map(s => s.trim()) || []}
+        price={String(productData.sale_price || '0')}
+        shippingOptions={productData.shipping?.split(',').map(s => s.trim()) || []}
         productDetails={{
-          weight: productData?.weight || 0,
-          length: productData?.length || 0,
-          breadth: productData?.breadth || 0,
-          height: productData?.height || 0,
-          seller_pincode: productData?.seller_pincode || ''
+          weight: productData.weight || 0,
+          length: productData.length || 0,
+          breadth: productData.breadth || 0,
+          height: productData.height || 0,
+          seller_pincode: productData.seller_pincode || ''
         }}
       />
       <BidModal
