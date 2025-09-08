@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CreditCard, MapPin, Plus, Shield, Clock, Check, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,71 +9,152 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { getUserIdFromToken, getUserBids } from "@/services/crudService";
+import { getUserAddresses, addUserAddress } from "@/services/addressService";
 
-interface Address {
-  id: string;
-  name: string;
+interface UserAddress {
+  addressId: number;
+  label: string;
   street: string;
   city: string;
   state: string;
-  zipCode: string;
+  postalCode: string;
   country: string;
-  isDefault: boolean;
+  isPrimary: boolean;
 }
 
-const savedAddresses: Address[] = [
-  {
-    id: '1',
-    name: 'Home',
-    street: '123 Main Street, Apt 4B',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10001',
-    country: 'United States',
-    isDefault: true
-  },
-  {
-    id: '2',
-    name: 'Office',
-    street: '456 Business Ave, Suite 200',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10002',
-    country: 'United States',
-    isDefault: false
-  }
-];
-
-// Sample bid data - in real app this would come from API
-const getBidData = (bidId: string) => ({
-  id: bidId,
-  itemName: 'Vintage Rolex Submariner 1970',
-  imageUrl: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&h=300&fit=crop',
-  bidAmount: 12500,
-  paymentDeadline: new Date(Date.now() + 43200000) // 12 hours from now
-});
+interface DisplayBid {
+  id: number;
+  itemName: string;
+  imageUrl: string;
+  bidAmount: number;
+  paymentDeadline?: Date;
+}
 
 export default function PaymentPage() {
-  const { bidId } = useParams();
+  // Support either /pay/:bidId or /pay/:orderId from route
+  const { bidId, orderId } = useParams();
+  const routeBidId = bidId || orderId; 
   const navigate = useNavigate();
   const [step, setStep] = useState<'payment' | 'address' | 'review' | 'processing' | 'success'>('payment');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'razorpay'>('razorpay');
-  const [selectedAddress, setSelectedAddress] = useState(savedAddresses[0].id);
-  const [showNewAddress, setShowNewAddress] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
-  const bid = getBidData(bidId || '1');
+  // Dynamic data
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
+  const [showNewAddress, setShowNewAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    label: "",
+    street: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
+  });
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bid, setBid] = useState<DisplayBid | null>(null);
+
+  // Load bid details and user addresses
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const userId = getUserIdFromToken();
+        if (!userId) {
+          navigate('/auth/signin');
+          return;
+        }
+
+        // Load addresses
+        const addr = await getUserAddresses(Number(userId));
+        const normalizedAddresses: UserAddress[] = Array.isArray(addr) ? addr : [];
+        setAddresses(normalizedAddresses);
+        const primary = normalizedAddresses.find(a => a.isPrimary) || normalizedAddresses[0];
+        setSelectedAddressId(primary ? String(primary.addressId) : "");
+
+        // Load bid details by filtering user's bids
+        const allBids = await getUserBids(String(userId));
+        const found = allBids.find(b => String(b.bid_id) === String(routeBidId));
+        if (found) {
+          setBid({
+            id: found.bid_id,
+            itemName: found.product_name || 'Auction Item',
+            imageUrl: found.image_path || '/placeholder.svg',
+            bidAmount: parseFloat(found.bid_amount || '0') || 0,
+            // Use auction_end as a rough deadline fallback
+            paymentDeadline: found.auction_end ? new Date(found.auction_end) : new Date(Date.now() + 12 * 60 * 60 * 1000),
+          });
+        } else {
+          // Fallback when not found - minimal safe default
+          setBid({
+            id: routeBidId ? Number(routeBidId) : 0,
+            itemName: 'Auction Item',
+            imageUrl: '/placeholder.svg',
+            bidAmount: 0,
+            paymentDeadline: new Date(Date.now() + 12 * 60 * 60 * 1000),
+          });
+        }
+      } catch (e) {
+        console.error('Failed to load payment data', e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [routeBidId, navigate]);
+
+  const totalAmount = useMemo(() => {
+    const base = bid?.bidAmount ?? 0;
+    return base + base * 0.03 + 25; // item + fee + shipping
+  }, [bid]);
+
+  const selectedAddressData = useMemo(() => {
+    return addresses.find(a => String(a.addressId) === selectedAddressId) || null;
+  }, [addresses, selectedAddressId]);
 
   const getTimeRemaining = (deadline: Date) => {
     const now = new Date();
     const diff = deadline.getTime() - now.getTime();
-    
     if (diff <= 0) return 'Expired';
-    
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `₹{hours}h ₹{minutes}m`;
+    return `${hours}h ${minutes}m`;
+  };
+
+  // Geolocation autofill (similar to Profile)
+  const autofillFromLocation = () => {
+    if (!navigator.geolocation) {
+      console.warn('Geolocation not supported');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude, longitude } = pos.coords;
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+        const data = await res.json();
+        const street =
+          data.address.road ||
+          data.address.suburb ||
+          data.address.city_district ||
+          data.address.neighbourhood ||
+          data.address.pedestrian ||
+          data.address.village ||
+          "";
+        setAddressForm(prev => ({
+          ...prev,
+          street,
+          city: data.address.city || data.address.town || data.address.village || "",
+          state: data.address.state || data.address.state_district || "",
+          postalCode: data.address.postcode || "",
+          country: data.address.country || "",
+        }));
+      } catch (err) {
+        console.error('Failed to fetch location', err);
+      }
+    });
   };
 
   // Razorpay script loader
@@ -87,21 +168,44 @@ export default function PaymentPage() {
     document.body.appendChild(script);
   });
 
+  const logCheckoutContext = () => {
+    const base = bid?.bidAmount ?? 0;
+    const payload = {
+      paymentMethod,
+      bid: bid ? {
+        id: bid.id,
+        itemName: bid.itemName,
+        amount: base,
+      } : null,
+      totals: {
+        item: base,
+        fee: base * 0.03,
+        shipping: 25,
+        total: totalAmount,
+      },
+      selectedAddress: selectedAddressData || (showNewAddress ? addressForm : null),
+    };
+    console.log('Checkout payload:', payload);
+  };
+
   const handlePayment = async () => {
+    // Log details at Pay click time (before redirect/payment)
+    logCheckoutContext();
+
     if (paymentMethod === 'razorpay') {
       const loaded = await loadRazorpay();
-      if (!loaded) return;
+      if (!loaded || !bid) return;
 
-      // In real app: create order on server and use returned order_id
       const options: any = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || '',
-        amount: Math.round(totalAmount * 100), // in paise
+        amount: Math.round(totalAmount * 100),
         currency: 'INR',
         name: 'SalesBid',
         description: bid.itemName,
         image: '/favicon.ico',
         // order_id: '<server-generated-order-id>',
         handler: function () {
+          console.log('Razorpay success');
           setStep('success');
           setTimeout(() => navigate('/'), 3000);
         },
@@ -131,19 +235,44 @@ export default function PaymentPage() {
     }, 3000);
   };
 
-  const selectedAddressData = savedAddresses.find(addr => addr.id === selectedAddress);
-  const totalAmount = bid.bidAmount + (bid.bidAmount * 0.03) + 25;
-
   const getStepIndex = (currentStep: string) => {
     const steps = ['payment', 'address', 'review'];
     return steps.indexOf(currentStep);
   };
 
   const canGoNext = () => {
-    if (step === 'payment') return paymentMethod;
-    if (step === 'address') return selectedAddress || showNewAddress;
+    if (step === 'payment') return !!paymentMethod;
+    if (step === 'address') return (!!selectedAddressId && !showNewAddress) || (showNewAddress && !!addressForm.street);
     return true;
   };
+
+  const handleAddAddress = async () => {
+    try {
+      const userId = getUserIdFromToken();
+      if (!userId) {
+        navigate('/auth/signin');
+        return;
+      }
+      await addUserAddress({ ...addressForm, userId });
+      const fresh = await getUserAddresses(Number(userId));
+      const normalized: UserAddress[] = Array.isArray(fresh) ? fresh : [];
+      setAddresses(normalized);
+      const primary = normalized.find(a => a.isPrimary) || normalized[0];
+      setSelectedAddressId(primary ? String(primary.addressId) : "");
+      setShowNewAddress(false);
+      setAddressForm({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
+    } catch (e) {
+      console.error('Failed to add address', e);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-sm text-muted-foreground">Loading checkout...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-neutral-950 dark:to-black">
@@ -163,9 +292,6 @@ export default function PaymentPage() {
 
   {/* Title + Subtitle */}
   <div className="text-center flex-1">
-    {/* <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
-      Complete Your Purchase
-    </h1> */}
     <p className="text-sm sm:text-base text-muted-foreground mt-1">
       Secure checkout for your winning bid
     </p>
@@ -187,19 +313,19 @@ export default function PaymentPage() {
                 <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
                   <div className="flex gap-3">
                     <img
-                      src={bid.imageUrl}
-                      alt={bid.itemName}
+                      src={bid?.imageUrl}
+                      alt={bid?.itemName}
                       className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm sm:text-base leading-tight">{bid.itemName}</h4>
+                      <h4 className="font-medium text-sm sm:text-base leading-tight">{bid?.itemName}</h4>
                       <p className="text-xl sm:text-2xl font-bold mt-2">
-                        ₹{bid.bidAmount.toLocaleString()}
+                        ₹{(bid?.bidAmount ?? 0).toLocaleString()}
                       </p>
                     </div>
                   </div>
 
-                  {bid.paymentDeadline && (
+                  {bid?.paymentDeadline && (
                     <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border border-warning/20">
                       <Clock className="h-4 w-4 text-warning animate-countdown flex-shrink-0" />
                       <span className="text-sm font-medium">
@@ -213,11 +339,11 @@ export default function PaymentPage() {
                   <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex justify-between">
                       <span>Item Price</span>
-                      <span>₹{bid.bidAmount.toLocaleString()}</span>
+                      <span>₹{(bid?.bidAmount ?? 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Processing Fee</span>
-                      <span>₹{(bid.bidAmount * 0.03).toFixed(2)}</span>
+                      <span>₹{(((bid?.bidAmount ?? 0) * 0.03)).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>
@@ -237,14 +363,13 @@ export default function PaymentPage() {
           {/* Main Content */}
           <div className="lg:col-span-8 space-y-6">
             {/* Step Indicator */}
-           {/* Step Indicator */}
 {!['processing', 'success'].includes(step) && (
   <div className="flex items-center justify-center gap-2 sm:gap-4 px-4">
     {['payment', 'address', 'review'].map((s, index) => (
       <div key={s} className="flex items-center">
         <div
           className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-300
-            ₹{
+            ${
               step === s
                 ? s === 'payment'
                   ? 'bg-blue-500 text-white shadow-md'
@@ -264,7 +389,7 @@ export default function PaymentPage() {
         </div>
         {index < 2 && (
           <div
-            className={`w-8 sm:w-12 h-0.5 mx-1 sm:mx-2 transition-colors duration-300 ₹{
+            className={`w-8 sm:w-12 h-0.5 mx-1 sm:mx-2 transition-colors duration-300 ${
               getStepIndex(step) > index ? 'bg-success' : 'bg-muted'
             }`}
           />
@@ -274,7 +399,6 @@ export default function PaymentPage() {
   </div>
 )}
 
-
             {/* Payment Method Step */}
             {step === 'payment' && (
               <Card className="bg-background border shadow-elegant">
@@ -283,7 +407,7 @@ export default function PaymentPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">Choose Razorpay for UPI, card, or netbanking payments.</p>
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as 'card' | 'razorpay')}>
                     <div className="space-y-3 sm:space-y-4">
                       {/* Credit Card */}
                       <div className="flex items-center space-x-3 p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors">
@@ -353,18 +477,18 @@ export default function PaymentPage() {
                 <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0">
                   {!showNewAddress ? (
                     <div className="space-y-3 sm:space-y-4">
-                      <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress}>
-                        {savedAddresses.map((address) => (
-                          <div key={address.id} className="flex items-start space-x-3 p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                            <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
+                      <RadioGroup value={selectedAddressId} onValueChange={(v) => setSelectedAddressId(v)}>
+                        {addresses.map((address) => (
+                          <div key={address.addressId} className="flex items-start space-x-3 p-3 sm:p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setSelectedAddressId(String(address.addressId))}>
+                            <RadioGroupItem value={String(address.addressId)} id={String(address.addressId)} className="mt-1" />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <Label htmlFor={address.id} className="font-medium text-sm sm:text-base">{address.name}</Label>
-                                {address.isDefault && <Badge variant="outline" className="text-xs">Default</Badge>}
+                                <Label htmlFor={String(address.addressId)} className="font-medium text-sm sm:text-base">{address.label || 'Address'}</Label>
+                                {address.isPrimary && <Badge variant="outline" className="text-xs">Default</Badge>}
                               </div>
                               <p className="text-xs sm:text-sm text-muted-foreground">
                                 {address.street}<br />
-                                {address.city}, {address.state} {address.zipCode}<br />
+                                {address.city}, {address.state} {address.postalCode}<br />
                                 {address.country}
                               </p>
                             </div>
@@ -385,64 +509,39 @@ export default function PaymentPage() {
                     <div className="space-y-4 animate-fade-in">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="firstName" className="text-sm">First Name</Label>
-                          <Input id="firstName" className="mt-1" />
+                          <Label htmlFor="label" className="text-sm">Label</Label>
+                          <Input id="label" className="mt-1" value={addressForm.label} onChange={(e) => setAddressForm(prev => ({ ...prev, label: e.target.value }))} placeholder="Home / Office" />
                         </div>
                         <div>
-                          <Label htmlFor="lastName" className="text-sm">Last Name</Label>
-                          <Input id="lastName" className="mt-1" />
+                          <Label htmlFor="country" className="text-sm">Country</Label>
+                          <Input id="country" className="mt-1" value={addressForm.country} onChange={(e) => setAddressForm(prev => ({ ...prev, country: e.target.value }))} />
                         </div>
                       </div>
                       <div>
-                        <Label htmlFor="address" className="text-sm">Street Address</Label>
-                        <Input id="address" className="mt-1" />
+                        <Label htmlFor="street" className="text-sm">Street Address</Label>
+                        <Input id="street" className="mt-1" value={addressForm.street} onChange={(e) => setAddressForm(prev => ({ ...prev, street: e.target.value }))} />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="city" className="text-sm">City</Label>
-                          <Input id="city" className="mt-1" />
+                          <Input id="city" className="mt-1" value={addressForm.city} onChange={(e) => setAddressForm(prev => ({ ...prev, city: e.target.value }))} />
                         </div>
                         <div>
                           <Label htmlFor="state" className="text-sm">State</Label>
-                          <Select>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Select state" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ny">New York</SelectItem>
-                              <SelectItem value="ca">California</SelectItem>
-                              <SelectItem value="tx">Texas</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Input id="state" className="mt-1" value={addressForm.state} onChange={(e) => setAddressForm(prev => ({ ...prev, state: e.target.value }))} />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="zipCode" className="text-sm">ZIP Code</Label>
-                          <Input id="zipCode" className="mt-1" />
+                          <Label htmlFor="postalCode" className="text-sm">Postal Code</Label>
+                          <Input id="postalCode" className="mt-1" value={addressForm.postalCode} onChange={(e) => setAddressForm(prev => ({ ...prev, postalCode: e.target.value }))} />
                         </div>
-                        <div>
-                          <Label htmlFor="country" className="text-sm">Country</Label>
-                          <Select>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Select country" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="us">United States</SelectItem>
-                              <SelectItem value="ca">Canada</SelectItem>
-                              <SelectItem value="uk">United Kingdom</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        <div className="flex items-end gap-2">
+                          <Button type="button" variant="outline" onClick={autofillFromLocation} className="w-full sm:w-auto">Autofill from Location</Button>
+                          <Button onClick={handleAddAddress} className="w-full sm:w-auto">Save Address</Button>
+                          <Button variant="outline" onClick={() => setShowNewAddress(false)} className="w-full sm:w-auto">Use Saved Address</Button>
                         </div>
                       </div>
-                      
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowNewAddress(false)}
-                        className="w-full sm:w-auto"
-                      >
-                        Use Saved Address
-                      </Button>
                     </div>
                   )}
                 </CardContent>
@@ -473,10 +572,10 @@ export default function PaymentPage() {
                         <div className="flex items-start gap-2">
                           <MapPin className="h-4 w-4 mt-1" />
                           <div>
-                            <p className="font-medium text-sm sm:text-base">{selectedAddressData?.name}</p>
+                            <p className="font-medium text-sm sm:text-base">{selectedAddressData?.label || 'Address'}</p>
                             <p className="text-xs sm:text-sm text-muted-foreground">
                               {selectedAddressData?.street}<br />
-                              {selectedAddressData?.city}, {selectedAddressData?.state} {selectedAddressData?.zipCode}
+                              {selectedAddressData?.city}, {selectedAddressData?.state} {selectedAddressData?.postalCode}
                             </p>
                           </div>
                         </div>

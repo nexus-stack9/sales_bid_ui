@@ -6,6 +6,8 @@ import  sellerService  from "@/services/sellerService.ts";
 import  fileService  from "@/services/fileService.ts";
 import { useNavigate } from 'react-router-dom';
 import { ToastService } from "@/services/ToasterService";
+import { uploadMultipleFiles,updateSellerPath } from '@/services/crudService';
+
 
 
 
@@ -214,73 +216,89 @@ const SellerRegistrationPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validateStep(6)) return;
+  if (!validateStep(6)) return;
 
-    setIsSubmitting(true);
-    setApiError('');
+  setIsSubmitting(true);
+  setApiError('');
 
-    try {
-      // Build file paths
-      const email = formData.email;
-      const profilePictureFile = formData.profilePicture;
-      const panCardFile = formData.panCard;
-      const aadhaarFrontFile = formData.aadhaarFront;
-      const aadhaarBackFile = formData.aadhaarBack;
-      const bankProofFile = formData.bankProof;
+  try {
+    // Step 1: Prepare seller data (exclude files for now)
+    const { profilePicture, panCard, aadhaarFront, aadhaarBack, bankProof, ...rest } = formData;
 
-      // Add file path fields to formData
-      const filePathPrefix = "https://pub-a9806e1f673d447a94314a6d53e85114.r2.dev";
-      const updatedFormData = {
-        ...formData,
-        profilePicturePath: profilePictureFile ? `${filePathPrefix}/sellerProfile/${email}/${profilePictureFile.name}` : "",
-        pan_card_path: panCardFile ? `${filePathPrefix}/sellersPanCard/${email}/${panCardFile.name}` : "",
-        aadhaar_front_path: aadhaarFrontFile ? `${filePathPrefix}/sellerAdhaarFront/${email}/${aadhaarFrontFile.name}` : "",
-        aadhaar_back_path: aadhaarBackFile ? `${filePathPrefix}/sellerAdhaarBack/${email}/${aadhaarBackFile.name}` : "",
-        bank_proof_path: bankProofFile ? `${filePathPrefix}/sellerBankProof/${email}/${bankProofFile.name}` : ""
-      };
+    const submissionData = {
+      ...rest,
+      profilePicturePath: undefined,
+      pan_card_path: undefined,
+      aadhaar_front_path: undefined,
+      aadhaar_back_path: undefined,
+      bank_proof_path: undefined,
+    };
 
-      const formDataToSend = new FormData();
-      Object.keys(updatedFormData).forEach(key => {
-        if (updatedFormData[key] !== null && updatedFormData[key] !== undefined) {
-          formDataToSend.append(key, updatedFormData[key]);
-        }
-      });
-      console.log(formDataToSend)
-      console.log(updatedFormData)
+    // Step 2: Create seller record (no files yet)
+    const response = await sellerService.createSeller(submissionData);
 
-      const response = await sellerService.createSeller(updatedFormData)
-      if (response.message == "Seller created successfully") {
-          // Upload required KYC and bank proof
-          const filerResponse1 = await fileService.uploadFile(formData.panCard, 'sellersPanCard',response.data.email)
-          console.log(filerResponse1)
-          const filerResponse2 = await fileService.uploadFile(formData.aadhaarFront, 'sellerAdhaarFront',response.data.email)
-          console.log(filerResponse2)
-          const filerResponse3 = await fileService.uploadFile(formData.aadhaarBack, 'sellerAdhaarBack',response.data.email)
-          console.log(filerResponse3)
-          const filerResponse4 = await fileService.uploadFile(formData.bankProof, 'sellerBankProof',response.data.email)
-          console.log(filerResponse4)
-
-          // Upload profile picture if provided
-          if (formData.profilePicture) {
-            const profileUpload = await fileService.uploadFile(formData.profilePicture, 'sellerProfile', response.data.email)
-            console.log(profileUpload)
-          }
-
-           ToastService.success('Seller Details Sent For Approval');
-           navigate('/sellers')
-
-      }else{
-        ToastService.error('Failed To Register Seller!');
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setApiError(error.message || 'Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    if (!response.success || !response.data?.id) {
+      ToastService.error('Failed To Register Seller!');
+      return;
     }
-  };
+
+    const sellerId = response.data.vendor_id; // backend must return seller id
+    const basePath = `seller/${sellerId}`;
+
+    // Collect all selected files + map their paths
+    const files = [];
+const filePathMap = {};
+
+      const filePathPrefix = "https://pub-a9806e1f673d447a94314a6d53e85114.r2.dev";
+
+    if (profilePicture) {
+      files.push(profilePicture);
+      filePathMap['profilePicturePath'] = `${filePathPrefix}/${basePath}/profile/${profilePicture.name}`;
+    }
+    if (panCard) {
+      files.push(panCard);
+      filePathMap['pan_card_path'] = `${filePathPrefix}/${basePath}/pan/${panCard.name}`;
+    }
+    if (aadhaarFront) {
+      files.push(aadhaarFront);
+      filePathMap['aadhaar_front_path'] = `${filePathPrefix}/${basePath}/adhar/${aadhaarFront.name}`;
+    }
+    if (aadhaarBack) {
+      files.push(aadhaarBack);
+      filePathMap['aadhaar_back_path'] = `${filePathPrefix}/${basePath}/adhar/${aadhaarBack.name}`;
+    }
+    if (bankProof) {
+      files.push(bankProof);
+      filePathMap['bank_proof_path'] = `${filePathPrefix}/${basePath}/bank/${bankProof.name}`;
+    }
+
+    // Step 3: Upload all files using multi-file API
+    if (files.length > 0) {
+      const uploadRes = await uploadMultipleFiles(files, basePath);
+
+      if (!uploadRes.success) {
+        ToastService.error('Seller created but file upload failed!');
+      }
+    }
+
+    // Step 4: Update seller record with file paths
+    
+    console.log(response)
+
+    await updateSellerPath(response);
+
+    ToastService.success('Seller Details Sent For Approval');
+    navigate('/sellers');
+  } catch (error) {
+    console.error('Registration error:', error);
+    setApiError(error.message || 'Something went wrong. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const renderStep = () => {
     switch (currentStep) {
