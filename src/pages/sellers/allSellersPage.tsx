@@ -13,7 +13,7 @@ interface Seller {
   phone_number: string;
   business_type: string;
   business_name: string;
-  profilepicturepath: string | null;
+  profile_picture: string | null;
   status: 'active' | 'pending' | 'suspended';
   created_at: string;
   product_count: number;
@@ -329,9 +329,9 @@ const AllSellersPage = () => {
       >
         {/* Logo / Avatar */}
         <div className="flex-shrink-0">
-          {seller.profilepicturepath ? (
+          {seller.profile_picture ? (
             <img
-              src={seller.profilepicturepath}
+              src={seller.profile_picture}
               alt={seller.business_name || seller.vendor_name}
               className="w-12 h-12 rounded-lg object-cover border border-gray-200"
             />
@@ -346,13 +346,13 @@ const AllSellersPage = () => {
 
         {/* Info */}
         <div className="flex-1 ml-3">
+          {/* Top Row: Name + Status */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-900 truncate">
               {seller.business_name || seller.vendor_name}
             </h3>
-            {/* Status Badge */}
             <span
-              className={`ml-2 px-2 py-0.5 text-xs rounded-full font-medium ${
+              className={`px-2 py-0.5 text-xs rounded-full font-medium ${
                 seller.status === "1"
                   ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
                   : "bg-red-50 text-red-600 border border-red-200"
@@ -370,20 +370,30 @@ const AllSellersPage = () => {
             </span>
           </p>
 
-          {/* Stats inline */}
-          <div className="flex gap-4 mt-1 text-xs text-gray-600">
-            <span className="flex items-center gap-1">
-              <HiOutlineCube className="text-purple-500 text-sm" />
-              {seller.product_count} total
-            </span>
-            <span className="flex items-center gap-1">
-              <HiOutlineShoppingCart className="text-emerald-500 text-sm" />
-              {seller.active_products} active
-            </span>
-            <span className="flex items-center gap-1">
-              <HiOutlineCheckCircle className="text-blue-500 text-sm" />
-              {seller.sold_products} sold
-            </span>
+          {/* Stats inline + View Auctions */}
+          <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+            <div className="flex gap-4">
+              <span className="flex items-center gap-1">
+                <HiOutlineCube className="text-purple-500 text-sm" />
+                {seller.product_count} total
+              </span>
+              <span className="flex items-center gap-1">
+                <HiOutlineShoppingCart className="text-emerald-500 text-sm" />
+                {seller.active_products} active
+              </span>
+              <span className="flex items-center gap-1">
+                <HiOutlineCheckCircle className="text-blue-500 text-sm" />
+                {seller.sold_products} sold
+              </span>
+            </div>
+
+            {/* View Auctions Button at the end */}
+            <button
+              onClick={() => console.log("View auctions for", seller.vendor_id)}
+              className="text-xs px-3 py-1.5 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition"
+            >
+              View Auctions
+            </button>
           </div>
         </div>
       </div>
@@ -405,6 +415,7 @@ const AllSellersPage = () => {
     </div>
   )}
 </div>
+
 
 
           {/* Pagination */}

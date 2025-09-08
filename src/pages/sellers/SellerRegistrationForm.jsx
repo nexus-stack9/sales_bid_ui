@@ -6,7 +6,8 @@ import  sellerService  from "@/services/sellerService.ts";
 import  fileService  from "@/services/fileService.ts";
 import { useNavigate } from 'react-router-dom';
 import { ToastService } from "@/services/ToasterService";
-import { uploadMultipleFiles,updateSellerPath } from '@/services/crudService';
+import { uploadMultipleFiles } from '@/services/crudService';
+
 
 
 
@@ -239,13 +240,15 @@ const SellerRegistrationPage = () => {
     // Step 2: Create seller record (no files yet)
     const response = await sellerService.createSeller(submissionData);
 
-    if (!response.success || !response.data?.id) {
-      ToastService.error('Failed To Register Seller!');
+    if (!response.success ) {
+      ToastService.error(response.message || 'Failed To Register Seller!');
       return;
     }
 
+    console.log("Response:", response);
+
     const sellerId = response.data.vendor_id; // backend must return seller id
-    const basePath = `seller/${sellerId}`;
+    const basePath = `seller/${sellerId}/documents`;
 
     // Collect all selected files + map their paths
     const files = [];
@@ -255,23 +258,23 @@ const filePathMap = {};
 
     if (profilePicture) {
       files.push(profilePicture);
-      filePathMap['profilePicturePath'] = `${filePathPrefix}/${basePath}/profile/${profilePicture.name}`;
+      filePathMap['profile_Picture'] = `${filePathPrefix}/${basePath}/${profilePicture.name}`;
     }
     if (panCard) {
       files.push(panCard);
-      filePathMap['pan_card_path'] = `${filePathPrefix}/${basePath}/pan/${panCard.name}`;
+      filePathMap['pan_card_path'] = `${filePathPrefix}/${basePath}/${panCard.name}`;
     }
     if (aadhaarFront) {
       files.push(aadhaarFront);
-      filePathMap['aadhaar_front_path'] = `${filePathPrefix}/${basePath}/adhar/${aadhaarFront.name}`;
+      filePathMap['aadhaar_front_path'] = `${filePathPrefix}/${basePath}/${aadhaarFront.name}`;
     }
     if (aadhaarBack) {
       files.push(aadhaarBack);
-      filePathMap['aadhaar_back_path'] = `${filePathPrefix}/${basePath}/adhar/${aadhaarBack.name}`;
+      filePathMap['aadhaar_back_path'] = `${filePathPrefix}/${basePath}/${aadhaarBack.name}`;
     }
     if (bankProof) {
       files.push(bankProof);
-      filePathMap['bank_proof_path'] = `${filePathPrefix}/${basePath}/bank/${bankProof.name}`;
+      filePathMap['bank_proof_path'] = `${filePathPrefix}/${basePath}/${bankProof.name}`;
     }
 
     // Step 3: Upload all files using multi-file API
@@ -286,8 +289,8 @@ const filePathMap = {};
     // Step 4: Update seller record with file paths
     
     console.log(response)
-
-    await updateSellerPath(response);
+    response.data = { ...response.data, ...filePathMap };
+    await sellerService.updateSellerPath(response.data);
 
     ToastService.success('Seller Details Sent For Approval');
     navigate('/sellers');

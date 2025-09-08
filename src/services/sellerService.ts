@@ -40,7 +40,9 @@ const sellerService = {
 
 updateSellerPath: async (data) => {
     try {
-      const response = await axios.patch(`${API_BASE_URL}/sellers/updatePaath${data.vendor_id}`, data);
+      console.log(data)
+      const id = data.vendor_id;
+      const response = await axios.put(`${API_BASE_URL}/sellers/updatePaath/${id}`, data);
       return response.data;
     } catch (error) {
       console.error('Error updating seller status:', error);
