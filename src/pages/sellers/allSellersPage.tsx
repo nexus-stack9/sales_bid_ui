@@ -13,7 +13,7 @@ interface Seller {
   phone_number: string;
   business_type: string;
   business_name: string;
-  profilepicturepath: string | null;
+  profile_picture: string | null;
   status: 'active' | 'pending' | 'suspended';
   created_at: string;
   product_count: number;
@@ -239,16 +239,7 @@ const AllSellersPage = () => {
     <Layout>
       <div className="bg-gray-50 min-h-screen">
         <main className="container mx-auto px-4 py-8">
-          {/* Page Header */}
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold mb-2 bg-gray-800 to-blue-500 bg-clip-text text-transparent">
-              Our Trusted Sellers
-            </h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Discover premium sellers offering exclusive products with verified credentials and outstanding service
-            </p>
-          </div>
-
+          
           {/* Search and Filter Bar */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-8">
             <div className="flex flex-col md:flex-row gap-4">
@@ -328,149 +319,104 @@ const AllSellersPage = () => {
           </div>
 
           {/* Sellers List */}
-          <div className="space-y-4">
-            {paginatedSellers.length > 0 ? (
-              paginatedSellers.map(seller => (
-                <div key={seller.vendor_id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
-                  <div className="flex flex-col md:flex-row">
-                    {/* Seller Logo */}
-                    <div className="md:w-1/5 bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
-                      <div className="relative">
-                        {seller.profilepicturepath ? (
-                          <img
-                            src={seller.profilepicturepath}
-                            alt={seller.business_name || seller.vendor_name}
-                            className="w-20 h-20 rounded-xl bg-white shadow-sm border border-gray-100 object-cover"
-                          />
-                        ) : (
-                          <div className="w-20 h-20 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-2xl font-bold text-purple-600">
-                            {seller.business_name ? 
-                              seller.business_name.charAt(0).toUpperCase() : 
-                              seller.vendor_name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        {seller.status === 'active' && (
-                          <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-sm">
-                            <MdVerified className="text-emerald-500 text-xl" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Seller Info */}
-                    <div className="md:w-4/5 p-6 relative">
-                      {/* <button 
-                        onClick={() => toggleFavorite(seller.id)}
-                        className={`absolute top-6 right-6 p-2 rounded-full transition ${favorites.includes(seller.id) ? 'text-rose-500' : 'text-gray-300 hover:text-rose-400'}`}
-                      >
-                        {favorites.includes(seller.id) ? <FaHeart /> : <FaRegHeart />}
-                      </button> */}
-                      
-                      <div className="flex flex-col h-full">
-                        <div className="flex-1">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                            <div>
-                              <h2 className="text-xl font-bold text-gray-800">
-                                {seller.business_name || seller.vendor_name}
-                              </h2>
-                              <p className="text-gray-500 text-sm flex items-center mt-1">
-                                <MdBusiness className="mr-1" />
-                                {seller.business_type || 'Not specified'}
-                              </p>
-                            </div>
-                            <span className={`mt-2 md:mt-0 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(seller.status)}`}>
-                              {seller.status.charAt(0).toUpperCase() + seller.status.slice(1)}
-                            </span>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                            <div className="flex items-start">
-                              <MdEmail className="text-purple-500 mt-1 mr-2 flex-shrink-0" />
-                              <div>
-                                <p className="text-gray-500 text-xs">Email</p>
-                                <p className="text-gray-800 font-medium truncate">{seller.email}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start">
-                              <MdPhone className="text-purple-500 mt-1 mr-2 flex-shrink-0" />
-                              <div>
-                                <p className="text-gray-500 text-xs">Phone</p>
-                                <p className="text-gray-800 font-medium">{seller.phone_number || 'Not provided'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start">
-                              <MdDateRange className="text-purple-500 mt-1 mr-2 flex-shrink-0" />
-                              <div>
-                                <p className="text-gray-500 text-xs">Joined</p>
-                                <p className="text-gray-800 font-medium">
-                                  {new Date(seller.created_at).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'short', 
-                                    day: 'numeric' 
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="flex items-center bg-gray-50 rounded-lg p-3">
-                              <HiOutlineCube className="text-purple-500 mr-3 text-xl" />
-                              <div>
-                                <p className="text-gray-500 text-xs">Total Products</p>
-                                <p className="text-gray-800 font-bold text-lg">{seller.product_count}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center bg-gray-50 rounded-lg p-3">
-                              <HiOutlineShoppingCart className="text-emerald-500 mr-3 text-xl" />
-                              <div>
-                                <p className="text-gray-500 text-xs">Active Products</p>
-                                <p className="text-gray-800 font-bold text-lg">{seller.active_products}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center bg-gray-50 rounded-lg p-3">
-                              <HiOutlineCheckCircle className="text-blue-500 mr-3 text-xl" />
-                              <div>
-                                <p className="text-gray-500 text-xs">Sold Products</p>
-                                <p className="text-gray-800 font-bold text-lg">{seller.sold_products}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* <div className="mt-6 flex flex-col md:flex-row justify-between items-center pt-4 border-t border-gray-100">
-                          <button className="order-2 md:order-1 mt-4 md:mt-0 text-purple-600 hover:text-purple-800 text-sm font-medium transition">
-                            View Full Profile
-                          </button>
-                          <button className="order-1 md:order-2 w-full md:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white py-2 px-6 rounded-lg shadow-sm transition-all duration-300 transform hover:-translate-y-0.5">
-                            View Products
-                          </button>
-                        </div> */}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-                <div className="max-w-md mx-auto">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <h3 className="mt-2 text-lg font-medium text-gray-900">No sellers found</h3>
-                  <p className="mt-1 text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
-                  <div className="mt-6">
-                    <button
-                      onClick={resetFilters}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
-                    >
-                      Reset all filters
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* Sellers List */}
+<div className="space-y-3">
+  {paginatedSellers.length > 0 ? (
+    paginatedSellers.map((seller) => (
+      <div
+        key={seller.vendor_id}
+        className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition flex items-center p-3"
+      >
+        {/* Logo / Avatar */}
+        <div className="flex-shrink-0">
+          {seller.profile_picture ? (
+            <img
+              src={seller.profile_picture}
+              alt={seller.business_name || seller.vendor_name}
+              className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-600">
+              {seller.business_name
+                ? seller.business_name.charAt(0).toUpperCase()
+                : seller.vendor_name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 ml-3">
+          {/* Top Row: Name + Status */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900 truncate">
+              {seller.business_name || seller.vendor_name}
+            </h3>
+            <span
+              className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                seller.status === "1"
+                  ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                  : "bg-red-50 text-red-600 border border-red-200"
+              }`}
+            >
+              {seller.status === "1" ? "Active" : "Inactive"}
+            </span>
           </div>
+
+          {/* Vendor Name */}
+          <p className="text-xs text-gray-500">
+            Vendor:{" "}
+            <span className="font-medium text-gray-700">
+              {seller.vendor_name}
+            </span>
+          </p>
+
+          {/* Stats inline + View Auctions */}
+          <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+            <div className="flex gap-4">
+              <span className="flex items-center gap-1">
+                <HiOutlineCube className="text-purple-500 text-sm" />
+                {seller.product_count} total
+              </span>
+              <span className="flex items-center gap-1">
+                <HiOutlineShoppingCart className="text-emerald-500 text-sm" />
+                {seller.active_products} active
+              </span>
+              <span className="flex items-center gap-1">
+                <HiOutlineCheckCircle className="text-blue-500 text-sm" />
+                {seller.sold_products} sold
+              </span>
+            </div>
+
+            {/* View Auctions Button at the end */}
+            <button
+              onClick={() => console.log("View auctions for", seller.vendor_id)}
+              className="text-xs px-3 py-1.5 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition"
+            >
+              View Auctions
+            </button>
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+      <h3 className="text-sm font-medium text-gray-900">No sellers found</h3>
+      <p className="mt-1 text-xs text-gray-500">
+        Try adjusting your search or filter to find what you're looking for.
+      </p>
+      <div className="mt-4">
+        <button
+          onClick={resetFilters}
+          className="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
+        >
+          Reset all filters
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
+
 
           {/* Pagination */}
           {filteredSellers.length > pagination.itemsPerPage && (

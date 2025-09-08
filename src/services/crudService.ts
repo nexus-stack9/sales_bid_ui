@@ -377,7 +377,7 @@ export interface Bid {
 /**
  * Fetches all bids for a specific user
  * @param bidderId The ID of the user whose bids to fetch
- * @returns Promise<Bid[]> Array of bid objects with product details
+ * @returns Promise<Bid[]> Array of bid objects with product details  getBidById
  */
 // types.ts
 export interface GroupedUserBids {
@@ -423,3 +423,154 @@ export const getUserBids = async (bidderId: string): Promise<GroupedUserBids> =>
     return { winning: [], losing: [], won: [], lost: [] };
   }
 };
+
+
+export const getBidById = async (bidderId: string): Promise<Bid[]> => {
+  try {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/bids/getBidById/${bidderId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Error fetching user bids: ${errorData.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    // Normalize the response to match our Bid interface
+    if (Array.isArray(data)) {
+      return data.map(item => ({
+        bid_id: item.bid_id,
+        bidder_id: item.bidder_id,
+        product_id: item.product_id,
+        bid_amount: item.bid_amount?.toString() || '0',
+        bid_time: item.bid_time,
+        is_auto_bid: item.is_auto_bid || false,
+        product_name: item.product_name || 'Unknown Product',
+        description: item.description || '',
+        starting_price: item.starting_price?.toString() || '0',
+        auction_start: item.auction_start,
+        auction_end: item.auction_end,
+        status: item.status || 'active',
+        image_path: item.image_path || '',
+        location: item.location || '',
+        quantity: item.quantity || 1,
+        tags: item.tags || '',
+        max_bid_amount: item.max_bid_amount?.toString() || '0'
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching user bids:', error);
+    throw new Error('Failed to fetch your bids. Please try again later.');
+  }
+};
+
+
+interface UploadFileResponse {
+  success: boolean;
+  message?: string;
+  file?: {
+    url: string;
+    key: string;
+    fileName: string;
+  };
+  files?: any[]; // for multi-upload
+}
+
+/**
+ * Upload a single file to the server
+ * @param file The file to upload
+ * @param path The path/folder to store the file in
+ */
+export const uploadFile = async (
+  file: File,
+  path: string
+): Promise<UploadFileResponse> => {
+  try {
+    const token = Cookies.get('authToken');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', path); // backend will expect "path"
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/upload/single`, {
+      method: 'POST',
+      headers, // don't set Content-Type → fetch will set multipart boundary automatically
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`File upload failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in uploadFile:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to upload file',
+    };
+  }
+};
+
+/**
+ * Upload multiple files to different paths
+ * @param files Array of files
+ * @param paths Array of paths (must match files length)
+ */
+export const uploadMultipleFiles = async (
+  files: File[],
+  path: string
+): Promise<UploadFileResponse> => {
+  try {
+    const token = Cookies.get('authToken');
+    const formData = new FormData();
+console.log(files)
+    files.forEach((file) => {
+      console.log(file)
+      formData.append('files', file); // backend expects req.files
+    });
+
+    // Send single path string
+    formData.append('path', path);
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    console.log(formData)
+
+    const response = await fetch(`${API_BASE_URL}/file/multiple-upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Multi file upload failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in uploadMultipleFiles:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to upload files',
+    };
+  }
+};
+

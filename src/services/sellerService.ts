@@ -36,6 +36,19 @@ const sellerService = {
     }
   },
 
+
+
+updateSellerPath: async (data) => {
+    try {
+      console.log(data)
+      const id = data.vendor_id;
+      const response = await axios.put(`${API_BASE_URL}/sellers/updatePaath/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating seller status:', error);
+      throw error;
+    }
+  },
   // Update seller status
   updateSellerStatus: async (id, status) => {
     try {
