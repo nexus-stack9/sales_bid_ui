@@ -83,20 +83,36 @@ const AuctionPage: React.FC = () => {
     searchQuery: "",
   });
 
+  // Selected vendor filter from query
+  const [vendorId, setVendorId] = useState<string | null>(null);
+
   // Helper to get query param
   const getCategoryFromQuery = () => {
     const params = new URLSearchParams(location.search);
     return params.get("category");
   };
 
-  // Set category from query param whenever location.search changes
+  // Helper to get vendor_id from query param
+  const getVendorIdFromQuery = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get("vendor_id");
+  };
+
+  // Update filters and vendor when the query string changes
   useEffect(() => {
     const category = getCategoryFromQuery();
+    const vendor = getVendorIdFromQuery();
+
     setFilters(prev => ({
       ...prev,
       categories: category ? [category] : [],
     }));
+
+    setVendorId(vendor);
     lastRequestRef.current = ""; // Reset request so API is called
+
+    // Immediately load with updated query params
+    loadProductsWithParams(1, 20);
   }, [location.search]);
 
   // Update maxPrice and initialize filters properly when products first load
@@ -269,6 +285,8 @@ const AuctionPage: React.FC = () => {
         currentFilters.priceRange[1] < maxPrice
           ? currentFilters.priceRange[1]
           : undefined,
+      // include vendor filter if set
+      vendor_id: vendorId || undefined,
       sortBy: currentSortBy,
       page: page,
       limit: limit,
