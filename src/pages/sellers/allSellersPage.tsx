@@ -4,6 +4,7 @@ import { MdVerified, MdBusiness, MdEmail, MdPhone, MdDateRange } from 'react-ico
 import { HiOutlineCube, HiOutlineShoppingCart, HiOutlineCheckCircle } from 'react-icons/hi';
 import Layout from '@/components/layout/Layout';
 import axios from 'axios';
+import { StarIcon } from "@heroicons/react/20/solid"; // for star ratings
 import sellerService from '@/services/sellerService';
 
 interface Seller {
@@ -320,6 +321,8 @@ const AllSellersPage = () => {
 
           {/* Sellers List */}
           {/* Sellers List */}
+
+
 <div className="space-y-3">
   {paginatedSellers.length > 0 ? (
     paginatedSellers.map((seller) => (
@@ -346,20 +349,26 @@ const AllSellersPage = () => {
 
         {/* Info */}
         <div className="flex-1 ml-3">
-          {/* Top Row: Name + Status */}
+          {/* Top Row: Name + Ratings */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-900 truncate">
               {seller.business_name || seller.vendor_name}
             </h3>
-            <span
-              className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                seller.status === "1"
-                  ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                  : "bg-red-50 text-red-600 border border-red-200"
-              }`}
-            >
-              {seller.status === "1" ? "Active" : "Inactive"}
-            </span>
+
+            {/* Ratings */}
+            <div className="flex items-center text-yellow-500">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <StarIcon
+                  key={i}
+                  className={`h-4 w-4 ${
+                    i < (seller.rating || 0) ? "text-yellow-500" : "text-gray-300"
+                  }`}
+                />
+              ))}
+              <span className="ml-1 text-xs text-gray-600">
+                {seller.rating ? seller.rating.toFixed(1) : "0.0"}
+              </span>
+            </div>
           </div>
 
           {/* Vendor Name */}
@@ -387,9 +396,11 @@ const AllSellersPage = () => {
               </span>
             </div>
 
-            {/* View Auctions Button at the end */}
+            {/* View Auctions Button */}
             <button
-              onClick={() => console.log("View auctions for", seller.vendor_id)}
+              onClick={() => {
+                window.location.href = `/auctions?vendor_id=${seller.vendor_id}`;
+              }}
               className="text-xs px-3 py-1.5 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition"
             >
               View Auctions

@@ -16,6 +16,10 @@ export interface SearchParams {
   timeLeft?: string[];
   minPrice?: number;
   maxPrice?: number;
+  // Optional vendor filters
+  vendorId?: string | number;
+  vendor_id?: string | number;
+  vendor_name?: string;
   sortBy?: 'price_asc' | 'price_desc' | 'ending_soon' | 'newest' | 'popularity';
   page?: number;
   limit?: number;
@@ -149,6 +153,11 @@ export const getProducts = async (
     
     if (filters.minPrice !== undefined) queryParams.append('minPrice', filters.minPrice.toString());
     if (filters.maxPrice !== undefined) queryParams.append('maxPrice', filters.maxPrice.toString());
+
+    // Vendor filters (support either vendorId, vendor_id, or vendor_name)
+    if (filters.vendorId !== undefined) queryParams.append('vendor_id', String(filters.vendorId));
+    if (filters.vendor_id !== undefined) queryParams.append('vendor_id', String(filters.vendor_id));
+    if (filters.vendor_name !== undefined) queryParams.append('vendor_name', String(filters.vendor_name));
     
     // Add sorting - map UI values to database column names
     if (filters.sortBy) {

@@ -171,7 +171,7 @@ const Footer = () => {
           </div>
 
           {/* Contact & Apps */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             
 
             
@@ -181,7 +181,7 @@ const Footer = () => {
                 <li className="flex items-center gap-2"><span className="text-slate-500">Phone:</span> +1 (555) 123-4567</li>
                 <li className="flex items-center gap-2"><span className="text-slate-500">Email:</span> support@SalesBid.com</li>
               </ul>
-          </div>
+          </div> */}
         </div>
 
         {/* Bottom bar */}
