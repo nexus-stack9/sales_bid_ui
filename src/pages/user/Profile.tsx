@@ -10,12 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, LogOut, Home, Briefcase, Gavel,Package, Heart } from 'lucide-react';
+import { User, LogOut, Home, Briefcase, Gavel, Package, Heart, Truck, Calendar, CreditCard, MapPin } from 'lucide-react';
 import Cookies from 'js-cookie';
-import { updateProfile, getProfileDetails, getUserIdFromToken } from '@/services/crudService';
+import { updateProfile, getProfileDetails, getUserIdFromToken, getUserOrders } from '@/services/crudService';
 import { addUserAddress, updateUserAddress, deleteUserAddress } from '@/services/addressService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 import { toast } from "@/components/ui/use-toast";
 
@@ -46,6 +47,30 @@ interface ProfileDetails {
   message: string;
 }
 
+// Define the Order interface based on the API response
+interface Order {
+  order_id: number;
+  product_id: number;
+  user_id: number;
+  seller_id: number;
+  winning_bid_id: number;
+  order_status: string;
+  order_date: string;
+  delivered_date: string | null;
+  final_price: string;
+  condition: string;
+  name: string;
+  description: string;
+  image_path: string;
+  quantity: number;
+}
+
+interface OrdersResponse {
+  success: boolean;
+  data: Order[];
+  count: number;
+}
+
 const Profile = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
@@ -53,6 +78,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -62,15 +88,13 @@ const Profile = () => {
   });
 
   const [profileDetails, setProfileDetails] = useState<ProfileDetails | null>(null);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
 
   const setProfileDataFromDetails = (data: ProfileDetails) => {
-    // Support both addresses (array) and address (object)
     const addresses =
       Array.isArray(data.profile.addresses)
         ? data.profile.addresses
-        // : data.profile.address
-        //   ? [data.profile.address]
-          : [];
+        : [];
 
     const primaryAddress = addresses.find(addr => addr.isPrimary) || addresses[0];
     const addressString = primaryAddress
@@ -96,7 +120,6 @@ const Profile = () => {
           return;
         }
         const data = await getProfileDetails(userId);
-        // Patch response to always have addresses array
         const addresses =
           Array.isArray(data.profile.addresses)
             ? data.profile.addresses
@@ -133,11 +156,48 @@ const Profile = () => {
   }, [toast, navigate]);
 
   useEffect(() => {
-    // Sync form fields with profileDetails when not editing
     if (profileDetails && !isEditing) {
       setProfileDataFromDetails(profileDetails);
     }
   }, [profileDetails, isEditing]);
+
+  // Fetch orders when the orders tab is selected
+  useEffect(() => {
+    const fetchUserOrders = async () => {
+      if (activeTab === 'orders') {
+        try {
+          setOrdersLoading(true);
+          const userId = getUserIdFromToken();
+          if (!userId) {
+            navigate('/auth/signin');
+            return;
+          }
+          
+          const ordersData: OrdersResponse = await getUserOrders(userId);
+          if (ordersData.success) {
+            setUserOrders(ordersData.data);
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Failed to load orders",
+              description: "There was an error loading your orders."
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user orders:', error);
+          toast({
+            variant: "destructive",
+            title: "Failed to load orders",
+            description: "There was an error loading your orders."
+          });
+        } finally {
+          setOrdersLoading(false);
+        }
+      }
+    };
+
+    fetchUserOrders();
+  }, [activeTab, toast, navigate]);
 
   const handleSaveProfile = async () => {
     try {
@@ -151,7 +211,7 @@ const Profile = () => {
       if (userId) {
         const data = await getProfileDetails(userId);
         setProfileDetails(data);
-        setProfileDataFromDetails(data); // <-- update form after save
+        setProfileDataFromDetails(data);
       }
     } catch (error) {
       toast({
@@ -187,98 +247,152 @@ const Profile = () => {
 
   const menuItems = [
     { id: 'profile', label: 'Edit Profile', icon: User },
-    { id: 'address', label: 'My Addresses', icon: Gavel },
-    { id: 'OrdersContent', label: 'My Orders', icon: Heart },
+    { id: 'address', label: 'My Addresses', icon: MapPin },
+    { id: 'orders', label: 'My Orders', icon: Package },
   ];
 
-  interface Bid {
-  id: string;
-  itemName: string;
-  imageUrl: string;
-  bidAmount: number;
-  status: 'active' | 'won' | 'lost' | 'paid' | 'shipped';
-  endTime: Date;
-  paymentDeadline?: Date;
-  orderId?: string;
-}
-
-  const sampleBids: Bid[] = [
-  {
-    id: '1',
-    itemName: 'Vintage Rolex Submariner 1970',
-    imageUrl: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&h=300&fit=crop',
-    bidAmount: 12500,
-    status: 'won',
-    endTime: new Date(Date.now() - 3600000),
-    paymentDeadline: new Date(Date.now() + 43200000) // 12 hours from now
-  },
-  {
-    id: '2',
-    itemName: 'Classic Ferrari Model Collection',
-    imageUrl: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=300&h=300&fit=crop',
-    bidAmount: 3200,
-    status: 'paid',
-    endTime: new Date(Date.now() - 86400000),
-    orderId: 'ORD-2024-001'
-  },
-  {
-    id: '3',
-    itemName: 'Art Deco Diamond Ring',
-    imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=300&h=300&fit=crop',
-    bidAmount: 8750,
-    status: 'active',
-    endTime: new Date(Date.now() + 7200000)
-  }
-];
-
-const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'won': return 'bg-gradient-success text-success-foreground shadow-success animate-pulse-glow';
-      case 'paid': return 'bg-primary text-primary-foreground';
-      case 'active': return 'bg-accent text-accent-foreground';
-      case 'lost': return 'bg-muted text-muted-foreground';
-      case 'shipped': return 'bg-success text-success-foreground';
-      default: return 'bg-muted text-muted-foreground';
+      case 'delivered': return 'bg-green-100 text-green-800 border-green-200';
+      case 'shipped': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'paid': 
+      case 'order_placed': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'active': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'processing': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-const OrdersContent = () => (
-<div className="space-y-6">
-<Card className="bg-gradient-card shadow-elegant border-0 animate-fade-in">
-<CardHeader className="p-4 sm:p-6">
-<CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-<Package className="h-5 w-5" />
-Recent Orders
-</CardTitle>
-</CardHeader>
-<CardContent className="p-4 sm:p-6 pt-0">
-<div className="space-y-3 sm:space-y-4">
-{sampleBids
-.filter(bid => bid.status === 'paid' || bid.status === 'shipped')
-.map((order) => (
-<div key={order.id} className="flex items-center justify-between p-3 sm:p-4 bg-background rounded-lg border">
-<div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-<img src={order.imageUrl} alt={order.itemName} className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0" />
-<div className="min-w-0 flex-1">
-<h4 className="font-medium text-sm sm:text-base truncate">{order.itemName}</h4>
-<p className="text-xs sm:text-sm text-muted-foreground">Order #{order.orderId}</p>
-</div>
-</div>
-<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-<Badge className={`${getStatusColor(order.status)} text-xs`}>
-{order.status.toUpperCase()}
-</Badge>
-<Button onClick={() => navigate(`/my-orders/${order.orderId}`)} variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
-Track
-</Button>
-</div>
-</div>
-))}
-</div>
-</CardContent>
-</Card>
-</div>
-);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'delivered': return <Package className="h-4 w-4" />;
+      case 'shipped': return <Truck className="h-4 w-4" />;
+      case 'paid': 
+      case 'order_placed': return <CreditCard className="h-4 w-4" />;
+      default: return <Package className="h-4 w-4" />;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
+  };
+
+  const formatStatus = (status: string) => {
+    return status.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
+  const OrdersContent = () => (
+    <div className="space-y-6">
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Order History
+          </CardTitle>
+          <CardDescription>
+            View your recent purchases and their status
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {ordersLoading ? (
+            <div className="p-6 space-y-4">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="flex gap-4">
+                  <Skeleton className="h-20 w-20 rounded-lg" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="divide-y">
+              {userOrders.map((order) => (
+                <div key={order.order_id} className="p-4 md:p-6 hover:bg-muted/30 transition-colors">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <div className="flex gap-4 flex-1 min-w-0">
+                      <img 
+                        src={order.image_path} 
+                        alt={order.name} 
+                        className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg flex-shrink-0" 
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
+                          <h4 className="font-semibold text-base md:text-lg truncate">{order.name}</h4>
+                          <Badge className={`${getStatusColor(order.order_status)} text-xs flex items-center gap-1 w-fit`}>
+                            {getStatusIcon(order.order_status)}
+                            {formatStatus(order.order_status)}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{order.description}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>Ordered: {formatDate(order.order_date)}</span>
+                          </div>
+                          {order.delivered_date && (
+                            <div className="flex items-center gap-1">
+                              <Truck className="h-3 w-3" />
+                              <span>Delivered: {formatDate(order.delivered_date)}</span>
+                            </div>
+                          )}
+                          <div>
+                            <span>Condition: {order.condition}</span>
+                          </div>
+                          <div>
+                            <span>Quantity: {order.quantity}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-3">
+                      <div className="text-lg font-semibold">${order.final_price}</div>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => navigate(`/orders/${order.order_id}`)} 
+                          variant="outline" 
+                          size="sm"
+                          className="text-xs"
+                        >
+                          View Details
+                        </Button>
+                        {order.order_status === 'shipped' && (
+                          <Button size="sm" className="text-xs">
+                            Track Package
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {!ordersLoading && userOrders.length === 0 && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No orders yet</h3>
+            <p className="text-muted-foreground mb-4">When you make purchases, they will appear here.</p>
+            <Button onClick={() => navigate('/auctions')}>Browse Auctions</Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 
   // ============== Profile Content ==============
   const ProfileContent = () => (
@@ -327,7 +441,7 @@ Track
               variant="outline"
               onClick={() => {
                 setIsEditing(false);
-                if (profileDetails) setProfileDataFromDetails(profileDetails); // Reset form on cancel
+                if (profileDetails) setProfileDataFromDetails(profileDetails);
               }}
             >
               Cancel
@@ -338,7 +452,7 @@ Track
           <Button
             onClick={() => {
               setIsEditing(true);
-              if (profileDetails) setProfileDataFromDetails(profileDetails); // Reset form on edit
+              if (profileDetails) setProfileDataFromDetails(profileDetails);
             }}
           >
             Edit Profile
@@ -349,114 +463,113 @@ Track
   );
 
   // ============== Address Content ==============
- const [addressFormData, setAddressFormData] = useState({
-  label: "",
-  street: "",
-  city: "",
-  state: "",
-  postalCode: "",
-  country: "",
-});
-const [addressEditingId, setAddressEditingId] = useState<number | null>(null);
-
-const autofillAddressForm = () => {
-  if (!navigator.geolocation) {
-    toast({ variant: "destructive", title: "Geolocation not supported" });
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    try {
-      const { latitude, longitude } = pos.coords;
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-      );
-      const data = await res.json();
-      const street =
-        data.address.road ||
-        data.address.suburb ||
-        data.address.city_district ||
-        data.address.neighbourhood ||
-        data.address.pedestrian ||
-        data.address.village ||
-        "";
-      const autofilled = {
-        label: "",
-        street,
-        city: data.address.city || data.address.town || data.address.village || "",
-        state: data.address.state || data.address.state_district || "",
-        postalCode: data.address.postcode || "",
-        country: data.address.country || "",
-      };
-      setAddressFormData(autofilled);
-      toast({ title: "Address autofilled" });
-      console.log("FormData after autofill:", autofilled);
-    } catch (err) {
-      console.error(err);
-      toast({ variant: "destructive", title: "Failed to fetch location" });
-    }
+  const [addressFormData, setAddressFormData] = useState({
+    label: "",
+    street: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
   });
-};
+  const [addressEditingId, setAddressEditingId] = useState<number | null>(null);
 
-const handleAddressSave = async () => {
-  try {
-    const userId = getUserIdFromToken();
-    const addressDataWithUserId = { ...addressFormData, userId };
-    if (addressEditingId) {
-      await updateUserAddress(addressEditingId, addressDataWithUserId);
-      toast({ title: "Address updated" });
-    } else {
-      await addUserAddress(addressDataWithUserId);
-      toast({ title: "Address added" });
+  const autofillAddressForm = () => {
+    if (!navigator.geolocation) {
+      toast({ variant: "destructive", title: "Geolocation not supported" });
+      return;
     }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude, longitude } = pos.coords;
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        );
+        const data = await res.json();
+        const street =
+          data.address.road ||
+          data.address.suburb ||
+          data.address.city_district ||
+          data.address.neighbourhood ||
+          data.address.pedestrian ||
+          data.address.village ||
+          "";
+        const autofilled = {
+          label: "",
+          street,
+          city: data.address.city || data.address.town || data.address.village || "",
+          state: data.address.state || data.address.state_district || "",
+          postalCode: data.address.postcode || "",
+          country: data.address.country || "",
+        };
+        setAddressFormData(autofilled);
+        toast({ title: "Address autofilled" });
+      } catch (err) {
+        console.error(err);
+        toast({ variant: "destructive", title: "Failed to fetch location" });
+      }
+    });
+  };
+
+  const handleAddressSave = async () => {
+    try {
+      const userId = getUserIdFromToken();
+      const addressDataWithUserId = { ...addressFormData, userId };
+      if (addressEditingId) {
+        await updateUserAddress(addressEditingId, addressDataWithUserId);
+        toast({ title: "Address updated" });
+      } else {
+        await addUserAddress(addressDataWithUserId);
+        toast({ title: "Address added" });
+      }
+      setAddressFormData({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
+      setAddressEditingId(null);
+      if (userId) {
+        const data = await getProfileDetails(userId);
+        setProfileDetails(data);
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Failed to save address" });
+    }
+  };
+
+  const handleAddressEdit = (addr: any) => {
+    setAddressFormData({
+      label: addr.label || "",
+      street: addr.street || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      postalCode: addr.postalCode || "",
+      country: addr.country || "",
+    });
+    setAddressEditingId(addr.addressId);
+  };
+
+  const handleAddressCancelEdit = () => {
     setAddressFormData({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
     setAddressEditingId(null);
-    if (userId) {
-      const data = await getProfileDetails(userId);
-      setProfileDetails(data);
+  };
+
+  const handleAddressDelete = async (id: number) => {
+    try {
+      await deleteUserAddress(id);
+      toast({ title: "Address deleted" });
+      setProfileDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              profile: {
+                ...prev.profile,
+                addresses: prev.profile.addresses?.filter((a: any) => a.addressId !== id),
+              },
+            }
+          : prev
+      );
+    } catch (err) {
+      console.error(err);
+      toast({ variant: "destructive", title: "Failed to delete address" });
     }
-  } catch (error) {
-    console.error(error);
-    toast({ variant: "destructive", title: "Failed to save address" });
-  }
-};
-
-const handleAddressEdit = (addr: any) => {
-  setAddressFormData({
-    label: addr.label || "",
-    street: addr.street || "",
-    city: addr.city || "",
-    state: addr.state || "",
-    postalCode: addr.postalCode || "",
-    country: addr.country || "",
-  });
-  setAddressEditingId(addr.addressId);
-};
-
-const handleAddressCancelEdit = () => {
-  setAddressFormData({ label: "", street: "", city: "", state: "", postalCode: "", country: "" });
-  setAddressEditingId(null);
-};
-
-const handleAddressDelete = async (id: number) => {
-  try {
-    await deleteUserAddress(id);
-    toast({ title: "Address deleted" });
-    setProfileDetails((prev) =>
-      prev
-        ? {
-            ...prev,
-            profile: {
-              ...prev.profile,
-              addresses: prev.profile.addresses?.filter((a: any) => a.addressId !== id),
-            },
-          }
-        : prev
-    );
-  } catch (err) {
-    console.error(err);
-    toast({ variant: "destructive", title: "Failed to delete address" });
-  }
-};
+  };
 
   const AddressContent = ({
     formData,
@@ -489,7 +602,7 @@ const handleAddressDelete = async (id: number) => {
       <CardContent className="space-y-6">
         <div className="space-y-3">
           {profileDetails?.profile.addresses?.map(addr => (
-            <div key={addr.addressId} className="p-3 border rounded-lg flex justify-between items-center">
+            <div key={addr.addressId} className="p-4 border rounded-lg flex justify-between items-center">
               <div>
                 <p className="font-semibold">
                   {addr.label} {addr.isPrimary && <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">Primary</span>}
@@ -504,44 +617,76 @@ const handleAddressDelete = async (id: number) => {
           ))}
         </div>
 
-        <div className="space-y-2 border-t pt-4">
-          <h3 className="font-semibold">{editingId ? "Edit Address" : "Add New Address"}</h3>
-          <Input
-            placeholder="Label (Home/Office)"
-            value={formData.label}
-            onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-          />
-          <Input
-            placeholder="Street"
-            value={formData.street}
-            onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
-          />
-          <Input
-            placeholder="City"
-            value={formData.city}
-            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-          />
-          <Input
-            placeholder="State"
-            value={formData.state}
-            onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-          />
-          <Input
-            placeholder="Postal Code"
-            value={formData.postalCode}
-            onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
-          />
-          <Input
-            placeholder="Country"
-            value={formData.country}
-            onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-          />
+        <Separator />
 
-          <div className="flex gap-3">
-            <Button onClick={handleSave}>{editingId ? "Update" : "Add"} Address</Button>
-            <Button variant="outline" onClick={autofillFromLocation}>Autofill from Location</Button>
+        <div className="space-y-4 pt-4">
+          <h3 className="font-semibold text-lg">{editingId ? "Edit Address" : "Add New Address"}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="label">Label (Home/Office)</Label>
+              <Input
+                id="label"
+                placeholder="e.g., Home, Office"
+                value={formData.label}
+                onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="street">Street</Label>
+              <Input
+                id="street"
+                placeholder="Street address"
+                value={formData.street}
+                onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                placeholder="City"
+                value={formData.city}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Input
+                id="state"
+                placeholder="State"
+                value={formData.state}
+                onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="postalCode">Postal Code</Label>
+              <Input
+                id="postalCode"
+                placeholder="Postal Code"
+                value={formData.postalCode}
+                onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                placeholder="Country"
+                value={formData.country}
+                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Button onClick={handleSave} className="sm:flex-1">
+              {editingId ? "Update" : "Add"} Address
+            </Button>
+            <Button variant="outline" onClick={autofillFromLocation} className="sm:flex-1">
+              Autofill from Location
+            </Button>
             {editingId && (
-              <Button variant="outline" onClick={handleCancelEdit}>
+              <Button variant="outline" onClick={handleCancelEdit} className="sm:flex-1">
                 Cancel Edit
               </Button>
             )}
@@ -550,6 +695,7 @@ const handleAddressDelete = async (id: number) => {
       </CardContent>
     </Card>
   );
+
   // ============== Render ==============
   const renderContent = () => {
     switch (activeTab) {
@@ -570,8 +716,8 @@ const handleAddressDelete = async (id: number) => {
             profileDetails={profileDetails}
           />
         );
-      case 'OrdersContent':
-        return <OrdersContent />;  
+      case 'orders':
+        return <OrdersContent />;
       default:
         return <ProfileContent />;
     }
@@ -610,7 +756,7 @@ const handleAddressDelete = async (id: number) => {
           <aside>
             {isMobile ? (
               <Select value={activeTab} onValueChange={setActiveTab}>
-                <SelectTrigger>
+                <SelectTrigger className="mb-4">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -620,7 +766,7 @@ const handleAddressDelete = async (id: number) => {
                 </SelectContent>
               </Select>
             ) : (
-              <nav className="flex flex-col space-y-1">
+              <nav className="flex flex-col space-y-1 sticky top-24">
                 {menuItems.map(item => (
                   <Button
                     key={item.id}
@@ -632,7 +778,7 @@ const handleAddressDelete = async (id: number) => {
                     {item.label}
                   </Button>
                 ))}
-                <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600" onClick={handleLogout}>
+                <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 mt-4" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </Button>
@@ -640,7 +786,7 @@ const handleAddressDelete = async (id: number) => {
             )}
           </aside>
 
-          <main>
+          <main className="min-h-screen">
             {renderContent()}
           </main>
         </div>
@@ -650,4 +796,3 @@ const handleAddressDelete = async (id: number) => {
 };
 
 export default Profile;
-

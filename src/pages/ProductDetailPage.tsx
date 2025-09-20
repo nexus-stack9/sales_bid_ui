@@ -797,47 +797,78 @@ const ProductDetailPage = () => {
               </div>
             )}
             {activeTab === "manifest" && (
-              <div className={styles.manifestTable}>
-                <div className={styles.tableHeader}>
-                  <h3>Full Manifest</h3>
-                  <button className={styles.downloadButton}>Download Manifest</button>
-                </div>
-                <div className={styles.tableWrapper}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>LOT ID</th>
-                        <th>MANUFACTURER</th>
-                        <th>MODEL</th>
-                        <th>ITEM #</th>
-                        <th>DESCRIPTION</th>
-                        <th>QTY</th>
-                        <th>UNIT RETAIL</th>
-                        <th>UNIT WEIGHT</th>
-                        <th>CONDITION</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/200MV", itemNumber: "485104276", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 2349 * 85, unitWeight: "346 lbs", condition: "Used Good" },
-                        { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/400MT", itemNumber: "485107514", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 3049 * 85, unitWeight: "346 lbs", condition: "Used Good" },
-                      ].map((item, i) => (
-                        <tr key={i}>
-                          <td>{item.lotId}</td>
-                          <td>{item.manufacturer}</td>
-                          <td>{item.model}</td>
-                          <td>{item.itemNumber}</td>
-                          <td>{item.description}</td>
-                          <td>{item.quantity}</td>
-                          <td>{formatCurrency(item.unitRetail)}</td>
-                          <td>{item.unitWeight}</td>
-                          <td>{item.condition}</td>
+              <>
+                <div className={styles.manifestTable}>
+                  <div className={styles.tableHeader}>
+                    <h3>Full Manifest</h3>
+                    <button 
+                      className={styles.downloadButton}
+                      onClick={() => {
+                        if (productData.manifest_url) {
+                          const link = document.createElement('a');
+                          link.href = productData.manifest_url;
+                          const filename = productData.manifest_url.split('/').pop() || 'manifest';
+                          link.download = filename;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        } else {
+                          toast({
+                            variant: 'destructive',
+                            title: 'Download Error',
+                            description: 'Manifest file is not available for download.',
+                          });
+                        }
+                      }}
+                    >
+                      Download Full Manifest
+                    </button>
+                  </div>
+                  <div className={styles.scrollableTableContainer}>
+                    <table className={styles.fullManifestTable}>
+                      <thead>
+                        <tr>
+                          {productData.manifest_data?.[0] && 
+                            Object.keys(productData.manifest_data[0]).map((key) => (
+                              <th key={key}>
+                                {key.split('_').map(word => 
+                                  word.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                ).join(' ')}
+                              </th>
+                            ))
+                          }
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {productData.manifest_data?.map((item, i) => (
+                          <tr key={i}>
+                            {Object.entries(item).map(([key, value]) => {
+                              const formattedValue = 
+                                key.toLowerCase().includes('price') || 
+                                key.toLowerCase().includes('mrp') || 
+                                key.toLowerCase().includes('floor price')
+                                  ? formatCurrency(Number(value) || 0)
+                                  : String(value || 'N/A');
+                              
+                              return (
+                                <td 
+                                  key={key} 
+                                  title={String(value || '')}
+                                  className={styles.truncateCell}
+                                >
+                                  {formattedValue.length > 30 
+                                    ? `${formattedValue.substring(0, 30)}...`
+                                    : formattedValue}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
             {activeTab === "bid-history" && (
               <div className={styles.bidHistoryTab}>
@@ -905,38 +936,69 @@ const ProductDetailPage = () => {
                         <table className={styles.fullManifestTable}>
                           <thead>
                             <tr>
-                              <th>LOT ID</th>
-                              <th>MANUFACTURER</th>
-                              <th>MODEL</th>
-                              <th>ITEM #</th>
-                              <th>DESCRIPTION</th>
-                              <th>QTY</th>
-                              <th>UNIT RETAIL</th>
-                              <th>UNIT WEIGHT</th>
-                              <th>CONDITION</th>
+                              {productData.manifest_data?.[0] && 
+                                Object.keys(productData.manifest_data[0]).map((key) => (
+                                  <th key={key}>
+                                    {key.split('_').map(word => 
+                                      word.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                    ).join(' ')}
+                                  </th>
+                                ))
+                              }
                             </tr>
                           </thead>
                           <tbody>
-                            {[
-                              { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/200MV", itemNumber: "485104276", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 2349 * 85, unitWeight: "346 lbs", condition: "Used Good" },
-                              { lotId: "3284U", manufacturer: "Mirooka", model: "E1ET2/400MT", itemNumber: "485107514", description: "27 inch electric vertical laundry...", quantity: 1, unitRetail: 3049 * 85, unitWeight: "346 lbs", condition: "Used Good" },
-                            ].map((item, i) => (
+                            {productData.manifest_data?.map((item, i) => (
                               <tr key={i}>
-                                <td>{item.lotId}</td>
-                                <td>{item.manufacturer}</td>
-                                <td>{item.model}</td>
-                                <td>{item.itemNumber}</td>
-                                <td>{item.description}</td>
-                                <td>{item.quantity}</td>
-                                <td>{formatCurrency(item.unitRetail)}</td>
-                                <td>{item.unitWeight}</td>
-                                <td>{item.condition}</td>
+                                {Object.entries(item).map(([key, value]) => {
+                                  const formattedValue = 
+                                    key.toLowerCase().includes('price') || 
+                                    key.toLowerCase().includes('mrp') || 
+                                    key.toLowerCase().includes('floor price')
+                                      ? formatCurrency(Number(value) || 0)
+                                      : String(value || 'N/A');
+                                  
+                                  return (
+                                    <td 
+                                      key={key} 
+                                      title={String(value || '')}
+                                      className={styles.truncateCell}
+                                    >
+                                      {formattedValue.length > 30 
+                                        ? `${formattedValue.substring(0, 30)}...`
+                                        : formattedValue}
+                                    </td>
+                                  );
+                                })}
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
-                      <button className={styles.downloadButton}>Download Full Manifest</button>
+                      <button 
+                        className={styles.downloadButton}
+                        onClick={() => {
+                          if (productData.manifest_url) {
+                            // Create a temporary link and trigger download
+                            const link = document.createElement('a');
+                            link.href = productData.manifest_url;
+                            // Extract filename from URL or use a default name
+                            const filename = productData.manifest_url.split('/').pop() || 'manifest';
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          } else {
+                            toast({
+                              variant: 'destructive',
+                              title: 'Download Error',
+                              description: 'Manifest file is not available for download.',
+                            });
+                          }
+                        }}
+                      >
+                        Download Full Manifest
+                      </button>
                     </>
                   )}
                   {tab === "bid-history" && (

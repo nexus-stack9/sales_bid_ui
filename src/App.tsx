@@ -32,6 +32,7 @@ import { SearchResultsPage } from "./pages/SearchResultsPage";
 const queryClient = new QueryClient();
 
 import OrderTrackingPage from "./pages/OrderTrackingPage";
+import OrderDetailsPage from "./pages/OrderDetailsPage";
 import UpcomingAuctions from "./pages/UpcomingAuctions";
 import HowItWorks from "./pages/HowItWorks";
 import SellingServices from "./pages/SellingServices";
@@ -67,8 +68,9 @@ const App = () => (
                 {/* <Route path="/cart" element={<Cart />} /> */}
                 <Route path="/payment/:orderId" element={<PaymentPage />} />
                 <Route path="/my-bids" element={<MyBids />} />
-                <Route path="/my-orders/:orderId" element={<OrderTrackingPage />} />
-                <Route path="/sellers" element={<SellersPage />} />
+                <Route path="/track-order/:orderId" element={<OrderTrackingPage />} />
+                <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
+                <Route path="/upcoming-auctions" element={<UpcomingAuctions />} />
                 <Route path="/allSellersPage" element={<AllSellersPage />} />
                 <Route path="/sellerRegistration" element={<SellerRegistrationForm />} />
                 <Route path="/search" element={<SearchResultsPage />} />
