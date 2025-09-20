@@ -28,7 +28,7 @@
     is_auto_bid: boolean;
     product_name: string;
     description: string;
-    starting_price: string;
+    retail_value: string;
     auction_start: string;
     auction_end: string;
     status: string;
@@ -244,7 +244,7 @@
 
       return (
         <div
-          className="w-[320px] sm:w-auto sm:max-w-[280px] bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer mx-auto"
+          className="w-full max-w-full sm:max-w-none bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
           onClick={(e) => handleCardContainerClick(e, item.product_id)}
         >
           <div className="relative pt-[75%] overflow-hidden">
@@ -259,44 +259,50 @@
           </div>
 
           <div className="p-4">
-            <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+            <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 h-12 flex items-center">
               {item.product_name}
             </h3>
 
-            <div className="space-y-2 mb-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-gray-600">My Bid</span>
-                <span className="text-sm font-bold text-primary">
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <div className="text-xs text-gray-500 mb-1">My Bid</div>
+                <div className="text-sm font-semibold text-gray-900">
                   ₹{parseFloat(item.bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-gray-600">Highest Bid</span>
-                <span className={cn(
-                  "text-sm font-bold",
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <div className="text-xs text-gray-500 mb-1">Highest Bid</div>
+                <div className={cn(
+                  "text-sm font-semibold",
                   parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "text-emerald-600" : "text-red-600"
                 )}>
                   ₹{parseFloat(item.max_bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-gray-600">Time Left</span>
-                <div className="flex items-center gap-1 text-sm">
-                  <Clock className="w-4 h-4" />
-                  <span className="font-medium text-primary">{timeLeft.text}</span>
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <div className="text-xs text-gray-500 mb-1">Time Left</div>
+                <div className="flex items-center gap-1 text-sm text-gray-900">
+                  <Clock className="w-3 h-3" />
+                  <span className="font-medium">{timeLeft.text}</span>
+                </div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <div className="text-xs text-gray-500 mb-1">MSRP</div>
+                <div className="text-sm font-semibold text-gray-900">
+                  ₹{item.retail_value ? parseFloat(item.retail_value).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : 'N/A'}
                 </div>
               </div>
             </div>
 
             {isWon && <CountdownTimer endDate={item.auction_end} />}
 
-            <div className="flex flex-col gap-2 mt-4">
+            <div className="grid grid-cols-2 gap-2 mt-4">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCardClick(e, item.product_id);
                 }}
-                className="w-full px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm"
+                className="w-full px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm whitespace-nowrap"
               >
                 View Details
               </button>

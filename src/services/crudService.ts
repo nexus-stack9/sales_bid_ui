@@ -574,3 +574,69 @@ console.log(files)
   }
 };
 
+
+/**
+ * Fetches the user's orders by user ID
+ * @param userId The ID of the user to fetch orders for
+ * @returns The response data from the API containing user orders
+ */
+/**
+ * Fetches order details by order ID
+ * @param orderId The ID of the order to fetch
+ * @returns The response data from the API containing order details
+ */
+export const getOrderById = async (orderId: string | number) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/orders/details/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Cookies.get('authToken')}`
+      }
+    });
+
+    if (!response.ok) {
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
+      throw new Error('Failed to fetch order details');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in getOrderById:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches the user's orders by user ID
+ * @param userId The ID of the user to fetch orders for
+ * @returns The response data from the API containing user orders
+ */
+export const getUserOrders = async (userId: string) => {
+  // eslint-disable-next-line no-useless-catch
+  try {
+    const response = await fetch(`${API_BASE_URL}/profile/orders/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Cookies.get('authToken')}`
+      }
+    });
+
+    if (!response.ok) {
+      if (handleTokenValidation(response)) {
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to fetch user orders');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+

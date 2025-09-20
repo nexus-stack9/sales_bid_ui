@@ -23,8 +23,8 @@ const Index = () => {
       <div className="min-h-screen">
         <Hero />
         <SellerSpotlight />
-        <TrendingCategories />
-        <CompanyStats />
+        {/* <TrendingCategories /> */}
+        {/* <CompanyStats /> */}
         {/* <FeaturedAuctions /> */}
         {/* <FeaturedCountdown /> */}
         <LiveAuctions />
