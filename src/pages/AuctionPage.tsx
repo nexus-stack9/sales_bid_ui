@@ -51,6 +51,10 @@ const AuctionPage: React.FC = () => {
   const [maxPrice, setMaxPrice] = useState<number>(50000);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
 
+  // Mobile infinite scroll accumulation
+  const [mobileMappedProducts, setMobileMappedProducts] = useState<Product[]>([]);
+  const [previousPage, setPreviousPage] = useState<number>(0);
+
   const {
     products: apiProducts,
     filterOptions,
@@ -62,6 +66,114 @@ const AuctionPage: React.FC = () => {
     loadPrevPage,
     loadSpecificPage
   } = usePaginatedProducts();
+
+  // Scroll-based infinite scroll for mobile
+  useEffect(() => {
+    if (!isMobile) return;
+
+    let ticking = false;
+    const threshold = 1800; // Trigger after approximately 15th item (5 items * ~360px height)
+
+    const handleScroll = () => {
+      if (ticking) return;
+      requestAnimationFrame(() => {
+        const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
+        if (
+          scrollTop + clientHeight >= scrollHeight - threshold &&
+          pagination?.hasNextPage &&
+          !isLoading
+        ) {
+          loadNextPage();
+        }
+        ticking = false;
+      });
+      ticking = true;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isMobile, pagination?.hasNextPage, isLoading, loadNextPage]);
+
+  // Accumulate mapped products for mobile infinite scroll
+  useEffect(() => {
+    if (!pagination || !isMobile) return;
+
+    const currentPage = pagination.currentPage;
+
+    if (currentPage === 1) {
+      const mapped = apiProducts.map(mapApiProductToProduct);
+      setMobileMappedProducts(mapped);
+      setPreviousPage(1);
+    } else if (currentPage > previousPage && apiProducts.length > 0) {
+      const newBatch = apiProducts.map(mapApiProductToProduct);
+      setMobileMappedProducts(prev => [...prev, ...newBatch]);
+      setPreviousPage(currentPage);
+    }
+  }, [apiProducts, pagination?.currentPage, isMobile, previousPage]);
+
+  // Update maxPrice if higher values found in new mobile products
+  useEffect(() => {
+    if (!isMobile || mobileMappedProducts.length === 0) return;
+
+    const prices = mobileMappedProducts
+      .map(p => typeof p.retail_value === 'number' ? p.retail_value : (p.retail_value || 0))
+      .filter(Number.isFinite);
+    const newMaxPrice = prices.length > 0 ? Math.max(...prices) : 50000;
+
+    if (newMaxPrice > maxPrice) {
+      setMaxPrice(newMaxPrice);
+    }
+  }, [mobileMappedProducts, isMobile, maxPrice]);
+
+  // Generate skeleton products
+  const generateSkeletonProducts = (count: number, startIndex: number): Product[] => {
+    return Array.from({ length: count }, (_, i) => ({
+      id: `skeleton-${startIndex + i}`,
+      name: "",
+      image: "",
+      description: "",
+      currentBid: 0,
+      totalBids: 0,
+      timeLeft: new Date().toISOString(),
+      location: "",
+      category: "",
+      category_name: "",
+      seller: "",
+      startingBid: 0,
+      buyNowPrice: 0,
+      condition: "",
+      isWishlisted: false,
+      retail_value: 0,
+    } as Product));
+  };
+
+  // Product Skeleton Component
+  const ProductSkeleton: React.FC<{ key: string }> = ({ key: skey }) => (
+    <div key={skey} className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="relative aspect-square bg-gray-100">
+        <Skeleton className="w-full h-full" />
+      </div>
+      <div className="p-4 space-y-3">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+        <div className="space-y-2 pt-2">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+        </div>
+        <div className="pt-2">
+          <Skeleton className="h-10 w-full rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
 
   // Calculate dynamic max price from API products
   const calculateMaxPrice = (): number => {
@@ -92,7 +204,7 @@ const AuctionPage: React.FC = () => {
   // Set category from query param whenever location.search changes
   useEffect(() => {
     const category = getCategoryFromQuery();
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       categories: category ? [category] : [],
     }));
@@ -106,9 +218,9 @@ const AuctionPage: React.FC = () => {
       setMaxPrice(newMaxPrice);
       
       // Initialize filters with the correct max price
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        priceRange: [0, newMaxPrice] as [number, number]
+        priceRange: [0, newMaxPrice] as [number, number],
       }));
       
       setFiltersInitialized(true);
@@ -231,9 +343,18 @@ const AuctionPage: React.FC = () => {
 
   // Map and sort products
   const getMappedProducts = (): Product[] => {
-    if (!apiProducts.length) return [];
-    const mapped = apiProducts.map(mapApiProductToProduct);
-    return sortProducts(mapped, sortBy);
+    if (isMobile) {
+      let prods = mobileMappedProducts;
+      if (isLoading && mobileMappedProducts.length > 0) {
+        const skeletons = generateSkeletonProducts(20, mobileMappedProducts.length);
+        prods = [...prods, ...skeletons];
+      }
+      return prods;
+    } else {
+      if (!apiProducts.length) return [];
+      const mapped = apiProducts.map(mapApiProductToProduct);
+      return sortProducts(mapped, sortBy);
+    }
   };
 
   // Create a single load function with debouncing
@@ -305,6 +426,12 @@ const AuctionPage: React.FC = () => {
   // Separate effect for filters and sorting changes with debouncing
   useEffect(() => {
     if (!hasInitiallyLoaded.current) return;
+
+    // Reset mobile products when filters or sort change
+    if (isMobile) {
+      setMobileMappedProducts([]);
+      setPreviousPage(0);
+    }
 
     const timer = setTimeout(() => {
       loadProductsWithParams(1, 20, filters, sortBy);
@@ -414,20 +541,42 @@ const AuctionPage: React.FC = () => {
     );
   };
 
+  // Get showing info for results
+  const getShowingInfo = () => {
+    if (!pagination) return { start: 0, end: 0, total: 0 };
+
+    const perPage = pagination.recordsPerPage;
+    let start = 1;
+    let end = 0;
+
+    if (isMobile) {
+      let currentLength = mobileMappedProducts.length;
+      if (isLoading && mobileMappedProducts.length > 0) {
+        currentLength += 20;
+      }
+      end = currentLength;
+      start = 1;
+    } else {
+      start = (pagination.currentPage - 1) * perPage + 1;
+      end = Math.min(pagination.currentPage * perPage, pagination.totalRecords);
+    }
+
+    return {
+      start,
+      end: Math.min(end, pagination.totalRecords),
+      total: pagination.totalRecords,
+    };
+  };
+
   // Results info component
   const ResultsInfo = () => {
-    if (!pagination) return null;
+    const { start, end, total } = getShowingInfo();
+    if (total === 0) return null;
 
     return (
       <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
         <span>
-          Showing {(pagination.currentPage - 1) * pagination.recordsPerPage + 1}{" "}
-          to{" "}
-          {Math.min(
-            pagination.currentPage * pagination.recordsPerPage,
-            pagination.totalRecords
-          )}{" "}
-          of {pagination.totalRecords} results
+          Showing {start} to {end} of {total} results
         </span>
 
         <div className="hidden lg:block">
@@ -509,7 +658,8 @@ const AuctionPage: React.FC = () => {
 
   // No products message
   const NoProductsMessage = () => {
-    if (isLoading || getMappedProducts().length > 0) return null;
+    const realProductsLength = getMappedProducts().filter(p => !p.id.startsWith('skeleton')).length;
+    if (isLoading || realProductsLength > 0) return null;
 
     return (
       <div className="text-center py-12">
@@ -634,7 +784,7 @@ const AuctionPage: React.FC = () => {
     return <SkeletonLoader />;
   }
 
-  const mappedProducts = getMappedProducts();
+  const allProducts = getMappedProducts();
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
@@ -649,7 +799,7 @@ const AuctionPage: React.FC = () => {
                 onClose={() => {}}
                 filters={filters}
                 filterOptions={filterOptions}
-                products={mappedProducts}
+                products={allProducts.filter(p => !p.id.startsWith('skeleton'))}
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={clearFilters}
                 forceRefresh={forceRefresh}
@@ -698,18 +848,22 @@ const AuctionPage: React.FC = () => {
             <ResultsInfo />
 
             {/* Products Grid */}
-            <div className="space-y-6" key={`products-${isLoading}`}>
+            <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
-                {mappedProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
+                {allProducts.map((product) =>
+                  product.id.startsWith("skeleton") ? (
+                    <ProductSkeleton key={product.id} />
+                  ) : (
+                    <ProductCard key={product.id} product={product} />
+                  )
+                )}
               </div>
 
               {/* No products message */}
               <NoProductsMessage />
 
-              {/* Pagination */}
-              <PaginationComponent />
+              {/* Desktop Pagination */}
+              {!isMobile && <PaginationComponent />}
             </div>
           </div>
         </div>
@@ -721,7 +875,7 @@ const AuctionPage: React.FC = () => {
         onClose={() => setIsFilterOpen(false)}
         filters={filters}
         filterOptions={filterOptions}
-        products={mappedProducts}
+        products={allProducts.filter(p => !p.id.startsWith('skeleton'))}
         onFiltersChange={handleFiltersChange}
         onClearFilters={clearFilters}
         forceRefresh={forceRefresh}

@@ -85,15 +85,17 @@ const Wishlist: React.FC = () => {
         setError(null);
       } catch (err) {
         console.error('Error fetching wishlist:', err);
-        setError('Failed to load wishlist. Please try again.');
+        const authError = err instanceof Error && err.message === 'User not authenticated';
+        setError(authError ? 'Please sign in to add products to wishlist' : 'Failed to load wishlist. Please try again.');
         setWishlistItems([]);
         // Only show toast on initial load if there's an error
         if (!hasFetched.current) {
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Failed to load wishlist. Please try again.',
-          });
+          const desc = authError ? 'Please sign in to add products to wishlist.' : 'Failed to load wishlist. Please try again.';
+          // toast({
+          //   variant: authError ? 'default' : 'destructive',
+          //   title: authError ? 'Sign In Required' : 'Error',
+          //   description: desc,
+          // });
         }
       } finally {
         setIsLoading(false);
@@ -123,11 +125,12 @@ const Wishlist: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error('Error refreshing wishlist:', err);
-      setError('Failed to refresh wishlist. Please try again.');
+      const authError = err instanceof Error && err.message === 'User not authenticated';
+      setError(authError ? 'Please sign in to add products to wishlist' : 'Failed to refresh wishlist. Please try again.');
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to refresh wishlist. Please try again.',
+        description: authError ? 'Please sign in to add products to wishlist.' : 'Failed to refresh wishlist. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -278,26 +281,43 @@ const Wishlist: React.FC = () => {
   }
 
   if (error) {
+    const isAuthError = error === 'Please sign in to add products to wishlist';
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <XIcon className="w-12 h-12 text-red-500" />
+      <Layout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className={`w-24 h-24 ${isAuthError ? 'bg-blue-100' : 'bg-red-100'} rounded-full flex items-center justify-center mx-auto mb-6`}>
+              {isAuthError ? (
+                <Heart className="w-12 h-12 text-blue-500" />
+              ) : (
+                <XIcon className="w-12 h-12 text-red-500" />
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {isAuthError ? 'Please sign in' : 'Oops! Something went wrong'}
+            </h2>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              {error}
+            </p>
+            <button 
+              onClick={() => {
+                if (isAuthError) {
+                  navigate('/signin');
+                } else {
+                  window.location.reload();
+                }
+              }}
+              className={`bg-gradient-to-r ${
+                isAuthError 
+                  ? 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' 
+                  : 'from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700'
+              } text-white px-6 py-3 rounded-lg font-medium transition-all`}
+            >
+              {isAuthError ? 'Sign In' : 'Try Again'}
+            </button>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Oops! Something went wrong
-          </h2>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            {error}
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
-          >
-            Try Again
-          </button>
         </div>
-      </div>
+      </Layout>
     );
   }
 
