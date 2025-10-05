@@ -55,6 +55,9 @@ const AuctionPage: React.FC = () => {
   const [mobileMappedProducts, setMobileMappedProducts] = useState<Product[]>([]);
   const [previousPage, setPreviousPage] = useState<number>(0);
 
+  // Track if we're waiting for wishlist data to prevent flickering
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+
   const {
     products: apiProducts,
     filterOptions,
@@ -101,9 +104,12 @@ const AuctionPage: React.FC = () => {
     const currentPage = pagination.currentPage;
 
     if (currentPage === 1) {
+      setIsWishlistLoading(true);
       const mapped = apiProducts.map(mapApiProductToProduct);
       setMobileMappedProducts(mapped);
       setPreviousPage(1);
+      // Small delay to ensure wishlist state is reflected
+      setTimeout(() => setIsWishlistLoading(false), 50);
     } else if (currentPage > previousPage && apiProducts.length > 0) {
       const newBatch = apiProducts.map(mapApiProductToProduct);
       setMobileMappedProducts(prev => [...prev, ...newBatch]);
@@ -414,8 +420,17 @@ const AuctionPage: React.FC = () => {
   // Single effect for initial load
   useEffect(() => {
     const loadInitialData = async () => {
-      await loadProductsWithParams(1, 20);
-      hasInitiallyLoaded.current = true;
+      try {
+        await loadProductsWithParams(1, 20);
+        // Only mark as loaded after we have products with wishlist data
+        // Give a small delay to ensure wishlist data is processed
+        setTimeout(() => {
+          hasInitiallyLoaded.current = true;
+        }, 100);
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+        hasInitiallyLoaded.current = true; // Mark as loaded even on error
+      }
     };
     
     if (!hasInitiallyLoaded.current) {
@@ -779,8 +794,8 @@ const AuctionPage: React.FC = () => {
     </Layout>
   );
 
-  // Show skeleton while loading OR while waiting for maxPrice calculation
-  if (isLoading || !filtersInitialized) {
+  // Show skeleton while loading OR while waiting for maxPrice calculation OR while products are empty on initial load OR while wishlist is loading
+  if (isLoading || !filtersInitialized || (!hasInitiallyLoaded.current && apiProducts.length === 0) || isWishlistLoading) {
     return <SkeletonLoader />;
   }
 
