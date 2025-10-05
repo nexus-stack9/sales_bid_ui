@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Home, Package, ShoppingCart, User, LogIn, Heart } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -26,7 +25,7 @@ const BottomNav = () => {
         <span className="text-xs mt-1">Auctions</span>
       </Link>
       <Link 
-        to={isAuthenticated ? "/user/wishlist" : "/signin"} 
+        to="/user/wishlist" 
         className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary relative"
       >
         <div className="relative">

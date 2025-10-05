@@ -5,8 +5,8 @@ import styles from "./ProductDetailPage.module.css";
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Layout from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock, FaShoppingCart } from 'react-icons/fa';
-import { Heart, Share2 } from 'lucide-react';
+import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock, FaShoppingCart, FaExpand } from 'react-icons/fa';
+import { Heart, Share2, Play } from 'lucide-react';
 import ShippingOptionsModal from '@/components/modals/ShippingOptionsModal';
 import { addToWishlist, removeFromWishlist, getUserIdFromToken, checkWishlistItem } from "@/services/crudService";
 import WebSocketService, { WebSocketMessage } from "@/services/WebsocketService";
@@ -36,8 +36,10 @@ const ProductDetailPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const imageRef = useRef(null);
   const [showBidModal, setShowBidModal] = useState(false);
+  const [showLiveModal, setShowLiveModal] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const modalContentRef = useRef(null);
 
   // Calculate per unit price
   const getPerUnitPrice = (price) => {
@@ -65,6 +67,36 @@ const ProductDetailPage = () => {
   // Check if buy option is available
   const hasBuyOption = () => {
     return productData?.buy_option === 1 && productData?.sale_price;
+  };
+
+  // Extract YouTube video ID
+  const extractYouTubeVideoId = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  // Get embed URL for YouTube or fallback to original
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    const videoId = extractYouTubeVideoId(url);
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    }
+    return url;
+  };
+
+  // Handle full screen
+  const handleFullScreen = () => {
+    if (modalContentRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        modalContentRef.current.requestFullscreen().catch(err => {
+          console.error('Error attempting to enable full-screen mode:', err);
+        });
+      }
+    }
   };
 
   // Handle Buy Now action
@@ -103,6 +135,17 @@ const ProductDetailPage = () => {
       document.body.classList.remove('bid-open');
     };
   }, [showBidModal]);
+
+  useEffect(() => {
+    if (showLiveModal) {
+      document.body.classList.add('live-open');
+    } else {
+      document.body.classList.remove('live-open');
+    }
+    return () => {
+      document.body.classList.remove('live-open');
+    };
+  }, [showLiveModal]);
 
   useEffect(() => {
     if (productData?.image_path) {
@@ -664,7 +707,19 @@ const ProductDetailPage = () => {
                   <span className={styles.endsInText}>Auction Ended</span>
                 )}
               </div>
-
+{productData?.product_live_url && productData.product_live_url.trim() !== '' && (
+  <button
+    className={styles.watchLiveButton}
+    onClick={() => setShowLiveModal(true)}
+    aria-label="Click to watch live stream"
+  >
+    <div className={styles.liveButtonIndicator}>
+      <span className={styles.livePulseDot}></span>
+      <span className={styles.liveButtonText}> Watch Live Stream</span>
+      <Play className={styles.shareIcon} />
+    </div>
+  </button>
+)}
               <div className={styles.descriptionPreview}>
                 <h3>Description</h3>
                 <Tooltip content={productData.description}>
@@ -1030,6 +1085,43 @@ const ProductDetailPage = () => {
           ))}
         </div>
       </div>
+
+      {showLiveModal && productData?.product_live_url && productData.product_live_url.trim() !== '' && (
+        <div
+          className={styles.liveModalOverlay}
+          onClick={() => setShowLiveModal(false)}
+        >
+          <div
+            ref={modalContentRef}
+            className={styles.liveModalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.liveModalHeader}>
+              <button
+                className={styles.liveModalClose}
+                onClick={() => setShowLiveModal(false)}
+              >
+                &times;
+              </button>
+              <button
+                className={styles.liveModalFullScreen}
+                onClick={handleFullScreen}
+                title="Toggle full screen"
+              >
+                <FaExpand />
+              </button>
+            </div>
+            <iframe
+              src={getEmbedUrl(productData.product_live_url)}
+              className={styles.liveModalIframe}
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              frameBorder="0"
+              title="Live Video"
+            />
+          </div>
+        </div>
+      )}
 
       <ShippingOptionsModal
         isOpen={showShippingModal}
