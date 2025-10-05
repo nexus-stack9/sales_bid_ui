@@ -1322,3 +1322,260 @@
       font-size: 24px;
     }
   }
+  
+  /* Live Modal Styles */
+.liveModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.liveModalContent {
+  position: relative;
+  width: 100%;
+  max-width: 90vw;
+  height: 80vh;
+  max-height: 90vh;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+.liveModalClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+}
+
+.liveModalClose:hover,
+.liveModalClose:active {
+  background: rgba(255, 0, 0, 0.7);
+  transform: scale(1.05);
+}
+
+.liveModalFullScreen {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+}
+
+.liveModalFullScreen:hover,
+.liveModalFullScreen:active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.liveModalFullScreen svg {
+  width: 18px;
+  height: 18px;
+}
+
+.liveModalIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .liveModalOverlay {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .liveModalContent {
+    max-width: 100vw;
+    height: 75vh;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+  }
+
+  .liveModalClose {
+    top: 8px;
+    right: 8px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+
+  .liveModalFullScreen {
+    bottom: 8px;
+    right: 8px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .liveModalFullScreen svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Body lock for modal open (prevents background scroll) */
+.live-open {
+  overflow: hidden;
+}
+
+/* Clean Black Watch Live Button */
+.watchLiveButton {
+  background: #000000;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px;
+  width: 100%;
+  margin: 20px 0;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Hover Effects */
+.watchLiveButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 25px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+  background: #0a0a0a;
+}
+
+.watchLiveButton:active {
+  transform: translateY(0);
+  background: #000000;
+}
+
+.liveButtonIndicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.livePulseDot {
+  width: 10px;
+  height: 10px;
+  background: #f8f9f9;
+  border-radius: 50%;
+  animation: liveGlow 2s ease-in-out infinite;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.liveButtonText {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.watchLiveButton .shareIcon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
+  transition: transform 0.3s ease;
+}
+
+.watchLiveButton:hover .shareIcon {
+  transform: scale(1.1);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .watchLiveButton {
+    padding: 12px 20px;
+    font-size: 14px;
+    margin: 16px 0;
+    border-radius: 10px;
+  }
+  
+  .liveButtonText {
+    font-size: 14px;
+  }
+  
+  .livePulseDot {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .watchLiveButton .shareIcon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .watchLiveButton {
+    padding: 11px 18px;
+    font-size: 13px;
+    margin: 14px 0;
+  }
+  
+  .liveButtonText {
+    font-size: 13px;
+  }
+  
+  .liveButtonIndicator {
+    gap: 8px;
+  }
+}

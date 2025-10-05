@@ -287,6 +287,7 @@ const AuctionPage: React.FC = () => {
         condition,
         isWishlisted,
         retail_value: retailValue,
+        product_live_url: productData.product_live_url?.toString() || "",
       };
     } catch (error) {
       console.error("Error mapping product:", productData, error);
@@ -307,6 +308,7 @@ const AuctionPage: React.FC = () => {
         condition: "Fair",
         isWishlisted: false,
         retail_value: 0,
+        product_live_url: (productData && productData.product_live_url) ? productData.product_live_url.toString() : "",
       };
     }
   };

@@ -45,6 +45,7 @@ export interface Product {
   retail_value?: number;
   maxPrice?: number;
   maxMsrp?: number;
+  product_live_url?: string;
 }
   
 export interface FilterState {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MapPin, Tag, Clock, Gavel, Hourglass } from 'lucide-react';
+import { Heart, MapPin, Tag, Clock, Gavel, Hourglass, Play } from 'lucide-react';
 import { FaClock as FaClockIcon } from 'react-icons/fa';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -141,9 +141,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 <div className="bg-primary text-white text-[10px] font-medium py-0.5 px-2 relative shadow-sm">
                   <div className="absolute -left-1 top-0 w-0 h-0 border-t-5 border-t-primary border-r-5 border-r-transparent"></div>
                   <div className="absolute -right-1 top-0 w-0 h-0 border-b-5 border-b-primary border-l-5 border-l-transparent"></div>
-                  <div className="relative z-10 text-center whitespace-nowrap">
-                    {product.condition}
-                  </div>
+                  {product.condition}
                 </div>
               </div>
               
@@ -162,11 +160,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                   className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} 
                 />
               </button>
+              
+              {/* Live Indicator */}
+              {product.product_live_url && (
+                <div className="absolute bottom-2 right-2 z-10">
+                  <div className="flex items-center bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md animate-pulse">
+                    <span className="w-2 h-2 bg-white rounded-full mr-1.5"></span>
+                    LIVE
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Content */}
             <div className="p-2.5 sm:p-4 flex-1 flex flex-col rounded-b-lg">
-              {/* Title */}
               <div className="mb-2">
                 <h3 
                   className="font-medium text-gray-900 text-[14px] leading-tight line-clamp-2 mb-1.5 group-hover:text-primary transition-colors"
@@ -372,7 +379,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
               {product.buyNowPrice && (
                 <Button 
                   variant="outline" 
-                  size="sm"
                   className="px-3 border-black text-black hover:bg-black hover:text-white text-sm font-semibold"
                 >
                   Buy {formatPrice(product.buyNowPrice)}
