@@ -3,6 +3,8 @@ import { FaSearch, FaRegHeart, FaHeart, FaFilter, FaChevronDown, FaChevronUp, Fa
 import { MdVerified, MdBusiness, MdEmail, MdPhone, MdDateRange } from 'react-icons/md';
 import { HiOutlineCube, HiOutlineShoppingCart, HiOutlineCheckCircle } from 'react-icons/hi';
 import Layout from '@/components/layout/Layout';
+import { Link } from 'react-router-dom';
+
 import axios from 'axios';
 import sellerService from '@/services/sellerService';
 
@@ -18,7 +20,10 @@ interface Seller {
   created_at: string;
   product_count: number;
   sold_products: number;
+  vendor_active: boolean;
   active_products: number;
+  inactive_products: number;
+  total: number;
 }
 
 interface ApiResponse {
@@ -319,121 +324,119 @@ const AllSellersPage = () => {
           </div>
 
           {/* Sellers List */}
-          {/* Sellers List */}
-<div className="space-y-3">
-  {paginatedSellers.length > 0 ? (
-    paginatedSellers.map((seller) => (
-      <div
-        key={seller.vendor_id}
-        className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition flex items-center p-3"
-      >
-        {/* Logo / Avatar */}
-        <div className="flex-shrink-0">
-          {seller.profile_picture ? (
-            <img
-              src={seller.profile_picture}
-              alt={seller.business_name || seller.vendor_name}
-              className="w-12 h-12 rounded-lg object-cover border border-gray-200"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-600">
-              {seller.business_name
-                ? seller.business_name.charAt(0).toUpperCase()
-                : seller.vendor_name.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
+          <div className="space-y-3">
+            {paginatedSellers.length > 0 ? (
+              paginatedSellers.map((seller) => (
+                <div
+                  key={seller.vendor_id}
+                  className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition flex items-center p-3"
+                >
+                  {/* Logo / Avatar */}
+                  <div className="flex-shrink-0">
+                    {seller.profile_picture ? (
+                      <img
+                        src={seller.profile_picture}
+                        alt={seller.business_name || seller.vendor_name}
+                        className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-600">
+                        {seller.business_name
+                          ? seller.business_name.charAt(0).toUpperCase()
+                          : seller.vendor_name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
 
-        {/* Info */}
-        <div className="flex-1 ml-3">
-          {/* Top Row: Name + Status */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-900 truncate">
-              {seller.business_name || seller.vendor_name}
-            </h3>
-            <span
-              className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                seller.status === "1"
-                  ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                  : "bg-red-50 text-red-600 border border-red-200"
-              }`}
-            >
-              {seller.status === "1" ? "Active" : "Inactive"}
-            </span>
+                  {/* Info */}
+                  <div className="flex-1 ml-3">
+                    {/* Top Row: Name + Status */}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        {seller.business_name || seller.vendor_name}
+                      </h3>
+                      <span
+                        className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                          seller.vendor_active === true
+                            ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                            : "bg-red-50 text-red-600 border border-red-200"
+                        }`}
+                      >
+                        {seller.vendor_active === true ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+
+                    {/* Vendor Name */}
+                    <p className="text-xs text-gray-500">
+                      Vendor:{" "}
+                      <span className="font-medium text-gray-700">
+                        {seller.vendor_name}
+                      </span>
+                    </p>
+
+                    {/* Stats inline + View Auctions */}
+                    <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                      <div className="flex gap-4">
+                        <span className="flex items-center gap-1">
+                          <HiOutlineCube className="text-purple-500 text-sm" />
+                          {seller.total} total
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <HiOutlineShoppingCart className="text-emerald-500 text-sm" />
+                          {seller.active_products} active
+                        </span>
+                        {/* <span className="flex items-center gap-1">
+                          <HiOutlineCheckCircle className="text-blue-500 text-sm" />
+                          {seller.sold_products} sold
+                        </span> */}
+                      </div>
+
+                      {/* View Auctions Button at the end */}
+                      <Link
+                        to={`/auctions?vendor_id=${seller.vendor_id}`}
+                        className="inline-flex items-center gap-2 text-slate-400 transition hover:text-sky-400"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
+                        view auctions
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
+                <h3 className="text-sm font-medium text-gray-900">No sellers found</h3>
+                <p className="mt-1 text-xs text-gray-500">
+                  Try adjusting your search or filter to find what you're looking for.
+                </p>
+                <div className="mt-4">
+                  <button
+                    onClick={resetFilters}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
+                  >
+                    Reset all filters
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Vendor Name */}
-          <p className="text-xs text-gray-500">
-            Vendor:{" "}
-            <span className="font-medium text-gray-700">
-              {seller.vendor_name}
-            </span>
-          </p>
-
-          {/* Stats inline + View Auctions */}
-          <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
-            <div className="flex gap-4">
-              <span className="flex items-center gap-1">
-                <HiOutlineCube className="text-purple-500 text-sm" />
-                {seller.product_count} total
-              </span>
-              <span className="flex items-center gap-1">
-                <HiOutlineShoppingCart className="text-emerald-500 text-sm" />
-                {seller.active_products} active
-              </span>
-              <span className="flex items-center gap-1">
-                <HiOutlineCheckCircle className="text-blue-500 text-sm" />
-                {seller.sold_products} sold
-              </span>
-            </div>
-
-            {/* View Auctions Button at the end */}
-            <button
-              onClick={() => console.log("View auctions for", seller.vendor_id)}
-              className="text-xs px-3 py-1.5 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition"
-            >
-              View Auctions
-            </button>
-          </div>
-        </div>
-      </div>
-    ))
-  ) : (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center">
-      <h3 className="text-sm font-medium text-gray-900">No sellers found</h3>
-      <p className="mt-1 text-xs text-gray-500">
-        Try adjusting your search or filter to find what you're looking for.
-      </p>
-      <div className="mt-4">
-        <button
-          onClick={resetFilters}
-          className="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
-        >
-          Reset all filters
-        </button>
-      </div>
-    </div>
-  )}
-</div>
-
-
 
           {/* Pagination */}
           {filteredSellers.length > pagination.itemsPerPage && (
             <div className="flex justify-center mt-10">
               <nav className="flex items-center space-x-2">
-                <button 
+                <button
                   onClick={() => handlePageChange(pagination.currentPage - 1)}
                   disabled={pagination.currentPage === 1}
                   className="px-3 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaChevronLeft className="text-sm" />
                 </button>
-                
+
                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                   let pageNum;
                   const totalPages = pagination.totalPages;
-                  
+
                   if (totalPages <= 5) {
                     pageNum = i + 1;
                   } else if (pagination.currentPage <= 3) {
@@ -459,18 +462,18 @@ const AllSellersPage = () => {
                   );
                 })}
 
-                {pagination.totalPages > 5 && 
+                {pagination.totalPages > 5 &&
                   pagination.currentPage < pagination.totalPages - 2 && (
                   <span className="px-2 text-gray-500">...</span>
                 )}
 
-                {pagination.totalPages > 5 && 
+                {pagination.totalPages > 5 &&
                   pagination.currentPage < pagination.totalPages - 2 && (
                   <button
                     onClick={() => handlePageChange(pagination.totalPages)}
                     className={`px-4 py-1 rounded border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition ${
-                      pagination.currentPage === pagination.totalPages 
-                        ? 'bg-purple-600 border-purple-600 text-white' 
+                      pagination.currentPage === pagination.totalPages
+                        ? 'bg-purple-600 border-purple-600 text-white'
                         : ''
                     }`}
                   >
@@ -478,7 +481,7 @@ const AllSellersPage = () => {
                   </button>
                 )}
 
-                <button 
+                <button
                   onClick={() => handlePageChange(pagination.currentPage + 1)}
                   disabled={pagination.currentPage === pagination.totalPages}
                   className="px-3 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
