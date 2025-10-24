@@ -5,7 +5,7 @@ import { Star, Quote } from "lucide-react";
 const testimonials = [
   {
     id: 1,
-    name: "Sarah Johnson",
+    name: "Neeraj",
     role: "Retail Business Owner",
     image: "https://randomuser.me/api/portraits/women/32.jpg",
     content: "Sales Bid has transformed how I source inventory for my store. The platform is intuitive, and I've found incredible deals that have significantly increased my profit margins.",
@@ -13,7 +13,7 @@ const testimonials = [
   },
   {
     id: 2,
-    name: "Michael Chen",
+    name: "Prakash",
     role: "Professional Reseller",
     image: "https://randomuser.me/api/portraits/men/45.jpg",
     content: "As someone who resells full-time, I've tried many auction platforms. Sales Bid stands out with its transparent bidding process and exceptional customer service.",
@@ -21,7 +21,7 @@ const testimonials = [
   },
   {
     id: 3,
-    name: "Emily Rodriguez",
+    name: "Suhas",
     role: "Collector",
     image: "https://randomuser.me/api/portraits/women/68.jpg",
     content: "I've been able to find rare items for my collection that I couldn't source anywhere else. The verification process gives me confidence in the authenticity of every purchase.",
