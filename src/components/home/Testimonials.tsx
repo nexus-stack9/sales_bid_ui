@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, User } from "lucide-react";
 
 const testimonials = [
   {
     id: 1,
     name: "Neeraj",
     role: "Retail Business Owner",
-    image: "https://randomuser.me/api/portraits/women/32.jpg",
+    image: "",
     content: "Sales Bid has transformed how I source inventory for my store. The platform is intuitive, and I've found incredible deals that have significantly increased my profit margins.",
     rating: 5
   },
@@ -15,7 +15,7 @@ const testimonials = [
     id: 2,
     name: "Prakash",
     role: "Professional Reseller",
-    image: "https://randomuser.me/api/portraits/men/45.jpg",
+    image: "",
     content: "As someone who resells full-time, I've tried many auction platforms. Sales Bid stands out with its transparent bidding process and exceptional customer service.",
     rating: 5
   },
@@ -23,7 +23,7 @@ const testimonials = [
     id: 3,
     name: "Suhas",
     role: "Collector",
-    image: "https://randomuser.me/api/portraits/women/68.jpg",
+    image: "",
     content: "I've been able to find rare items for my collection that I couldn't source anywhere else. The verification process gives me confidence in the authenticity of every purchase.",
     rating: 4
   }
@@ -54,11 +54,17 @@ const Testimonials = () => {
       </div>
       
       <div className="flex items-center mb-4">
-        <img 
-          src={testimonial.image} 
-          alt={testimonial.name}
-          className="w-14 h-14 rounded-full object-cover mr-4 border-2 border-gray-100"
-        />
+        {testimonial.image ? (
+          <img 
+            src={testimonial.image} 
+            alt={testimonial.name}
+            className="w-14 h-14 rounded-full object-cover mr-4 border-2 border-gray-100"
+          />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mr-4 border-2 border-gray-200">
+            <User className="h-6 w-6 text-gray-400" />
+          </div>
+        )}
         <div>
           <h3 className="font-semibold">{testimonial.name}</h3>
           <p className="text-sm text-gray-500">{testimonial.role}</p>

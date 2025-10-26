@@ -39,7 +39,19 @@ const ProductDetailPage = () => {
   const [showLiveModal, setShowLiveModal] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
   const modalContentRef = useRef(null);
+  const iframeRef = useRef(null);
+
+  const handleIframeLoad = () => {
+    setIsVideoLoading(false);
+  };
+
+  useEffect(() => {
+    if (showLiveModal) {
+      setIsVideoLoading(true);
+    }
+  }, [showLiveModal]);
 
   // Calculate per unit price
   const getPerUnitPrice = (price) => {
@@ -76,16 +88,23 @@ const ProductDetailPage = () => {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  // Get embed URL for YouTube or fallback to original
+// Get embed URL with minimal controls
   const getEmbedUrl = (url) => {
     if (!url) return '';
     const videoId = extractYouTubeVideoId(url);
     if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      // YouTube with no controls at all
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0`;
     }
-    return url;
+    // For other video sources
+    try {
+      const hasQuery = url.includes('?');
+      const sep = hasQuery ? '&' : '?';
+      return `${url}${sep}autoplay=1&controls=0`;
+    } catch {
+      return url;
+    }
   };
-
   // Handle full screen
   const handleFullScreen = () => {
     if (modalContentRef.current) {
@@ -1111,14 +1130,69 @@ const ProductDetailPage = () => {
                 <FaExpand />
               </button>
             </div>
-            <iframe
-              src={getEmbedUrl(productData.product_live_url)}
-              className={styles.liveModalIframe}
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-              frameBorder="0"
-              title="Live Video"
-            />
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              padding: '44px 0 0', /* Space for header */
+              backgroundColor: '#000'
+            }}>
+              {isVideoLoading && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  color: '#fff',
+                  textAlign: 'center',
+                  padding: '20px'
+                }}>
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    border: '4px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '50%',
+                    borderTopColor: '#fff',
+                    animation: 'spin 1s ease-in-out infinite',
+                    marginBottom: '15px'
+                  }} />
+                  <p>Loading live stream...</p>
+                </div>
+              )}
+              <iframe
+                ref={iframeRef}
+                key={`${showLiveModal}-${productData.product_live_url}`}
+                src={getEmbedUrl(productData.product_live_url)}
+                onLoad={handleIframeLoad}
+                style={{
+                  border: 'none',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  backgroundColor: '#000',
+                  opacity: isVideoLoading ? 0 : 1,
+                  transition: 'opacity 0.3s ease-in-out'
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Live Stream"
+                frameBorder="0"
+                scrolling="no"
+              />
+            </div>
           </div>
         </div>
       )}
