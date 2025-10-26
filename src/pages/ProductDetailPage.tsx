@@ -1111,14 +1111,22 @@ const ProductDetailPage = () => {
                 <FaExpand />
               </button>
             </div>
-            <iframe
-              src={getEmbedUrl(productData.product_live_url)}
-              className={styles.liveModalIframe}
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-              frameBorder="0"
-              title="Live Video"
-            />
+            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+              <iframe
+                src={productData.product_live_url}
+                style={{
+                  border: 'none',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  height: '100%',
+                  width: '100%',
+                }}
+                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                allowFullScreen
+                title="Live Stream"
+              />
+            </div>
           </div>
         </div>
       )}

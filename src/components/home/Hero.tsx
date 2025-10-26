@@ -10,7 +10,7 @@ import bannerImage from "@/assets/banners/banner1.png";
 const BlurText = ({ text, className }: { text: string; className?: string }) => {
   // Split the text to apply gradient only to specific words
   const firstPart = "Exclusive auctions, unbeatable prices—";
-  const highlightedPart = "start bidding today!";
+  const highlightedPart = "start buying today!";
   
   return (
     <div className={cn("w-full flex flex-wrap justify-center", className)}>
@@ -64,15 +64,13 @@ const Hero = () => {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text"
             }}>
-              Discover Premium Auction
+          India’s Trusted B2B Liquidation Marketplace for Bulk Inventory
               <br />
-              Deals
             </span>
           </h1>
           
           <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-            Access an ever-growing collection of premium, meticulously crafted templates and component packs.
-            Save time and focus on what matters—building standout websites that captivate your audience.
+            Securely source bulk Surplus, Salvage, and Customer-Returned Inventory from India's top retailers and manufacturers. We turn excess stock into profit.
           </p>
           
           {/* Bid Win Repeat Icons - Modern Interactive Layout */}
@@ -145,7 +143,7 @@ const Hero = () => {
             </Button>
             
             <Button asChild size="lg" variant="outline" className="border-gray-300">
-              <Link to="/sellers">Unlock Unlimited Access</Link>
+              <Link to="/sellers">Become a Verified Seller</Link>
             </Button>
           </div>
         </div>

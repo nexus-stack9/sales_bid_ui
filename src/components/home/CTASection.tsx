@@ -36,10 +36,10 @@ const CTASection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-            Ready to Start Your Auction Journey?
+            Ready to Start With Salesbid Journey ?
           </h2>
           <p className="text-white/70 max-w-2xl mx-auto text-lg">
-            Join thousands of users who are already buying and selling on Sales Bid
+            Join India’s fastest-growing B2B liquidation network for verified businesses.
           </p>
         </div>
         
