@@ -1184,7 +1184,8 @@ const ProductDetailPage = () => {
                   objectFit: 'contain',
                   backgroundColor: '#000',
                   opacity: isVideoLoading ? 0 : 1,
-                  transition: 'opacity 0.3s ease-in-out'
+                  transition: 'opacity 0.3s ease-in-out',
+                  transform: 'scaleX(-1)'
                 }}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
