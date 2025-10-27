@@ -9,8 +9,8 @@ import bannerImage from "@/assets/banners/banner1.png";
 // Simplified BlurText component without animations
 const BlurText = ({ text, className }: { text: string; className?: string }) => {
   // Split the text to apply gradient only to specific words
-  const firstPart = "Exclusive auctions, unbeatable prices—";
-  const highlightedPart = "start bidding today!";
+  const firstPart = "Exclusive deals,unbeatable prices—";
+  const highlightedPart = "start Buying  today!";
   
   return (
     <div className={cn("w-full flex flex-wrap justify-center", className)}>
@@ -64,22 +64,20 @@ const Hero = () => {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text"
             }}>
-              Discover Premium Auction
+              India’s Trusted B2B Liquidation Marketplace for Bulk Inventory
               <br />
-              Deals
             </span>
           </h1>
           
           <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-            Access an ever-growing collection of premium, meticulously crafted templates and component packs.
-            Save time and focus on what matters—building standout websites that captivate your audience.
+            Securely source bulk Surplus, Salvage, and Customer-Returned Inventory from India's top retailers and manufacturers. We turn excess stock into profit.
           </p>
           
           {/* Bid Win Repeat Icons - Modern Interactive Layout */}
           <div className="flex justify-center items-center gap-6 md:gap-12 mb-6">
             {[
               {
-                label: "BID",
+                label: "BUY",
                 icon: <Gavel className="h-8 w-8 text-primary mb-2" />,
                 color: "from-blue-500 to-indigo-600",
                 delay: 0,
@@ -134,18 +132,18 @@ const Hero = () => {
           {/* BlurText Effect */}
           <div className="mb-8">
             <BlurText 
-              text="Exclusive auctions, unbeatable prices—start bidding today!" 
+              text="Exclusive deals,unbeatable prices—start Buying today!" 
               className="text-gray-800"
             />
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-black text-white hover:bg-gray-800">
-              <Link to="/auctions">Explore Collection</Link>
+              <Link to="/auctions">Shop all auctions</Link>
             </Button>
             
             <Button asChild size="lg" variant="outline" className="border-gray-300">
-              <Link to="/sellers">Unlock Unlimited Access</Link>
+              <Link to="/sellers"> Become a Verified Seller</Link>
             </Button>
           </div>
         </div>

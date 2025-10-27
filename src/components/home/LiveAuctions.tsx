@@ -127,7 +127,7 @@ const LiveAuctions = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl md:text-3xl font-bold font-display text-gray-900">
-            Live Auctions
+            Current Inventory Lots
           </h2>
         </div>
         <Carousel opts={{ loop: true }}>

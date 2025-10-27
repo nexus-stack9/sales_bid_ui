@@ -50,9 +50,11 @@ const HowItWorks: React.FC = () => {
               <div className="w-14 h-14 bg-pink-100 rounded-full flex items-center justify-center mb-4">
                 <span className="text-2xl font-bold text-pink-600">3</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900">Place Bids</h3>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900">Place bid or buy directly</h3>
               <p className="text-slate-600">
-                Participate in live bidding or set maximum bids and track auction progress in real-time.
+                Participate in live bidding or Buy Directly and track auction progress in real-time.
+and in this page buttons are not working
+
               </p>
             </div>
           </div>
