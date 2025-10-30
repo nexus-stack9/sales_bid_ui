@@ -123,7 +123,7 @@ const SellersPage = () => {
   ];
 
   return (
-    <Layout>
+    // <Layout>
       <div className="seller-page bg-gray-50">
         {/* Hero Section */}
         <div className="relative bg-gradient-to-br from-gray-900 to-blue-900 text-white overflow-hidden">
@@ -408,7 +408,7 @@ const SellersPage = () => {
           />
         )}
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 
