@@ -27,7 +27,6 @@ const faqs = [
 const FAQ: React.FC = () => {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <Layout>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Frequently Asked Questions</h1>
@@ -51,7 +50,6 @@ const FAQ: React.FC = () => {
           ))}
         </div>
       </div>
-    </Layout>
   );
 };
 

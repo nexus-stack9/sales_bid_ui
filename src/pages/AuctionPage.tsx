@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Filter, SlidersHorizontal, Grid3X3, LayoutList } from "lucide-react";
+import { Filter, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -26,7 +26,6 @@ import { usePaginatedProducts } from "@/services/productService";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMediaQuery } from "../hooks/use-media-query";
-import Layout from "@/components/layout/Layout";
 import { useLocation } from "react-router-dom";
 
 const AuctionPage: React.FC = () => {
@@ -44,7 +43,7 @@ const AuctionPage: React.FC = () => {
   const { toast } = useToast();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const location = useLocation();
-  
+
   // Use ref to prevent initial load race conditions
   const hasInitiallyLoaded = useRef(false);
   const lastRequestRef = useRef<string>("");
@@ -67,7 +66,7 @@ const AuctionPage: React.FC = () => {
     loadProducts,
     loadNextPage,
     loadPrevPage,
-    loadSpecificPage
+    loadSpecificPage,
   } = usePaginatedProducts();
 
   // Scroll-based infinite scroll for mobile
@@ -112,7 +111,7 @@ const AuctionPage: React.FC = () => {
       setTimeout(() => setIsWishlistLoading(false), 50);
     } else if (currentPage > previousPage && apiProducts.length > 0) {
       const newBatch = apiProducts.map(mapApiProductToProduct);
-      setMobileMappedProducts(prev => [...prev, ...newBatch]);
+      setMobileMappedProducts((prev) => [...prev, ...newBatch]);
       setPreviousPage(currentPage);
     }
   }, [apiProducts, pagination?.currentPage, isMobile, previousPage]);
@@ -122,7 +121,7 @@ const AuctionPage: React.FC = () => {
     if (!isMobile || mobileMappedProducts.length === 0) return;
 
     const prices = mobileMappedProducts
-      .map(p => typeof p.retail_value === 'number' ? p.retail_value : (p.retail_value || 0))
+      .map((p) => (typeof p.retail_value === "number" ? p.retail_value : p.retail_value || 0))
       .filter(Number.isFinite);
     const newMaxPrice = prices.length > 0 ? Math.max(...prices) : 50000;
 
@@ -133,29 +132,36 @@ const AuctionPage: React.FC = () => {
 
   // Generate skeleton products
   const generateSkeletonProducts = (count: number, startIndex: number): Product[] => {
-    return Array.from({ length: count }, (_, i) => ({
-      id: `skeleton-${startIndex + i}`,
-      name: "",
-      image: "",
-      description: "",
-      currentBid: 0,
-      totalBids: 0,
-      timeLeft: new Date().toISOString(),
-      location: "",
-      category: "",
-      category_name: "",
-      seller: "",
-      startingBid: 0,
-      buyNowPrice: 0,
-      condition: "",
-      isWishlisted: false,
-      retail_value: 0,
-    } as Product));
+    return Array.from(
+      { length: count },
+      (_, i) =>
+        ({
+          id: `skeleton-${startIndex + i}`,
+          name: "",
+          image: "",
+          description: "",
+          currentBid: 0,
+          totalBids: 0,
+          timeLeft: new Date().toISOString(),
+          location: "",
+          category: "",
+          category_name: "",
+          seller: "",
+          startingBid: 0,
+          buyNowPrice: 0,
+          condition: "",
+          isWishlisted: false,
+          retail_value: 0,
+        } as Product)
+    );
   };
 
   // Product Skeleton Component
   const ProductSkeleton: React.FC<{ key: string }> = ({ key: skey }) => (
-    <div key={skey} className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div
+      key={skey}
+      className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+    >
       <div className="relative aspect-square bg-gray-100">
         <Skeleton className="w-full h-full" />
       </div>
@@ -184,9 +190,12 @@ const AuctionPage: React.FC = () => {
   // Calculate dynamic max price from API products
   const calculateMaxPrice = (): number => {
     if (!apiProducts || apiProducts.length === 0) return 50000;
-    const calculatedMaxPrice = Math.max(...apiProducts
-      .map(p => typeof p.retail_value === 'string' ? parseFloat(p.retail_value) : (p.retail_value || 0))
-      .filter(Number.isFinite)
+    const calculatedMaxPrice = Math.max(
+      ...apiProducts
+        .map((p) =>
+          typeof p.retail_value === "string" ? parseFloat(p.retail_value) : p.retail_value || 0
+        )
+        .filter(Number.isFinite)
     );
     return calculatedMaxPrice > 0 ? calculatedMaxPrice : 50000;
   };
@@ -222,13 +231,13 @@ const AuctionPage: React.FC = () => {
     if (apiProducts && apiProducts.length > 0 && !filtersInitialized) {
       const newMaxPrice = calculateMaxPrice();
       setMaxPrice(newMaxPrice);
-      
+
       // Initialize filters with the correct max price
       setFilters((prev) => ({
         ...prev,
         priceRange: [0, newMaxPrice] as [number, number],
       }));
-      
+
       setFiltersInitialized(true);
     }
   }, [apiProducts, filtersInitialized]);
@@ -249,21 +258,16 @@ const AuctionPage: React.FC = () => {
   const mapApiProductToProduct = (apiProduct): Product => {
     const productData = apiProduct.product_id ? apiProduct : apiProduct;
 
-    const condition = productData.condition
-      ? productData.condition.toString()
-      : "Unknown";
+    const condition = productData.condition ? productData.condition.toString() : "Unknown";
 
-    const startingPrice = parseFloat(
-      productData.starting_price?.toString() || "0"
-    );
+    const startingPrice = parseFloat(productData.starting_price?.toString() || "0");
     const maxBidAmount = productData.max_bid_amount
       ? parseFloat(productData.max_bid_amount.toString())
       : startingPrice;
     const retailValue = productData.retail_value
       ? parseFloat(productData.retail_value.toString())
       : undefined;
-    const categoryName =
-      productData.category_name?.toString() || "Uncategorized";
+    const categoryName = productData.category_name?.toString() || "Uncategorized";
 
     const isWishlisted = Boolean(productData.is_in_wishlist);
 
@@ -271,10 +275,8 @@ const AuctionPage: React.FC = () => {
       return {
         id: productData.product_id?.toString() || Math.random().toString(),
         name: productData.name?.toString() || "Unnamed Product",
-        image:
-          productData.image_path?.split(",")[0] || "/placeholder-product.jpg",
-        description:
-          productData.description?.toString() || "No description available",
+        image: productData.image_path?.split(",")[0] || "/placeholder-product.jpg",
+        description: productData.description?.toString() || "No description available",
         currentBid: maxBidAmount,
         totalBids: parseInt(productData.total_bids?.toString() || "0", 10),
         timeLeft: productData.auction_end || new Date().toISOString(),
@@ -308,7 +310,10 @@ const AuctionPage: React.FC = () => {
         condition: "Fair",
         isWishlisted: false,
         retail_value: 0,
-        product_live_url: (productData && productData.product_live_url) ? productData.product_live_url.toString() : "",
+        product_live_url:
+          productData && productData.product_live_url
+            ? productData.product_live_url.toString()
+            : "",
       };
     }
   };
@@ -337,8 +342,7 @@ const AuctionPage: React.FC = () => {
         return sortedProducts.sort((a, b) => b.currentBid - a.currentBid);
       case "ending_soon":
         return sortedProducts.sort(
-          (a, b) =>
-            new Date(a.timeLeft).getTime() - new Date(b.timeLeft).getTime()
+          (a, b) => new Date(a.timeLeft).getTime() - new Date(b.timeLeft).getTime()
         );
       case "newest":
         return sortedProducts.sort((a, b) => parseInt(b.id) - parseInt(a.id));
@@ -374,43 +378,26 @@ const AuctionPage: React.FC = () => {
   ) => {
     const searchParams = {
       q: currentFilters.searchQuery || undefined,
-      categories:
-        currentFilters.categories.length > 0
-          ? currentFilters.categories
-          : undefined,
-      locations:
-        currentFilters.locations.length > 0
-          ? currentFilters.locations
-          : undefined,
-      condition:
-        currentFilters.condition.length > 0
-          ? currentFilters.condition
-          : undefined,
-      timeLeft:
-        currentFilters.timeLeft.length > 0
-          ? currentFilters.timeLeft
-          : undefined,
-      minPrice:
-        currentFilters.priceRange[0] > 0
-          ? currentFilters.priceRange[0]
-          : undefined,
+      categories: currentFilters.categories.length > 0 ? currentFilters.categories : undefined,
+      locations: currentFilters.locations.length > 0 ? currentFilters.locations : undefined,
+      condition: currentFilters.condition.length > 0 ? currentFilters.condition : undefined,
+      timeLeft: currentFilters.timeLeft.length > 0 ? currentFilters.timeLeft : undefined,
+      minPrice: currentFilters.priceRange[0] > 0 ? currentFilters.priceRange[0] : undefined,
       maxPrice:
-        currentFilters.priceRange[1] < maxPrice
-          ? currentFilters.priceRange[1]
-          : undefined,
+        currentFilters.priceRange[1] < maxPrice ? currentFilters.priceRange[1] : undefined,
       sortBy: currentSortBy,
       page: page,
       limit: limit,
     };
 
     const requestId = JSON.stringify({ searchParams, page, limit });
-    
+
     if (lastRequestRef.current === requestId) {
       return;
     }
-    
+
     lastRequestRef.current = requestId;
-    
+
     try {
       await loadProducts(page, limit, searchParams);
     } catch (error) {
@@ -430,11 +417,11 @@ const AuctionPage: React.FC = () => {
           hasInitiallyLoaded.current = true;
         }, 100);
       } catch (error) {
-        console.error('Error loading initial data:', error);
+        console.error("Error loading initial data:", error);
         hasInitiallyLoaded.current = true; // Mark as loaded even on error
       }
     };
-    
+
     if (!hasInitiallyLoaded.current) {
       loadInitialData();
     }
@@ -597,10 +584,7 @@ const AuctionPage: React.FC = () => {
         </span>
 
         <div className="hidden lg:block">
-          <Select
-            value={sortBy}
-            onValueChange={(value) => handleSortChange(value as SortOption)}
-          >
+          <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortOption)}>
             <SelectTrigger className="w-48">
               <SlidersHorizontal className="h-4 w-4 mr-2" />
               Sort by
@@ -630,9 +614,7 @@ const AuctionPage: React.FC = () => {
               <PaginationPrevious
                 onClick={handlePrevious}
                 className={
-                  !pagination.hasPrevPage
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                  !pagination.hasPrevPage ? "pointer-events-none opacity-50" : "cursor-pointer"
                 }
               />
             </PaginationItem>
@@ -661,9 +643,7 @@ const AuctionPage: React.FC = () => {
               <PaginationNext
                 onClick={handleNext}
                 className={
-                  !pagination.hasNextPage
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
+                  !pagination.hasNextPage ? "pointer-events-none opacity-50" : "cursor-pointer"
                 }
               />
             </PaginationItem>
@@ -675,14 +655,14 @@ const AuctionPage: React.FC = () => {
 
   // No products message
   const NoProductsMessage = () => {
-    const realProductsLength = getMappedProducts().filter(p => !p.id.startsWith('skeleton')).length;
+    const realProductsLength = getMappedProducts().filter(
+      (p) => !p.id.startsWith("skeleton")
+    ).length;
     if (isLoading || realProductsLength > 0) return null;
 
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">
-          No products found matching your criteria.
-        </p>
+        <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
         {getActiveFiltersCount() > 0 && (
           <Button variant="outline" onClick={clearFilters} className="mt-4">
             Clear Filters
@@ -698,114 +678,117 @@ const AuctionPage: React.FC = () => {
     loadProductsWithParams(1, 20);
   };
 
-  // Skeleton Loader Component
-  const SkeletonLoader = () => (
-    <Layout>
-      <div className="container mx-auto px-3 sm:px-4 py-6 animate-pulse">
-        <div className="flex gap-6">
-          {/* Desktop Filter Sidebar Skeleton */}
-          <div className="hidden lg:block w-80 flex-shrink-0 space-y-6">
-            <div className="sticky top-24 space-y-6">
+  // Skeleton Content Component - returns content only, no Layout wrapper
+  const SkeletonContent = () => (
+    <div className="container mx-auto px-3 sm:px-4 py-6 animate-pulse">
+      <div className="flex gap-6">
+        {/* Desktop Filter Sidebar Skeleton */}
+        <div className="hidden lg:block w-80 flex-shrink-0 space-y-6">
+          <div className="sticky top-24 space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-1/3 mb-2" />
+              <Skeleton className="h-10 w-full rounded-md" />
+            </div>
+
+            <div className="space-y-3">
+              <Skeleton className="h-5 w-1/3" />
               <div className="space-y-2">
-                <Skeleton className="h-5 w-1/3 mb-2" />
-                <Skeleton className="h-10 w-full rounded-md" />
-              </div>
-              
-              <div className="space-y-3">
-                <Skeleton className="h-5 w-1/3" />
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex items-center space-x-2">
-                      <Skeleton className="h-4 w-4 rounded" />
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-4 w-8 ml-auto" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Skeleton className="h-5 w-1/3" />
-                <div className="space-y-4">
-                  <Skeleton className="h-2 w-full rounded-full" />
-                  <div className="flex justify-between">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-16" />
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center space-x-2">
+                    <Skeleton className="h-4 w-4 rounded" />
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-8 ml-auto" />
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content Skeleton */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-6 lg:hidden">
-              <Skeleton className="h-10 w-28 rounded-md" />
-              <Skeleton className="h-10 w-40 rounded-md" />
-            </div>
-
-            <div className="flex items-center justify-between mb-6">
-              <Skeleton className="h-4 w-48" />
-              <div className="hidden lg:block">
-                <Skeleton className="h-10 w-48" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div 
-                  key={i} 
-                  className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
-                >
-                  <div className="relative aspect-square bg-gray-100">
-                    <Skeleton className="w-full h-full" />
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </div>
-                    <div className="space-y-2 pt-2">
-                      <div className="flex items-center justify-between">
-                        <Skeleton className="h-4 w-16" />
-                        <Skeleton className="h-4 w-16" />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-4 w-12" />
-                      </div>
-                    </div>
-                    <div className="pt-2">
-                      <Skeleton className="h-10 w-full rounded-md" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 flex justify-center">
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-10 rounded-md" />
                 ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Skeleton className="h-5 w-1/3" />
+              <div className="space-y-4">
+                <Skeleton className="h-2 w-full rounded-full" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Main Content Skeleton */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-6 lg:hidden">
+            <Skeleton className="h-10 w-28 rounded-md" />
+            <Skeleton className="h-10 w-40 rounded-md" />
+          </div>
+
+          <div className="flex items-center justify-between mb-6">
+            <Skeleton className="h-4 w-48" />
+            <div className="hidden lg:block">
+              <Skeleton className="h-10 w-48" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+              >
+                <div className="relative aspect-square bg-gray-100">
+                  <Skeleton className="w-full h-full" />
+                </div>
+                <div className="p-4 space-y-3">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-10 rounded-md" />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </Layout>
+    </div>
   );
 
-  // Show skeleton while loading OR while waiting for maxPrice calculation OR while products are empty on initial load OR while wishlist is loading
-  if (isLoading || !filtersInitialized || (!hasInitiallyLoaded.current && apiProducts.length === 0) || isWishlistLoading) {
-    return <SkeletonLoader />;
-  }
+  // Check if we should show skeleton
+  const shouldShowSkeleton =
+    isLoading ||
+    !filtersInitialized ||
+    (!hasInitiallyLoaded.current && apiProducts.length === 0) ||
+    isWishlistLoading;
 
   const allProducts = getMappedProducts();
   const activeFiltersCount = getActiveFiltersCount();
 
-  return (
-    <Layout>
+  // Return content directly without Layout wrapper
+  return shouldShowSkeleton ? (
+    <SkeletonContent />
+  ) : (
+    <>
       <div className="container mx-auto px-3 sm:px-4 py-6">
         <div className="flex gap-6">
           {/* Desktop Filter Sidebar - Only render when filters are initialized */}
@@ -816,7 +799,7 @@ const AuctionPage: React.FC = () => {
                 onClose={() => {}}
                 filters={filters}
                 filterOptions={filterOptions}
-                products={allProducts.filter(p => !p.id.startsWith('skeleton'))}
+                products={allProducts.filter((p) => !p.id.startsWith("skeleton"))}
                 onFiltersChange={handleFiltersChange}
                 onClearFilters={clearFilters}
                 forceRefresh={forceRefresh}
@@ -892,13 +875,13 @@ const AuctionPage: React.FC = () => {
         onClose={() => setIsFilterOpen(false)}
         filters={filters}
         filterOptions={filterOptions}
-        products={allProducts.filter(p => !p.id.startsWith('skeleton'))}
+        products={allProducts.filter((p) => !p.id.startsWith("skeleton"))}
         onFiltersChange={handleFiltersChange}
         onClearFilters={clearFilters}
         forceRefresh={forceRefresh}
         maxPrice={maxPrice}
       />
-    </Layout>
+    </>
   );
 };
 

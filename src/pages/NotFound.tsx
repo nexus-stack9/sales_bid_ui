@@ -16,7 +16,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <Layout>
+    // <Layout>
       <div className="container mx-auto px-4 py-16 text-center">
         <div className="mx-auto max-w-lg">
           <h1 className="text-9xl font-display font-bold text-primary">404</h1>
@@ -31,7 +31,7 @@ const NotFound = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

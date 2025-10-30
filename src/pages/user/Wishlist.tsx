@@ -252,7 +252,7 @@ const Wishlist: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Layout>
+      // <Layout>
         <div className="min-h-screen bg-gray-50 p-4 md:p-8">
           <div className="max-w-7xl mx-auto">
             <div className="mb-6">
@@ -276,14 +276,14 @@ const Wishlist: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
   if (error) {
     const isAuthError = error === 'Please sign in to add products to wishlist';
     return (
-      <Layout>
+      // <Layout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
           <div className="text-center">
             <div className={`w-24 h-24 ${isAuthError ? 'bg-blue-100' : 'bg-red-100'} rounded-full flex items-center justify-center mx-auto mb-6`}>
@@ -317,12 +317,12 @@ const Wishlist: React.FC = () => {
             </button>
           </div>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
   return (
-    <Layout>
+    // <Layout>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
@@ -449,7 +449,7 @@ const Wishlist: React.FC = () => {
           />
         )}
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 
