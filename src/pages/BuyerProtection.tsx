@@ -3,7 +3,7 @@ import React from "react";
 
 const BuyerProtection: React.FC = () => {
   return (
-    <Layout>
+    // <Layout>
     <div className="max-w-5xl mx-auto px-4 py-10">
       {/* Header Section */}
       <div className="text-center mb-12">
@@ -126,7 +126,7 @@ const BuyerProtection: React.FC = () => {
         </div>
       </div>
     </div>
-    </Layout>
+    // </Layout>
   );
 };
 

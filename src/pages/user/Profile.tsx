@@ -725,7 +725,7 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <Layout>
+      // <Layout>
         <div className="container mx-auto py-8 px-4 md:px-6">
           <div className="grid md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] gap-8">
             <div>
@@ -740,12 +740,12 @@ const Profile = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
   return (
-    <Layout>
+    // <Layout>
       <div className="container mx-auto py-8 px-4 md:px-6">
         <header className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
@@ -791,7 +791,7 @@ const Profile = () => {
           </main>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

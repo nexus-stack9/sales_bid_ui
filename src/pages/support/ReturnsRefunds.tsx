@@ -1,9 +1,9 @@
-import Layout from "@/components/layout/Layout";
+// import Layout from "@/components/layout/Layout";
 import React from "react";
 
 const ReturnsRefunds: React.FC = () => {
   return (
-    <Layout>
+    // <Layout>
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Returns & Refunds</h1>
@@ -38,7 +38,7 @@ const ReturnsRefunds: React.FC = () => {
           </ul>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

@@ -200,7 +200,7 @@ const AllSellersPage = () => {
 
   if (loading) {
     return (
-      <Layout>
+      // <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center items-center h-64">
             <div className="animate-pulse flex space-x-4">
@@ -215,13 +215,13 @@ const AllSellersPage = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      // <Layout>
         <div className="container mx-auto px-4 py-8">
           <div className="bg-rose-50 border-l-4 border-rose-500 p-4">
             <div className="flex">
@@ -236,12 +236,12 @@ const AllSellersPage = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
   return (
-    <Layout>
+    // <Layout>
       <div className="bg-gray-50 min-h-screen">
         <main className="container mx-auto px-4 py-8">
           
@@ -493,7 +493,7 @@ const AllSellersPage = () => {
           )}
         </main>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 
