@@ -258,7 +258,7 @@ const filePathMap = {};
 
     if (profilePicture) {
       files.push(profilePicture);
-      filePathMap['profile_Picture'] = `${filePathPrefix}/${basePath}/${profilePicture.name}`;
+      filePathMap['profile_picture'] = `${filePathPrefix}/${basePath}/${profilePicture.name}`;
     }
     if (panCard) {
       files.push(panCard);
