@@ -206,6 +206,7 @@ const Navbar = () => {
                   <Search className="h-5 w-5" />
                 </Button>
               )}
+              {/* My Bids - Commented Out
               <Link to="/my-bids" className="relative">
                 <Button variant="ghost" size="icon">
                   <ShoppingCart className="h-5 w-5" />
@@ -216,6 +217,7 @@ const Navbar = () => {
                   </span>
                 )}
               </Link>
+              */}
             </div>
           ) : (
             <form 
@@ -253,6 +255,7 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+            {/* My Bids - Commented Out
             <Link to="/my-bids" className="relative">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
@@ -263,6 +266,7 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+            */}
             {token ? (
               <Link to="/user/profile">
                 <Button variant="ghost" size="icon">
