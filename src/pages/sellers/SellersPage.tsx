@@ -349,72 +349,84 @@ Turn Your Unsold, Returned, or New Stock into Cash — Fast & Secure.
         </div>
 
         {/* How It Works Section */}
-        <div className="py-12 bg-gray-50 relative">
-  <div className="container mx-auto px-4 relative">
-    <div className="text-center mb-16">
-      <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
-        GET STARTED
-      </span>
-      <h2 className="text-3xl md:text-4xl font-bold mb-4">How Selling Works</h2>
-      <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-        Getting started is quick and easy. Here's our simple 4-step process:
-      </p>
-    </div>
-    
-    <div className="max-w-4xl mx-auto">
-      <div className="relative">
-        {/* Vertical connecting line */}
-        <div className="absolute left-8 md:left-1/2 h-full w-0.5 bg-blue-200 transform -translate-x-1/2"></div>
-        
-        <div className="space-y-12">
-          {/* Step 1 */}
-          <div className="relative flex items-center">
-            <div className="flex-shrink-0 z-10 w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-lg">
-              1
+        <div className="py-12 bg-white relative">
+          <div className="container mx-auto px-4 relative">
+            <div className="text-center mb-12">
+              <span className="inline-block bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-semibold uppercase tracking-wider mb-4">
+                Get Started
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">How Selling Works</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto text-base">
+                Getting started is quick and easy. Here's our simple 4-step process:
+              </p>
             </div>
-            <div className="ml-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:left-1/2 md:ml-12">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">Register as a Seller</h3>
-              <p className="text-gray-600">Fill out a short form and complete KYC to become a verified seller.</p>
-            </div>
-          </div>
-          
-          {/* Step 2 */}
-          <div className="relative flex items-center justify-end">
-            <div className="flex-shrink-0 z-10 w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-lg order-1 md:order-none">
-              2
-            </div>
-            <div className="mr-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:right-1/2 md:mr-12 text-right">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">List Your Stock</h3>
-              <p className="text-gray-600">Upload product details, images, quantity, and condition (New, Refurbished, etc.).</p>
-            </div>
-          </div>
-          
-          {/* Step 3 */}
-          <div className="relative flex items-center">
-            <div className="flex-shrink-0 z-10 w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-lg">
-              3
-            </div>
-            <div className="ml-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:left-1/2 md:ml-12">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">Choose Selling Method</h3>
-              <p className="text-gray-600">Set a fixed price (Direct Buy) or allow buyers to make offers (Price Discovery).</p>
-            </div>
-          </div>
-          
-          {/* Step 4 */}
-          <div className="relative flex items-center justify-end">
-            <div className="flex-shrink-0 z-10 w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-lg order-1 md:order-none">
-              4
-            </div>
-            <div className="mr-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:right-1/2 md:mr-12 text-right">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">Get Paid Securely</h3>
-              <p className="text-gray-600">Once a buyer pays, we release funds to you after confirmation of pickup or delivery.</p>
+            
+            <div className="max-w-3xl mx-auto">
+              {/* Step 1 */}
+              <div className="flex gap-6 pb-10 relative">
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                    1
+                  </div>
+                  <div className="w-0.5 h-full bg-gradient-to-b from-blue-600 to-blue-300 mt-2"></div>
+                </div>
+                <div className="flex-1 pb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Register as a Seller</h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    Fill out a short form and complete KYC to become a verified seller.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Step 2 */}
+              <div className="flex gap-6 pb-10 relative">
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                    2
+                  </div>
+                  <div className="w-0.5 h-full bg-gradient-to-b from-blue-600 to-blue-300 mt-2"></div>
+                </div>
+                <div className="flex-1 pb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">List Your Stock</h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    Upload product details, images, quantity, and condition (New, Refurbished, etc.).
+                  </p>
+                </div>
+              </div>
+              
+              {/* Step 3 */}
+              <div className="flex gap-6 pb-10 relative">
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                    3
+                  </div>
+                  <div className="w-0.5 h-full bg-gradient-to-b from-blue-600 to-blue-300 mt-2"></div>
+                </div>
+                <div className="flex-1 pb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Choose Selling Method</h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    Set a fixed price (Direct Buy) or allow buyers to make offers (Price Discovery).
+                  </p>
+                </div>
+              </div>
+              
+              {/* Step 4 */}
+              <div className="flex gap-6">
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white flex items-center justify-center text-xl font-bold shadow-lg">
+                    4
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Get Paid Securely</h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    Once a buyer pays, we release funds to you after confirmation of pickup or delivery.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
 
         {/* Who Can Sell Section */}
         <div className="py-12 bg-white">
