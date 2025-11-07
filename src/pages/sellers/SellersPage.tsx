@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { 
   FaChartLine, FaUsers, FaShieldAlt, FaPercentage, FaGlobe, 
   FaTrophy, FaHandHoldingUsd, FaCamera, FaTag, FaShippingFast, 
-  FaMobile, FaDesktop, FaQuestionCircle, FaBook, FaVideo, FaHeadset 
+  FaMobile, FaDesktop, FaQuestionCircle, FaBook, FaVideo, FaHeadset,
+  FaBox, FaWarehouse, FaRecycle, FaTools, FaBoxOpen, FaIndustry, FaPallet,
+  FaCheckCircle, FaHandshake, FaNetworkWired, FaStream, FaChartBar 
 } from 'react-icons/fa';
 import { RiAuctionFill } from 'react-icons/ri';
 import { MdAnalytics, MdInventory, MdPayment, MdSecurity } from 'react-icons/md';
@@ -23,23 +25,23 @@ const SellersPage = () => {
   const benefits = [
     {
       icon: <FaUsers className="text-3xl mb-4 text-blue-600" />,
-      title: "Global Audience",
-      description: "Access millions of potential buyers from around the world"
+      title: "Reach Verified B2B Buyers",
+      description: "Connect with 10,000+ registered businesses actively sourcing bulk inventory."
     },
     {
       icon: <MdSecurity className="text-3xl mb-4 text-blue-600" />,
-      title: "Secure Platform",
-      description: "Advanced security measures and fraud protection for all transactions"
+      title: "Secure Transactions",
+      description: "All payments are handled through trusted gateways with bank-level protection."
     },
     {
       icon: <FaShieldAlt className="text-3xl mb-4 text-blue-600" />,
-      title: "Seller Protection",
-      description: "Comprehensive seller protection policies and dispute resolution"
+      title: "Flexible Selling Options",
+      description: "Choose to Sell Now (Fixed Price) or Accept Offers for faster liquidation."
     },
     {
       icon: <FaChartLine className="text-3xl mb-4 text-blue-600" />,
-      title: "Powerful Tools",
-      description: "Analytics and marketing tools to maximize your sales potential"
+      title: "Commission-Based Platform",
+      description: "No hidden fees — pay only a small commission on successful sales."
     }
   ];
 
@@ -86,24 +88,24 @@ const SellersPage = () => {
 
   const marketplaceStats = [
     {
-      number: "2.5M+",
-      label: "Active Buyers",
-      description: "Registered users actively bidding"
+      number: "70+",
+      label: "Verified Sellers",
+      description: "Selling nationwide"
     },
     {
-      number: "150K+",
-      label: "Successful Sellers",
-      description: "Sellers earning regular income"
+      number: "32+",
+      label: "Cities covered",
+      description: "Active Buyers and Sellers"
     },
     {
-      number: "$500M+",
-      label: "Total Sales Volume",
-      description: "Processed through our platform"
+      number: "10,00,000+",
+      label: "Units Sold",
+      description: "Through verified transactions"
     },
     {
-      number: "99.8%",
-      label: "Success Rate",
-      description: "Successful transaction completion"
+      number: "1.5%",
+      label: "Transaction charges",
+      description: "Among India's lowest"
     }
   ];
 
@@ -138,10 +140,16 @@ const SellersPage = () => {
                 <RiAuctionFill className="text-5xl text-blue-300" />
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Sell With The World's <span className="text-blue-300">Premier</span> Auction Platform
+                Sell on <span className="text-blue-300">SalesBid </span> – India’s Trusted B2B Liquidation & Bulk Sales Marketplace
+
               </h1>
               <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
-                Join thousands of successful sellers reaching millions of passionate buyers worldwide.
+Turn Your Unsold, Returned, or New Stock into Cash — Fast & Secure.
+              </p>
+              <p  className="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
+                SalesBid helps manufacturers, distributors, wholesalers, and retailers liquidate or sell their stock directly to verified business buyers across India.
+ Whether it’s new, excess, returned, refurbished, or used, we help you recover maximum value quickly — with zero middlemen.
+
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link to="/sellerRegistration" className="bg-white text-blue-700 font-bold py-4 px-8 rounded-full text-lg shadow-lg">
@@ -158,7 +166,7 @@ const SellersPage = () => {
         </div>
 
         {/* Why Sell With Us Section */}
-        <div className="py-20 bg-white">
+        <div className="py-12 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
@@ -186,8 +194,162 @@ const SellersPage = () => {
           </div>
         </div>
 
+        {/* What Can You Sell Section */}
+        <div className="py-12 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-14">
+              <span className="inline-block bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-semibold uppercase tracking-wider mb-4">
+                Inventory Types
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+                What Can You Sell on SalesBid
+              </h2>
+              <p className="text-gray-600 max-w-3xl mx-auto text-base">
+                We support every type of B2B inventory — from brand-new stock to decommissioned assets.
+              </p>
+            </div>
+            
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {/* New Stock */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <FaBox className="text-xl text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">New Stock (Factory Fresh)</h3>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
+                    Brand new, unused products from manufacturers or distributors.
+                  </p>
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="text-sm font-semibold text-gray-700 block mb-1">Ideal For:</span>
+                    <span className="text-sm text-gray-600">Manufacturers, OEMs</span>
+                  </div>
+                </div>
+
+                {/* Excess or Overstock */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <FaWarehouse className="text-xl text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Excess or Overstock</h3>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
+                    Unsold inventory sitting in warehouses or retail stores.
+                  </p>
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="text-sm font-semibold text-gray-700 block mb-1">Ideal For:</span>
+                    <span className="text-sm text-gray-600">Distributors, Wholesalers</span>
+                  </div>
+                </div>
+
+                {/* Customer Returns */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <FaRecycle className="text-xl text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Customer Returns (Grade A/B/C)</h3>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
+                    Tested, working, and graded returned products ready for resale.
+                  </p>
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="text-sm font-semibold text-gray-700 block mb-1">Ideal For:</span>
+                    <span className="text-sm text-gray-600">Retailers, E-commerce Sellers</span>
+                  </div>
+                </div>
+
+                {/* Refurbished Products */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <FaTools className="text-xl text-orange-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Refurbished Products</h3>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
+                    Professionally repaired and restored items.
+                  </p>
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="text-sm font-semibold text-gray-700 block mb-1">Ideal For:</span>
+                    <span className="text-sm text-gray-600">Refurbishers, Service Centers</span>
+                  </div>
+                </div>
+
+                {/* Open-Box or Unboxed */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <FaBoxOpen className="text-xl text-teal-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Open-Box or Unboxed</h3>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
+                    Unused but open packaging products.
+                  </p>
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="text-sm font-semibold text-gray-700 block mb-1">Ideal For:</span>
+                    <span className="text-sm text-gray-600">E-commerce Returns, Sellers</span>
+                  </div>
+                </div>
+
+                {/* Decommissioned / Used Assets */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <FaIndustry className="text-xl text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Decommissioned / Used Assets</h3>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
+                    Used IT, industrial, or office equipment.
+                  </p>
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="text-sm font-semibold text-gray-700 block mb-1">Ideal For:</span>
+                    <span className="text-sm text-gray-600">Corporates, Institutions</span>
+                  </div>
+                </div>
+
+                {/* Bulk & Pallet Lots */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                      <FaPallet className="text-xl text-pink-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Bulk & Pallet Lots</h3>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-base mb-4 leading-relaxed">
+                    Mixed products sold in large lots for B2B resale.
+                  </p>
+                  <div className="pt-3 border-t border-gray-100">
+                    <span className="text-sm font-semibold text-gray-700 block mb-1">Ideal For:</span>
+                    <span className="text-sm text-gray-600">Traders, Bulk Buyers</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* How It Works Section */}
-        <div className="py-20 bg-gray-50 relative">
+        <div className="py-12 bg-gray-50 relative">
   <div className="container mx-auto px-4 relative">
     <div className="text-center mb-16">
       <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
@@ -211,8 +373,8 @@ const SellersPage = () => {
               1
             </div>
             <div className="ml-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:left-1/2 md:ml-12">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">Create Your Seller Account</h3>
-              <p className="text-gray-600">Complete our simple registration process in minutes.</p>
+              <h3 className="text-xl font-bold mb-2 text-blue-700">Register as a Seller</h3>
+              <p className="text-gray-600">Fill out a short form and complete KYC to become a verified seller.</p>
             </div>
           </div>
           
@@ -222,8 +384,8 @@ const SellersPage = () => {
               2
             </div>
             <div className="mr-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:right-1/2 md:mr-12 text-right">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">List Your Items</h3>
-              <p className="text-gray-600">Add high-quality photos and detailed descriptions.</p>
+              <h3 className="text-xl font-bold mb-2 text-blue-700">List Your Stock</h3>
+              <p className="text-gray-600">Upload product details, images, quantity, and condition (New, Refurbished, etc.).</p>
             </div>
           </div>
           
@@ -233,8 +395,8 @@ const SellersPage = () => {
               3
             </div>
             <div className="ml-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:left-1/2 md:ml-12">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">Set Your Terms</h3>
-              <p className="text-gray-600">Choose starting price, auction duration, and shipping options.</p>
+              <h3 className="text-xl font-bold mb-2 text-blue-700">Choose Selling Method</h3>
+              <p className="text-gray-600">Set a fixed price (Direct Buy) or allow buyers to make offers (Price Discovery).</p>
             </div>
           </div>
           
@@ -244,8 +406,8 @@ const SellersPage = () => {
               4
             </div>
             <div className="mr-8 md:absolute md:w-5/12 bg-white p-6 rounded-lg shadow-md border border-gray-100 md:right-1/2 md:mr-12 text-right">
-              <h3 className="text-xl font-bold mb-2 text-blue-700">Watch the Bids Roll In</h3>
-              <p className="text-gray-600">We'll handle the auction and payment processing.</p>
+              <h3 className="text-xl font-bold mb-2 text-blue-700">Get Paid Securely</h3>
+              <p className="text-gray-600">Once a buyer pays, we release funds to you after confirmation of pickup or delivery.</p>
             </div>
           </div>
         </div>
@@ -254,8 +416,98 @@ const SellersPage = () => {
   </div>
 </div>
 
+        {/* Who Can Sell Section */}
+        <div className="py-12 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-14">
+              <span className="inline-block bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-semibold uppercase tracking-wider mb-4">
+                Eligibility
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+                Who Can Sell on SalesBid
+              </h2>
+            </div>
+            
+            <div className="max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Manufacturers & OEMs */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mr-4">
+                      <FaCheckCircle className="text-2xl text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Manufacturers & OEMs</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Distributors & Wholesalers */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mr-4">
+                      <FaCheckCircle className="text-2xl text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Distributors & Wholesalers</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Retailers & E-commerce Sellers */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mr-4">
+                      <FaCheckCircle className="text-2xl text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Retailers & E-commerce Sellers</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Liquidators & Stock Clearance Agents */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mr-4">
+                      <FaCheckCircle className="text-2xl text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Liquidators & Stock Clearance Agents</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Service Centers & Refurbishers */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mr-4">
+                      <FaCheckCircle className="text-2xl text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Service Centers & Refurbishers</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Corporates with Used or Decommissioned Assets */}
+                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 mr-4">
+                      <FaCheckCircle className="text-2xl text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-snug">Corporates with Used or Decommissioned Assets</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Success Stories */}
-        <div className="py-20 bg-white">
+        {/* <div className="py-20 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
@@ -283,10 +535,10 @@ const SellersPage = () => {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Seller Tools Section */}
-        <div className="py-20 bg-gray-50">
+        <div className="py-12 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
@@ -315,13 +567,13 @@ const SellersPage = () => {
         </div>
 
         {/* Marketplace Statistics */}
-        <div className="py-20 bg-white">
+        <div className="py-12 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
                 OUR IMPACT
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Join a Thriving Marketplace</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Businesses Love SalesBid</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-lg">
                 Our platform connects you with millions of buyers worldwide.
               </p>
@@ -339,8 +591,73 @@ const SellersPage = () => {
           </div>
         </div>
 
+        {/* Trusted Selling Partner Section */}
+        <div className="py-12 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+              backgroundSize: '40px 40px'
+            }}></div>
+          </div>
+          
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-5xl mx-auto">
+              {/* Icon and Title */}
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-8">
+                <div className="flex-shrink-0">
+                  <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                    <FaHandshake className="text-5xl text-white" />
+                  </div>
+                </div>
+                
+                <div className="flex-1 text-center md:text-left">
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                    Your Trusted Selling Partner
+                  </h2>
+                  <p className="text-xl md:text-2xl leading-relaxed text-white/90">
+                    We're not just a platform — we're your partner in turning stock into revenue.
+                    Our verified network, transparent process, and live streaming feature help you sell confidently and grow faster.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature Highlights */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                  <div className="flex items-center gap-3 mb-2">
+                    <FaNetworkWired className="text-2xl text-blue-300" />
+                    <h3 className="text-lg font-bold">Verified Network</h3>
+                  </div>
+                  <p className="text-sm text-white/80">Thousands of active B2B buyers</p>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                  <div className="flex items-center gap-3 mb-2">
+                    <FaChartBar className="text-2xl text-green-300" />
+                    <h3 className="text-lg font-bold">Transparent Process</h3>
+                  </div>
+                  <p className="text-sm text-white/80">Full visibility & real-time tracking</p>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                  <div className="flex items-center gap-3 mb-2">
+                    <FaStream className="text-2xl text-purple-300" />
+                    <h3 className="text-lg font-bold">Live Streaming</h3>
+                  </div>
+                  <p className="text-sm text-white/80">Showcase products in real-time</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* FAQ Section */}
-        <div className="py-20 bg-gray-50">
+        {/* <div className="py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
@@ -370,35 +687,34 @@ const SellersPage = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* CTA Section */}
-      <div className="relative bg-gray-100 text-gray-900 overflow-hidden">
-  <div className="absolute inset-0 opacity-20">
-    <div className="absolute inset-0 bg-gradient-to-r from-gray-300 to-transparent w-1/3"></div>
-    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
-  </div>
-  
-  <div className="container mx-auto px-4 py-20 relative z-10">
-    <div className="max-w-4xl mx-auto text-center">
-      <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Start Selling?</h2>
-      <p className="text-xl mb-8 max-w-2xl mx-auto opacity-80">
-        Join our community of successful sellers today. It takes just minutes to create your account.
-      </p>
-      <div className="flex flex-col sm:flex-row justify-center gap-4">
-        <Link 
-          to="/sellerRegistration" 
-          className="bg-white text-gray-900 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:shadow-lg transition-all border border-gray-200 hover:bg-gray-50"
-        >
-          Register Now
-        </Link>
-        <button className="border-2 border-gray-900 text-gray-900 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-900 hover:text-white transition-all">
-          Contact Sales
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+        <div className="bg-white py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Start Selling Today</h2>
+              <p className="text-lg text-gray-600 mb-3">
+                Ready to list your stock and reach verified business buyers?
+              </p>
+              <p className="text-base text-gray-700 mb-6">
+                Register as a Seller – It's free and takes less than 2 minutes.
+                Our team will verify your details and help you start selling your inventory immediately.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Link 
+                  to="/sellerRegistration" 
+                  className="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-base shadow-sm hover:bg-blue-700 transition-all"
+                >
+                  Register Now - It's Free
+                </Link>
+                <button className="border-2 border-gray-300 text-gray-700 font-bold py-3 px-8 rounded-lg text-base hover:border-gray-400 hover:bg-gray-50 transition-all">
+                  Contact Support
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Seller Registration Modal */}
         {showRegistration && (
