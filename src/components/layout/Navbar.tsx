@@ -3,10 +3,25 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { useCategories } from '@/context/useCategories';
+import { useCategories } from "@/context/useCategories";
 import salesBidLogo from "@/assets/logo.png";
-import { Search, Menu, X, ShoppingCart, Bell, User, ChevronDown, Heart, Loader2 } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Search,
+  Menu,
+  X,
+  ShoppingCart,
+  Bell,
+  User,
+  ChevronDown,
+  Heart,
+  Loader2,
+} from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Sheet,
   SheetContent,
@@ -19,7 +34,7 @@ import Cookies from "js-cookie";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const isMobile = useIsMobile();
   const { wishlistCount, bidsCount } = useWishlist();
@@ -38,13 +53,13 @@ const Navbar = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setIsMobileSearchOpen(false);
-      setSearchQuery('');
+      setSearchQuery("");
     }
   };
 
   const handleMobileSearchClose = () => {
     setIsMobileSearchOpen(false);
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   return (
@@ -63,7 +78,7 @@ const Navbar = () => {
 
         {/* Mobile Search Form - Shown when search is active */}
         {isMobileSearchOpen && (
-          <form 
+          <form
             onSubmit={handleMobileSearchSubmit}
             className="flex-1 flex items-center"
           >
@@ -93,7 +108,10 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           <div className="flex items-center space-x-6">
-          <Link to="/auctions" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
+            <Link
+              to="/auctions"
+              className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased"
+            >
               All Auctions
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
@@ -108,11 +126,17 @@ const Navbar = () => {
                     <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
                   </div>
                 ) : categories.length > 0 ? (
-                  <div className="py-1 max-h-96 overflow-y-auto" role="menu" aria-orientation="vertical">
+                  <div
+                    className="py-1 max-h-96 overflow-y-auto"
+                    role="menu"
+                    aria-orientation="vertical"
+                  >
                     {categories.map((category) => (
                       <Link
                         key={category}
-                        to={`/auctions?category=${encodeURIComponent(category)}`}
+                        to={`/auctions?category=${encodeURIComponent(
+                          category
+                        )}`}
                         className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
                         role="menuitem"
                         onClick={() => setIsMenuOpen(false)}
@@ -178,15 +202,24 @@ const Navbar = () => {
                 </div>
               </div>
             </div> */}
-            <Link to="/allSellersPage" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
-              ALL Sellers
+            <Link
+              to="/allSellersPage"
+              className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased"
+            >
+              All Sellers
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link to="/buyers" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
+            <Link
+              to="/buyers"
+              className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased"
+            >
               For Buyers
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link to="/sellers" className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased">
+            <Link
+              to="/sellers"
+              className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased"
+            >
               For Sellers
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
@@ -198,14 +231,15 @@ const Navbar = () => {
           {isMobile ? (
             <div className="flex items-center space-x-3">
               {!isMobileSearchOpen && (
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   onClick={() => setIsMobileSearchOpen(true)}
                 >
                   <Search className="h-5 w-5" />
                 </Button>
               )}
+              {/* My Bids - Commented Out 
               <Link to="/my-bids" className="relative">
                 <Button variant="ghost" size="icon">
                   <ShoppingCart className="h-5 w-5" />
@@ -216,9 +250,10 @@ const Navbar = () => {
                   </span>
                 )}
               </Link>
+              */}
             </div>
           ) : (
-            <form 
+            <form
               onSubmit={(e: FormEvent) => {
                 e.preventDefault();
                 if (searchQuery.trim()) {
@@ -235,7 +270,7 @@ const Navbar = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && searchQuery.trim()) {
+                  if (e.key === "Enter" && searchQuery.trim()) {
                     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
                   }
                 }}
@@ -249,10 +284,11 @@ const Navbar = () => {
               </Button>
               {wishlistCount > 0 && (
                 <span className="absolute -top-0 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                  {wishlistCount > 9 ? '9+' : wishlistCount}
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
                 </span>
               )}
             </Link>
+            {/* My Bids - Commented Out
             <Link to="/my-bids" className="relative">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
@@ -263,6 +299,7 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+            */}
             {token ? (
               <Link to="/user/profile">
                 <Button variant="ghost" size="icon">
@@ -292,8 +329,15 @@ const Navbar = () => {
                   <SheetTitle className="text-left">Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto">
-                  <Accordion type="single" collapsible className="w-full flex flex-col">
-                    <AccordionItem value="categories" className="border-b border-gray-100">
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full flex flex-col"
+                  >
+                    <AccordionItem
+                      value="categories"
+                      className="border-b border-gray-100"
+                    >
                       <AccordionTrigger className="px-4 py-3 text-base font-medium hover:no-underline hover:text-amber-600">
                         Categories
                       </AccordionTrigger>
@@ -307,7 +351,9 @@ const Navbar = () => {
                             {categories.map((category) => (
                               <Link
                                 key={`mobile-${category}`}
-                                to={`/auctions?category=${encodeURIComponent(category)}`}
+                                to={`/auctions?category=${encodeURIComponent(
+                                  category
+                                )}`}
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-amber-600 transition-colors"
                                 onClick={() => setIsMenuOpen(false)}
                               >
@@ -316,14 +362,19 @@ const Navbar = () => {
                             ))}
                           </div>
                         ) : (
-                          <p className="px-4 text-sm text-gray-500">No categories available</p>
+                          <p className="px-4 text-sm text-gray-500">
+                            No categories available
+                          </p>
                         )}
                       </AccordionContent>
                     </AccordionItem>
 
-                    <AccordionItem value="auctions" className="border-b border-gray-100">
-                      <Link 
-                        to="/auctions" 
+                    <AccordionItem
+                      value="auctions"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/auctions"
                         className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
@@ -331,9 +382,12 @@ const Navbar = () => {
                       </Link>
                     </AccordionItem>
 
-                    <AccordionItem value="sellers" className="border-b border-gray-100">
-                      <Link 
-                        to="/sellers" 
+                    <AccordionItem
+                      value="sellers"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/sellers"
                         className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
@@ -341,9 +395,12 @@ const Navbar = () => {
                       </Link>
                     </AccordionItem>
 
-                    <AccordionItem value="how-it-works" className="border-b border-gray-100">
-                      <Link 
-                        to="/how-it-works" 
+                    <AccordionItem
+                      value="how-it-works"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/how-it-works"
                         className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >

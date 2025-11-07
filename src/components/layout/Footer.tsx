@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 
 const links = {
   marketplace: [
-    { label: 'Live Auctions', href: '/auctions' },
-    { label: 'Upcoming Auctions', href: '/auctions/upcoming' },
+    { label: 'Browse Lots', href: '/auctions' },
+    // { label: 'Upcoming Auctions', href: '/auctions/upcoming' },
     { label: 'How it Works', href: '/how-it-works' },
     { label: 'Selling Services', href: '/selling-services' },
     // { label: 'Buyer Protection', href: '/buyer-protection' },
@@ -177,9 +177,9 @@ const Footer = () => {
             
               <h4 className="text-sm font-semibold tracking-wide text-slate-200">Contact</h4>
               <ul className="mt-3 space-y-2 text-sm text-slate-400">
-                <li className="flex items-center gap-2"><span className="text-slate-500">Address:</span> 123 Commerce St, Suite 400</li>
-                <li className="flex items-center gap-2"><span className="text-slate-500">Phone:</span> +1 (555) 123-4567</li>
-                <li className="flex items-center gap-2"><span className="text-slate-500">Email:</span> support@SalesBid.com</li>
+                <li className="flex items-center gap-2">Flat 301, Amsri Plaza, SD Road, Ragimental Bazar, Hyderabad, Telanagana- 500003</li>
+                <li className="flex items-center gap-2">Phone: +918919583205, 9701090085</li>
+                <li className="flex items-center gap-2">Email: salesbid9@gmail.com</li>
               </ul>
           </div> */}
         </div>

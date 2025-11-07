@@ -3,7 +3,7 @@ import React from "react";
 
 const HowItWorks: React.FC = () => {
   return (
-    <Layout>
+    // <Layout>
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Header Section */}
         <div className="text-center mb-16">
@@ -140,7 +140,7 @@ and in this page buttons are not working
           </div>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

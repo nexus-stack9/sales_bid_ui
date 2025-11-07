@@ -19,7 +19,7 @@ import FeaturedCountdown from "@/components/home/FeaturedCountdown";
 
 const Index = () => {
   return (
-    <Layout>
+    // <Layout>
       <div className="min-h-screen">
         <Hero />
         <SellerSpotlight />
@@ -34,7 +34,7 @@ const Index = () => {
         <Testimonials />
         {/* <ReviewsMarquee /> */}
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

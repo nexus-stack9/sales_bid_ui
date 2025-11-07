@@ -3,7 +3,7 @@ import React from "react";
 
 const ContactUs: React.FC = () => {
   return (
-    <Layout>
+    // <Layout>
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Contact Us</h1>
@@ -69,7 +69,7 @@ const ContactUs: React.FC = () => {
           </form>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

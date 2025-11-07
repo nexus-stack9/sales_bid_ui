@@ -3,7 +3,7 @@ import React from "react";
 
 const SellingServices: React.FC = () => {
   return (
-    <Layout>
+    // <Layout>
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -165,7 +165,7 @@ const SellingServices: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

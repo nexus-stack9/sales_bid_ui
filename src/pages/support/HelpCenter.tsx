@@ -6,7 +6,6 @@ const HelpCenter: React.FC = () => {
   const [q, setQ] = useState("");
 
   return (
-    <Layout>
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-10">
@@ -92,7 +91,6 @@ const HelpCenter: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
   );
 };
 

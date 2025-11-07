@@ -775,7 +775,7 @@ const filePathMap = {};
 
   if (success) {
     return (
-      <Layout>
+      // <Layout>
         <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
           <div className="text-center">
             <div className="flex justify-center mb-6">
@@ -793,12 +793,11 @@ const filePathMap = {};
             </button>
           </div>
         </div>
-      </Layout>
     );
   }
 
   return (
-    <Layout>
+    // <Layout>
       <div className=" mx-auto px-4 py-8">
       <button 
   onClick={() => navigate('/sellers')}
@@ -894,7 +893,7 @@ const filePathMap = {};
           </form>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

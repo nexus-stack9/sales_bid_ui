@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import styles from "./ProductDetailPage.module.css";
 import Tooltip from '@/components/Tooltip/Tooltip';
-import Layout from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FaGavel, FaMapMarkerAlt, FaTag, FaShieldAlt, FaClock, FaShoppingCart, FaExpand } from 'react-icons/fa';
 import { Heart, Share2, Play } from 'lucide-react';
@@ -39,7 +38,19 @@ const ProductDetailPage = () => {
   const [showLiveModal, setShowLiveModal] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
   const modalContentRef = useRef(null);
+  const iframeRef = useRef(null);
+
+  const handleIframeLoad = () => {
+    setIsVideoLoading(false);
+  };
+
+  useEffect(() => {
+    if (showLiveModal) {
+      setIsVideoLoading(true);
+    }
+  }, [showLiveModal]);
 
   // Calculate per unit price
   const getPerUnitPrice = (price) => {
@@ -76,14 +87,21 @@ const ProductDetailPage = () => {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  // Get embed URL for YouTube or fallback to original
+  // Get embed URL with minimal controls
   const getEmbedUrl = (url) => {
     if (!url) return '';
     const videoId = extractYouTubeVideoId(url);
     if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&playsinline=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0`;
     }
-    return url;
+    // For other video sources
+    try {
+      const hasQuery = url.includes('?');
+      const sep = hasQuery ? '&' : '?';
+      return `${url}${sep}autoplay=1&controls=0`;
+    } catch {
+      return url;
+    }
   };
 
   // Handle full screen
@@ -207,7 +225,6 @@ const ProductDetailPage = () => {
 
     webSocketService.disconnect();
     webSocketService.connect(productId, handleWebSocketMessage);
-
     return () => {
       webSocketService.disconnect();
     };
@@ -228,7 +245,6 @@ const ProductDetailPage = () => {
 
   const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
   const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
-
   const handleTouchEnd = () => {
     if (touchStart - touchEnd > 50) nextImage();
     if (touchStart - touchEnd < -50) prevImage();
@@ -356,7 +372,6 @@ const ProductDetailPage = () => {
       text: `Check out this product: ${productData?.name}`,
       url: shareUrl,
     };
-
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -384,391 +399,227 @@ const ProductDetailPage = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className={styles.container}>
-          <div className={styles.contentWrapper}>
-            <div className={styles.leftColumn}>
-              <div className={styles.imageGallery}>
-                <div className={styles.mainImage}>
-                  <Skeleton className="w-full h-[360px] md:h-[440px] rounded-lg" />
-                </div>
-                <div className={styles.thumbnailStrip}>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className={styles.thumbnail}>
-                      <Skeleton className="h-16 w-16 rounded" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.desktopPlaceBidCard}>
-                <div className={styles.placeBidCard}>
-                  <div className="space-y-3">
-                    <Skeleton className="h-6 w-40" />
-                    <Skeleton className="h-10 w-full" />
-                    <div className="flex items-center justify-between">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                    <Skeleton className="h-11 w-full" />
-                    <div className="grid grid-cols-2 gap-2">
-                      {Array.from({ length: 4 }).map((_, i) => (
-                        <Skeleton key={i} className="h-9 w-full" />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className={styles.rightColumn}>
-              <div className={styles.productHeader}>
-                <Skeleton className="h-8 w-3/4 mb-4" />
-                <div className={styles.metaGrid}>
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className={styles.metaItem}>
-                      <Skeleton className="h-4 w-28 mb-1" />
-                      <Skeleton className="h-5 w-40" />
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.priceInfo}>
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className={styles.priceItem}>
-                      <Skeleton className="h-4 w-24 mb-1" />
-                      <Skeleton className="h-6 w-32" />
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.descriptionPreview}>
-                  <Skeleton className="h-5 w-28 mb-2" />
-                  <Skeleton className="h-4 w-full mb-1" />
-                  <Skeleton className="h-4 w-5/6" />
-                </div>
-              </div>
-              <div className={styles.topBox}>
-                <div className={styles.bidCard}>
-                  <Skeleton className="h-5 w-28 mb-3" />
-                  <Skeleton className="h-8 w-40 mb-3" />
-                  <Skeleton className="h-2 w-full mb-3" />
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-4 w-28" />
-                  </div>
-                </div>
-                <div className={styles.auctionDetails}>
-                  <Skeleton className="h-6 w-40 mb-4" />
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className={styles.detailItem}>
-                      <Skeleton className="h-4 w-28" />
-                      <Skeleton className="h-5 w-32" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className={styles.tabbedInfoDesktop}>
-            <div className={styles.tabHeaders}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-8 w-28 mr-3 inline-block" />
-              ))}
-            </div>
-          </div>
-          {connectionError && (
-            <div style={{ textAlign: 'center', padding: '1rem' }}>
-              <p style={{ color: 'red' }}>Connection issue. Trying to reconnect…</p>
-            </div>
-          )}
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!productData) {
-    return (
-      <Layout>
-        <div className={styles.container}>
-          <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <p>Product not found</p>
-            <button onClick={() => navigate('/')}>Go back to home</button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  return (
-    <Layout>
       <div className={styles.container}>
         <div className={styles.contentWrapper}>
-          {/* Left Column: Images & Desktop Bid Form */}
           <div className={styles.leftColumn}>
             <div className={styles.imageGallery}>
-              <div
-                className={styles.mainImage}
-                ref={imageRef}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-              >
-                {selectedImage ? (
-                  <img src={selectedImage} alt="Selected Product" />
-                ) : (
-                  <div className={styles.imagePlaceholder}>No Image Available</div>
-                )}
-                <div className={styles.buttonContainer}>
-                  <button
-                    className={`${styles.wishlistButton} ${isInWishlist ? styles.inWishlist : ''}`}
-                    onClick={handleWishlistToggle}
-                    disabled={isWishlistLoading}
-                    aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                  >
-                    <Heart className={styles.heartIcon} fill={isInWishlist ? 'currentColor' : 'none'} />
-                  </button>
-                  <button
-                    className={styles.wishlistButton}
-                    onClick={handleShare}
-                    aria-label="Share product"
-                  >
-                    <Share2 className={styles.shareIcon} />
-                  </button>
-                </div>
+              <div className={styles.mainImage}>
+                <Skeleton className="w-full h-[360px] md:h-[440px] rounded-lg" />
               </div>
-
-              <div className={`${styles.thumbnailStrip} ${styles.desktopThumbnails}`}>
-                {images.map((image, index) => (
-                  <div
-                    key={index}
-                    className={`${styles.thumbnail} ${
-                      selectedImage === image.src ? styles.activeThumbnail : ""
-                    }`}
-                    onClick={() => handleImageClick(image.src, index)}
-                  >
-                    <img src={image.src} alt={image.alt} />
+              <div className={styles.thumbnailStrip}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className={styles.thumbnail}>
+                    <Skeleton className="h-16 w-16 rounded" />
                   </div>
-                ))}
-              </div>
-
-              <div className={`${styles.dotsIndicator} ${styles.mobileDots}`}>
-                {images.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`${styles.dot} ${
-                      currentImageIndex === index ? styles.activeDot : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedImage(images[index].src);
-                      setCurrentImageIndex(index);
-                    }}
-                  />
                 ))}
               </div>
             </div>
-
             <div className={styles.desktopPlaceBidCard}>
               <div className={styles.placeBidCard}>
-                <div className={styles.bidHeader}>
-                  <span className={styles.bidLabel}>Place Your Bid</span>
-                </div>
-                <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 mb-2 border border-amber-100">
-                  <div className="flex items-center">
-                    <div className="bg-amber-100 p-2 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-amber-800">
-                        Next minimum bid: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
-                      </p>
-                      <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher</p>
-                    </div>
+                <div className="space-y-3">
+                  <Skeleton className="h-6 w-40" />
+                  <Skeleton className="h-10 w-full" />
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-24" />
                   </div>
-                </div>
-
-                <form onSubmit={handleBidSubmit} className={styles.bidForm}>
-                  <div className={styles.bidInputGroup}>
-                    <div className={styles.inputWrapper}>
-                      <span className={styles.currencySymbol}>₹</span>
-                      <input
-                        type="number"
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                        min={getCurrentBid() + 50}
-                        step={50}
-                        placeholder="Enter your bid"
-                        required
-                        disabled={timeRemaining === 0}
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.bidButtonContainer}>
-                    <button
-                      type="submit"
-                      className={styles.placeBidButton}
-                      disabled={isSubmitting || timeRemaining === 0}
-                    >
-                      {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Bid Now'}
-                      <FaGavel className={styles.buttonIcon} />
-                    </button>
-                    {hasBuyOption() && getCurrentBid() < parseFloat(productData.sale_price) && (
-                      <button
-                        type="button"
-                        className={`${styles.placeBidButton} ${styles.buyNowButton}`}
-                        disabled={timeRemaining === 0}
-                        onClick={handleBuyNow}
-                      >
-                        Buy for {formatCurrency(productData.sale_price)}
-                      </button>
-                    )}
-                  </div>
-                </form>
-
-                <div className={styles.quickBidSection}>
-                  <h3>Quick Bid Options</h3>
-                  <div className={styles.quickBidOptions}>
-                    {[50, 150, 250, 500].map((increment, index) => (
-                      <button
-                        key={index}
-                        className={`${styles.quickBidButton} ${bidAmount === getCurrentBid() + increment ? styles.selected : ""}`}
-                        onClick={() => handleQuickBid(getCurrentBid() + increment)}
-                        disabled={timeRemaining === 0}
-                      >
-                        {formatCurrency(getCurrentBid() + increment)}
-                      </button>
+                  <Skeleton className="h-11 w-full" />
+                  <div className="grid grid-cols-2 gap-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-9 w-full" />
                     ))}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Right Column: Product Info & Mobile Bid */}
           <div className={styles.rightColumn}>
             <div className={styles.productHeader}>
-              <h1 className={styles.productTitle}>{productData.name}</h1>
+              <Skeleton className="h-8 w-3/4 mb-4" />
               <div className={styles.metaGrid}>
-                <div className={`${styles.metaItem} ${styles.categoryItem}`}>
-                  <span className={styles.metaLabel}><FaTag className={styles.metaIcon} /> Category</span>
-                  <span className={styles.metaValue}>{productData.category}</span>
-                </div>
-                <div className={`${styles.metaItem} ${styles.conditionItem}`}>
-                  <span className={styles.metaLabel}><FaShieldAlt className={styles.metaIcon} /> Condition</span>
-                  <span className={styles.metaValue}>{productData.condition || 'Used'}</span>
-                </div>
-                <div className={`${styles.metaItem} ${styles.locationItem}`}>
-                  <span className={styles.metaLabel}><FaMapMarkerAlt className={styles.metaIcon} /> Location</span>
-                  <span className={styles.metaValue}>{productData.location}</span>
-                </div>
-              </div>
-
-              <div className={styles.priceInfo}>
-                <div className={styles.priceItem}>
-                  <span className={styles.priceLabel}>Current Bid</span>
-                  <span className={styles.priceValue}>{formatCurrency(getCurrentBid())}</span>
-                </div>
-                <div className={styles.priceItem}>
-                  <span className={styles.priceLabel}>MSRP</span>
-                  <span className={styles.priceValue}>{formatCurrency(productData.retail_value)}</span>
-                </div>
-                <div className={styles.priceItem}>
-                  <span className={styles.priceLabel}>Quantity</span>
-                  <span className={styles.priceValue}>{productData.quantity} {productData.quantity === 1 ? 'unit' : 'units'}</span>
-                </div>
-              </div>
-
-              <div className={styles.countdownContainer}>
-                <div className={styles.countdownLabel}>
-                  <FaClock className={styles.clockIcon} />
-                  <span className={styles.endsInText}>Time Remaining</span>
-                </div>
-                {timeRemaining > 0 ? (
-                  <div className={styles.auctionStatus}>
-                    <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>{String(Math.floor(timeRemaining / 86400)).padStart(2, '0')}</span>
-                      <span className={styles.timeLabel}>Days</span>
-                    </div>
-                    <span className={styles.separator}>:</span>
-                    <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>{String(Math.floor((timeRemaining % 86400) / 3600)).padStart(2, '0')}</span>
-                      <span className={styles.timeLabel}>Hrs</span>
-                    </div>
-                    <span className={styles.separator}>:</span>
-                    <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>{String(Math.floor((timeRemaining % 3600) / 60)).padStart(2, '0')}</span>
-                      <span className={styles.timeLabel}>Mins</span>
-                    </div>
-                    <span className={styles.separator}>:</span>
-                    <div className={styles.timeUnit}>
-                      <span className={styles.timeValue}>{String(timeRemaining % 60).padStart(2, '0')}</span>
-                      <span className={styles.timeLabel}>Secs</span>
-                    </div>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className={styles.metaItem}>
+                    <Skeleton className="h-4 w-28 mb-1" />
+                    <Skeleton className="h-5 w-40" />
                   </div>
-                ) : (
-                  <span className={styles.endsInText}>Auction Ended</span>
-                )}
+                ))}
               </div>
-{productData?.product_live_url && productData.product_live_url.trim() !== '' && (
-  <button
-    className={styles.watchLiveButton}
-    onClick={() => setShowLiveModal(true)}
-    aria-label="Click to watch live stream"
-  >
-    <div className={styles.liveButtonIndicator}>
-      <span className={styles.livePulseDot}></span>
-      <span className={styles.liveButtonText}> Watch Live Stream</span>
-      <Play className={styles.shareIcon} />
-    </div>
-  </button>
-)}
+              <div className={styles.priceInfo}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className={styles.priceItem}>
+                    <Skeleton className="h-4 w-24 mb-1" />
+                    <Skeleton className="h-6 w-32" />
+                  </div>
+                ))}
+              </div>
               <div className={styles.descriptionPreview}>
-                <h3>Description</h3>
-                <Tooltip content={productData.description}>
-                  <p className={styles.descriptionText}>{productData.description}</p>
-                </Tooltip>
+                <Skeleton className="h-5 w-28 mb-2" />
+                <Skeleton className="h-4 w-full mb-1" />
+                <Skeleton className="h-4 w-5/6" />
               </div>
             </div>
+            <div className={styles.topBox}>
+              <div className={styles.bidCard}>
+                <Skeleton className="h-5 w-28 mb-3" />
+                <Skeleton className="h-8 w-40 mb-3" />
+                <Skeleton className="h-2 w-full mb-3" />
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              </div>
+              <div className={styles.auctionDetails}>
+                <Skeleton className="h-6 w-40 mb-4" />
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className={styles.detailItem}>
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={styles.tabbedInfoDesktop}>
+          <div className={styles.tabHeaders}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-28 mr-3 inline-block" />
+            ))}
+          </div>
+        </div>
+        {connectionError && (
+          <div style={{ textAlign: 'center', padding: '1rem' }}>
+            <p style={{ color: 'red' }}>Connection issue. Trying to reconnect…</p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
-            {/* Mobile Bid Card */}
-            <div className={styles.mobileBidCard}>
-              <div className={styles.mobileBidAmount}>
-                Current Bid: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
+  if (!productData) {
+    return (
+      <div className={styles.container}>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p>Product not found</p>
+          <button onClick={() => navigate('/')}>Go back to home</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.contentWrapper}>
+        {/* Left Column: Images & Desktop Bid Form */}
+        <div className={styles.leftColumn}>
+          <div className={styles.imageGallery}>
+            <div
+              className={styles.mainImage}
+              ref={imageRef}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {selectedImage ? (
+                <img src={selectedImage} alt="Selected Product" />
+              ) : (
+                <div className={styles.imagePlaceholder}>No Image Available</div>
+              )}
+              <div className={styles.buttonContainer}>
+                <button
+                  className={`${styles.wishlistButton} ${isInWishlist ? styles.inWishlist : ''}`}
+                  onClick={handleWishlistToggle}
+                  disabled={isWishlistLoading}
+                  aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                >
+                  <Heart className={styles.heartIcon} fill={isInWishlist ? 'currentColor' : 'none'} />
+                </button>
+                <button
+                  className={styles.wishlistButton}
+                  onClick={handleShare}
+                  aria-label="Share product"
+                >
+                  <Share2 className={styles.shareIcon} />
+                </button>
               </div>
-              <div className={styles.retailPercentageContainer}>
-                <div className={styles.retailPercentageText}>
-                  {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
+            </div>
+            <div className={`${styles.thumbnailStrip} ${styles.desktopThumbnails}`}>
+              {images.map((image, index) => (
+                <div
+                  key={index}
+                  className={`${styles.thumbnail} ${
+                    selectedImage === image.src ? styles.activeThumbnail : ""
+                  }`}
+                  onClick={() => handleImageClick(image.src, index)}
+                >
+                  <img src={image.src} alt={image.alt} />
                 </div>
-                <div className={styles.mobileProgressBar}>
-                  <div
-                    className={styles.mobileProgressFill}
-                    style={{ width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-              <div className={styles.mobileRetailValue}>
-                MSRP: {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
-              </div>
-              <form onSubmit={handleBidSubmit} className={styles.mobileBidForm}>
-                <div className={styles.mobileBidLabel}>Place a new max bid</div>
-                <input
-                  type="number"
-                  className={styles.mobileBidInput}
-                  placeholder={`Enter max bid (${formatCurrency(getCurrentBid() + 50)}+)`}
-                  min={getCurrentBid() + 50}
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+              ))}
+            </div>
+            <div className={`${styles.dotsIndicator} ${styles.mobileDots}`}>
+              {images.map((_, index) => (
+                <div
+                  key={index}
+                  className={`${styles.dot} ${
+                    currentImageIndex === index ? styles.activeDot : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedImage(images[index].src);
+                    setCurrentImageIndex(index);
+                  }}
                 />
-                <div className={styles.mobileButtonContainer}>
+              ))}
+            </div>
+          </div>
+          <div className={styles.desktopPlaceBidCard}>
+            <div className={styles.placeBidCard}>
+              <div className={styles.bidHeader}>
+                <span className={styles.bidLabel}>Place Your Bid</span>
+              </div>
+              <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 mb-2 border border-amber-100">
+                <div className="flex items-center">
+                  <div className="bg-amber-100 p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-amber-800">
+                      Next minimum bid: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
+                    </p>
+                    <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher</p>
+                  </div>
+                </div>
+              </div>
+              <form onSubmit={handleBidSubmit} className={styles.bidForm}>
+                <div className={styles.bidInputGroup}>
+                  <div className={styles.inputWrapper}>
+                    <span className={styles.currencySymbol}>₹</span>
+                    <input
+                      type="number"
+                      value={bidAmount}
+                      onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      min={getCurrentBid() + 50}
+                      step={50}
+                      placeholder="Enter your bid"
+                      required
+                      disabled={timeRemaining === 0}
+                    />
+                  </div>
+                </div>
+                <div className={styles.bidButtonContainer}>
                   <button
                     type="submit"
-                    className={styles.mobileBidButton}
+                    className={styles.placeBidButton}
                     disabled={isSubmitting || timeRemaining === 0}
                   >
-                    Bid Now
+                    {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Bid Now'}
+                    <FaGavel className={styles.buttonIcon} />
                   </button>
                   {hasBuyOption() && getCurrentBid() < parseFloat(productData.sale_price) && (
                     <button
                       type="button"
-                      className={`${styles.mobileBidButton} ${styles.mobileBuyNowButton}`}
+                      className={`${styles.placeBidButton} ${styles.buyNowButton}`}
                       disabled={timeRemaining === 0}
                       onClick={handleBuyNow}
                     >
@@ -777,85 +628,403 @@ const ProductDetailPage = () => {
                   )}
                 </div>
               </form>
-            </div>
-
-            <div className={`${styles.topBox} ${styles.hideOnMobile}`}>
-              <div className={styles.bidCard}>
-                <div className={styles.bidHeader}>
-                  <span className={styles.bidLabel}>CURRENT BID</span>
-                </div>
-                <div className={styles.bidAmount}>
-                  {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
-                </div>
-                <div className={styles.progressBar}>
-                  <div
-                    className={styles.progressFill}
-                    style={{ width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-              <div className={styles.auctionDetails}>
-                <h3>Auction Details</h3>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>MSRP:</span>
-                  <span className={styles.detailValue}>
-                    {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
-                  </span>
-                </div>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Starting Bid:</span>
-                  <span className={styles.detailValue}>{formatCurrency(productData.starting_price)}</span>
+              <div className={styles.quickBidSection}>
+                <h3>Quick Bid Options</h3>
+                <div className={styles.quickBidOptions}>
+                  {[50, 150, 250, 500].map((increment, index) => (
+                    <button
+                      key={index}
+                      className={`${styles.quickBidButton} ${bidAmount === getCurrentBid() + increment ? styles.selected : ""}`}
+                      onClick={() => handleQuickBid(getCurrentBid() + increment)}
+                      disabled={timeRemaining === 0}
+                    >
+                      {formatCurrency(getCurrentBid() + increment)}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        <div className={styles.mobileSpacer}></div>
-
-        {/* Desktop Tabs */}
-        <div className={styles.tabbedInfoDesktop}>
-          <div className={styles.tabHeaders}>
-            {["description", "shipping", "returns", "manifest", "bid-history", "seller"].map((tab) => (
-              <button
-                key={tab}
-                className={`${styles.tabHeader} ${activeTab === tab ? styles.active : ""}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
-              </button>
-            ))}
-          </div>
-          <div className={styles.tabContent}>
-            {activeTab === "description" && <div className={styles.description}><p>{productData.description}</p></div>}
-            {activeTab === "shipping" && (
-              <div className={styles.shippingInfo}>
-                <h4>Shipping Information</h4>
-                <div className={styles.shippingDetails}>
-                  <div className={styles.shippingRow}>
-                    <span className={styles.shippingLabel}>Shipping:</span>
-                    <span className={styles.shippingValue}>
-                      {productData.shipping?.split(',').map(s => s.trim().replace(/\b\w/g, l => l.toUpperCase())).join(', ') || 'Standard'}
-                    </span>
+        {/* Right Column: Product Info & Mobile Bid */}
+        <div className={styles.rightColumn}>
+          <div className={styles.productHeader}>
+            <h1 className={styles.productTitle}>{productData.name}</h1>
+            <div className={styles.metaGrid}>
+              <div className={`${styles.metaItem} ${styles.categoryItem}`}>
+                <span className={styles.metaLabel}><FaTag className={styles.metaIcon} /> Category</span>
+                <span className={styles.metaValue}>{productData.category}</span>
+              </div>
+              <div className={`${styles.metaItem} ${styles.conditionItem}`}>
+                <span className={styles.metaLabel}><FaShieldAlt className={styles.metaIcon} /> Condition</span>
+                <span className={styles.metaValue}>{productData.condition || 'Used'}</span>
+              </div>
+              <div className={`${styles.metaItem} ${styles.locationItem}`}>
+                <span className={styles.metaLabel}><FaMapMarkerAlt className={styles.metaIcon} /> Location</span>
+                <span className={styles.metaValue}>{productData.location}</span>
+              </div>
+            </div>
+            <div className={styles.priceInfo}>
+              <div className={styles.priceItem}>
+                <span className={styles.priceLabel}>Current Bid</span>
+                <span className={styles.priceValue}>{formatCurrency(getCurrentBid())}</span>
+              </div>
+              <div className={styles.priceItem}>
+                <span className={styles.priceLabel}>MSRP</span>
+                <span className={styles.priceValue}>{formatCurrency(productData.retail_value)}</span>
+              </div>
+              <div className={styles.priceItem}>
+                <span className={styles.priceLabel}>Quantity</span>
+                <span className={styles.priceValue}>{productData.quantity} {productData.quantity === 1 ? 'unit' : 'units'}</span>
+              </div>
+            </div>
+            <div className={styles.countdownContainer}>
+              <div className={styles.countdownLabel}>
+                <FaClock className={styles.clockIcon} />
+                <span className={styles.endsInText}>Time Remaining</span>
+              </div>
+              {timeRemaining > 0 ? (
+                <div className={styles.auctionStatus}>
+                  <div className={styles.timeUnit}>
+                    <span className={styles.timeValue}>{String(Math.floor(timeRemaining / 86400)).padStart(2, '0')}</span>
+                    <span className={styles.timeLabel}>Days</span>
                   </div>
-                  <div className={styles.shippingRow}>
-                    <span className={styles.shippingLabel}>Location:</span>
-                    <span className={styles.shippingValue}>{productData.location || 'Not Specified'}</span>
+                  <span className={styles.separator}>:</span>
+                  <div className={styles.timeUnit}>
+                    <span className={styles.timeValue}>{String(Math.floor((timeRemaining % 86400) / 3600)).padStart(2, '0')}</span>
+                    <span className={styles.timeLabel}>Hrs</span>
+                  </div>
+                  <span className={styles.separator}>:</span>
+                  <div className={styles.timeUnit}>
+                    <span className={styles.timeValue}>{String(Math.floor((timeRemaining % 3600) / 60)).padStart(2, '0')}</span>
+                    <span className={styles.timeLabel}>Mins</span>
+                  </div>
+                  <span className={styles.separator}>:</span>
+                  <div className={styles.timeUnit}>
+                    <span className={styles.timeValue}>{String(timeRemaining % 60).padStart(2, '0')}</span>
+                    <span className={styles.timeLabel}>Secs</span>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <span className={styles.endsInText}>Auction Ended</span>
+              )}
+            </div>
+            {productData?.product_live_url && productData.product_live_url.trim() !== '' && (
+              <button
+                className={styles.watchLiveButton}
+                onClick={() => setShowLiveModal(true)}
+                aria-label="Click to watch live stream"
+              >
+                <div className={styles.liveButtonIndicator}>
+                  <span className={styles.livePulseDot}></span>
+                  <span className={styles.liveButtonText}> Watch Live Stream</span>
+                  <Play className={styles.shareIcon} />
+                </div>
+              </button>
             )}
-            {activeTab === "returns" && (
-              <div className={styles.returnsInfo}>
-                <h4>Returns Policy</h4>
-                <p>All sales are final. No returns accepted.</p>
+            <div className={styles.descriptionPreview}>
+              <h3>Description</h3>
+              <Tooltip content={productData.description}>
+                <p className={styles.descriptionText}>{productData.description}</p>
+              </Tooltip>
+            </div>
+          </div>
+          {/* Mobile Bid Card */}
+          <div className={styles.mobileBidCard}>
+            <div className={styles.mobileBidAmount}>
+              Current Bid: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
+            </div>
+            <div className={styles.retailPercentageContainer}>
+              <div className={styles.retailPercentageText}>
+                {Math.round((getCurrentBid() / productData.retail_value) * 100)}% of MSRP
               </div>
-            )}
-            {activeTab === "manifest" && (
-              <>
-                <div className={styles.manifestTable}>
-                  <div className={styles.tableHeader}>
-                    <h3>Full Manifest</h3>
+              <div className={styles.mobileProgressBar}>
+                <div
+                  className={styles.mobileProgressFill}
+                  style={{ width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className={styles.mobileRetailValue}>
+              MSRP: {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
+            </div>
+            <form onSubmit={handleBidSubmit} className={styles.mobileBidForm}>
+              <div className={styles.mobileBidLabel}>Place a new max bid</div>
+              <input
+                type="number"
+                className={styles.mobileBidInput}
+                placeholder={`Enter max bid (${formatCurrency(getCurrentBid() + 50)}+)`}
+                min={getCurrentBid() + 50}
+                value={bidAmount}
+                onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+              />
+              <div className={styles.mobileButtonContainer}>
+                <button
+                  type="submit"
+                  className={styles.mobileBidButton}
+                  disabled={isSubmitting || timeRemaining === 0}
+                >
+                  Bid Now
+                </button>
+                {hasBuyOption() && getCurrentBid() < parseFloat(productData.sale_price) && (
+                  <button
+                    type="button"
+                    className={`${styles.mobileBidButton} ${styles.mobileBuyNowButton}`}
+                    disabled={timeRemaining === 0}
+                    onClick={handleBuyNow}
+                  >
+                    Buy for {formatCurrency(productData.sale_price)}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+          <div className={`${styles.topBox} ${styles.hideOnMobile}`}>
+            <div className={styles.bidCard}>
+              <div className={styles.bidHeader}>
+                <span className={styles.bidLabel}>CURRENT BID</span>
+              </div>
+              <div className={styles.bidAmount}>
+                {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
+              </div>
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${Math.min(100, (getCurrentBid() / productData.retail_value) * 100)}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className={styles.auctionDetails}>
+              <h3>Auction Details</h3>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>MSRP:</span>
+                <span className={styles.detailValue}>
+                  {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
+                </span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Starting Bid:</span>
+                <span className={styles.detailValue}>{formatCurrency(productData.starting_price)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className={styles.mobileSpacer}></div>
+      {/* Desktop Tabs */}
+      <div className={styles.tabbedInfoDesktop}>
+        <div className={styles.tabHeaders}>
+          {["description", "shipping", "returns", "manifest", "bid-history", "seller"].map((tab) => (
+            <button
+              key={tab}
+              className={`${styles.tabHeader} ${activeTab === tab ? styles.active : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
+            </button>
+          ))}
+        </div>
+        <div className={styles.tabContent}>
+          {activeTab === "description" && <div className={styles.description}><p>{productData.description}</p></div>}
+          {activeTab === "shipping" && (
+            <div className={styles.shippingInfo}>
+              <h4>Shipping Information</h4>
+              <div className={styles.shippingDetails}>
+                <div className={styles.shippingRow}>
+                  <span className={styles.shippingLabel}>Shipping:</span>
+                  <span className={styles.shippingValue}>
+                    {productData.shipping?.split(',').map(s => s.trim().replace(/\b\w/g, l => l.toUpperCase())).join(', ') || 'Standard'}
+                  </span>
+                </div>
+                <div className={styles.shippingRow}>
+                  <span className={styles.shippingLabel}>Location:</span>
+                  <span className={styles.shippingValue}>{productData.location || 'Not Specified'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab === "returns" && (
+            <div className={styles.returnsInfo}>
+              <h4>Returns Policy</h4>
+              <p>All sales are final. No returns accepted.</p>
+            </div>
+          )}
+          {activeTab === "manifest" && (
+            <>
+              <div className={styles.manifestTable}>
+                <div className={styles.tableHeader}>
+                  <h3>Full Manifest</h3>
+                  <button 
+                    className={styles.downloadButton}
+                    onClick={() => {
+                      if (productData.manifest_url) {
+                        const link = document.createElement('a');
+                        link.href = productData.manifest_url;
+                        const filename = productData.manifest_url.split('/').pop() || 'manifest';
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      } else {
+                        toast({
+                          variant: 'destructive',
+                          title: 'Download Error',
+                          description: 'Manifest file is not available for download.',
+                        });
+                      }
+                    }}
+                  >
+                    Download Full Manifest
+                  </button>
+                </div>
+                <div className={styles.scrollableTableContainer}>
+                  <table className={styles.fullManifestTable}>
+                    <thead>
+                      <tr>
+                        {productData.manifest_data?.[0] && 
+                          Object.keys(productData.manifest_data[0]).map((key) => (
+                            <th key={key}>
+                              {key.split('_').map(word => 
+                                word.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                              ).join(' ')}
+                            </th>
+                          ))
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productData.manifest_data?.map((item, i) => (
+                        <tr key={i}>
+                          {Object.entries(item).map(([key, value]) => {
+                            const formattedValue = 
+                              key.toLowerCase().includes('price') || 
+                              key.toLowerCase().includes('mrp') || 
+                              key.toLowerCase().includes('floor price')
+                                ? formatCurrency(Number(value) || 0)
+                                : String(value || 'N/A');
+                            return (
+                              <td 
+                                key={key} 
+                                title={String(value || '')}
+                                className={styles.truncateCell}
+                              >
+                                {formattedValue.length > 30 
+                                  ? `${formattedValue.substring(0, 30)}...`
+                                  : formattedValue}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+          {activeTab === "bid-history" && (
+            <div className={styles.bidHistoryTab}>
+              <h3>Bid History</h3>
+              <div className={styles.historyTable}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Bidder</th>
+                      <th>Amount</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(productData.bids || []).map((bid, i) => (
+                      <tr key={i}>
+                        <td>{bid.user_name}</td>
+                        <td>{formatCurrency(bid.bid_amount)}</td>
+                        <td>{new Date(bid.bid_time).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {activeTab === "seller" && (
+            <div className={styles.sellerInfo}>
+              <div className={styles.sellerDetails}>
+                <div className={styles.sellerNameRating}>
+                  <span className={styles.sellerName}>{productData.seller}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Mobile Accordions */}
+      <div className={styles.tabbedInfoMobile}>
+        {["description", "shipping", "returns", "manifest", "bid-history", "seller"].map((tab) => (
+          <div key={tab} className={styles.accordionItem}>
+            <button
+              className={`${styles.accordionHeader} ${mobileAccordionOpen === tab ? styles.active : ""}`}
+              onClick={() => toggleMobileAccordion(tab)}
+            >
+              {tab.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
+              <span className={styles.accordionIcon}>{mobileAccordionOpen === tab ? "−" : "+"}</span>
+            </button>
+            <div
+              className={`${styles.accordionContent} ${mobileAccordionOpen === tab ? styles.open : ""}`}
+            >
+              <div className={styles.accordionContentPadding}>
+                {tab === "description" && <p>{productData.description}</p>}
+                {tab === "shipping" && (
+                  <>
+                    <p><strong>Shipping:</strong> {productData.shipping || 'Standard'}</p>
+                    <p><strong>Location:</strong> {productData.location || 'Not Specified'}</p>
+                  </>
+                )}
+                {tab === "returns" && <p>All sales are final. No returns accepted.</p>}
+                {tab === "manifest" && (
+                  <>
+                    <div className={styles.scrollableTableContainer}>
+                      <table className={styles.fullManifestTable}>
+                        <thead>
+                          <tr>
+                            {productData.manifest_data?.[0] && 
+                              Object.keys(productData.manifest_data[0]).map((key) => (
+                                <th key={key}>
+                                  {key.split('_').map(word => 
+                                    word.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                  ).join(' ')}
+                                </th>
+                              ))
+                            }
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {productData.manifest_data?.map((item, i) => (
+                            <tr key={i}>
+                              {Object.entries(item).map(([key, value]) => {
+                                const formattedValue = 
+                                  key.toLowerCase().includes('price') || 
+                                  key.toLowerCase().includes('mrp') || 
+                                  key.toLowerCase().includes('floor price')
+                                    ? formatCurrency(Number(value) || 0)
+                                    : String(value || 'N/A');
+                                return (
+                                  <td 
+                                    key={key} 
+                                    title={String(value || '')}
+                                    className={styles.truncateCell}
+                                  >
+                                    {formattedValue.length > 30 
+                                      ? `${formattedValue.substring(0, 30)}...`
+                                      : formattedValue}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                     <button 
                       className={styles.downloadButton}
                       onClick={() => {
@@ -878,214 +1047,38 @@ const ProductDetailPage = () => {
                     >
                       Download Full Manifest
                     </button>
-                  </div>
-                  <div className={styles.scrollableTableContainer}>
-                    <table className={styles.fullManifestTable}>
+                  </>
+                )}
+                {tab === "bid-history" && (
+                  <div className={styles.historyTable}>
+                    <table>
                       <thead>
                         <tr>
-                          {productData.manifest_data?.[0] && 
-                            Object.keys(productData.manifest_data[0]).map((key) => (
-                              <th key={key}>
-                                {key.split('_').map(word => 
-                                  word.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                ).join(' ')}
-                              </th>
-                            ))
-                          }
+                          <th>Bidder</th>
+                          <th>Amount</th>
+                          <th>Time</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {productData.manifest_data?.map((item, i) => (
+                        {(productData.bids || []).map((bid, i) => (
                           <tr key={i}>
-                            {Object.entries(item).map(([key, value]) => {
-                              const formattedValue = 
-                                key.toLowerCase().includes('price') || 
-                                key.toLowerCase().includes('mrp') || 
-                                key.toLowerCase().includes('floor price')
-                                  ? formatCurrency(Number(value) || 0)
-                                  : String(value || 'N/A');
-                              
-                              return (
-                                <td 
-                                  key={key} 
-                                  title={String(value || '')}
-                                  className={styles.truncateCell}
-                                >
-                                  {formattedValue.length > 30 
-                                    ? `${formattedValue.substring(0, 30)}...`
-                                    : formattedValue}
-                                </td>
-                              );
-                            })}
+                            <td>{bid.user_name}</td>
+                            <td>{formatCurrency(bid.bid_amount)}</td>
+                            <td>{new Date(bid.bid_time).toLocaleString()}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                </div>
-              </>
-            )}
-            {activeTab === "bid-history" && (
-              <div className={styles.bidHistoryTab}>
-                <h3>Bid History</h3>
-                <div className={styles.historyTable}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Bidder</th>
-                        <th>Amount</th>
-                        <th>Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(productData.bids || []).map((bid, i) => (
-                        <tr key={i}>
-                          <td>{bid.user_name}</td>
-                          <td>{formatCurrency(bid.bid_amount)}</td>
-                          <td>{new Date(bid.bid_time).toLocaleString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            {activeTab === "seller" && (
-              <div className={styles.sellerInfo}>
-                <div className={styles.sellerDetails}>
-                  <div className={styles.sellerNameRating}>
-                    <span className={styles.sellerName}>{productData.seller}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Accordions */}
-        <div className={styles.tabbedInfoMobile}>
-          {["description", "shipping", "returns", "manifest", "bid-history", "seller"].map((tab) => (
-            <div key={tab} className={styles.accordionItem}>
-              <button
-                className={`${styles.accordionHeader} ${mobileAccordionOpen === tab ? styles.active : ""}`}
-                onClick={() => toggleMobileAccordion(tab)}
-              >
-                {tab.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}
-                <span className={styles.accordionIcon}>{mobileAccordionOpen === tab ? "−" : "+"}</span>
-              </button>
-              <div
-                className={`${styles.accordionContent} ${mobileAccordionOpen === tab ? styles.open : ""}`}
-              >
-                <div className={styles.accordionContentPadding}>
-                  {tab === "description" && <p>{productData.description}</p>}
-                  {tab === "shipping" && (
-                    <>
-                      <p><strong>Shipping:</strong> {productData.shipping || 'Standard'}</p>
-                      <p><strong>Location:</strong> {productData.location || 'Not Specified'}</p>
-                    </>
-                  )}
-                  {tab === "returns" && <p>All sales are final. No returns accepted.</p>}
-                  {tab === "manifest" && (
-                    <>
-                      <div className={styles.scrollableTableContainer}>
-                        <table className={styles.fullManifestTable}>
-                          <thead>
-                            <tr>
-                              {productData.manifest_data?.[0] && 
-                                Object.keys(productData.manifest_data[0]).map((key) => (
-                                  <th key={key}>
-                                    {key.split('_').map(word => 
-                                      word.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                    ).join(' ')}
-                                  </th>
-                                ))
-                              }
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {productData.manifest_data?.map((item, i) => (
-                              <tr key={i}>
-                                {Object.entries(item).map(([key, value]) => {
-                                  const formattedValue = 
-                                    key.toLowerCase().includes('price') || 
-                                    key.toLowerCase().includes('mrp') || 
-                                    key.toLowerCase().includes('floor price')
-                                      ? formatCurrency(Number(value) || 0)
-                                      : String(value || 'N/A');
-                                  
-                                  return (
-                                    <td 
-                                      key={key} 
-                                      title={String(value || '')}
-                                      className={styles.truncateCell}
-                                    >
-                                      {formattedValue.length > 30 
-                                        ? `${formattedValue.substring(0, 30)}...`
-                                        : formattedValue}
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      <button 
-                        className={styles.downloadButton}
-                        onClick={() => {
-                          if (productData.manifest_url) {
-                            // Create a temporary link and trigger download
-                            const link = document.createElement('a');
-                            link.href = productData.manifest_url;
-                            // Extract filename from URL or use a default name
-                            const filename = productData.manifest_url.split('/').pop() || 'manifest';
-                            link.download = filename;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          } else {
-                            toast({
-                              variant: 'destructive',
-                              title: 'Download Error',
-                              description: 'Manifest file is not available for download.',
-                            });
-                          }
-                        }}
-                      >
-                        Download Full Manifest
-                      </button>
-                    </>
-                  )}
-                  {tab === "bid-history" && (
-                    <div className={styles.historyTable}>
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Bidder</th>
-                            <th>Amount</th>
-                            <th>Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(productData.bids || []).map((bid, i) => (
-                            <tr key={i}>
-                              <td>{bid.user_name}</td>
-                              <td>{formatCurrency(bid.bid_amount)}</td>
-                              <td>{new Date(bid.bid_time).toLocaleString()}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                  {tab === "seller" && <p>Seller: {productData.seller}</p>}
-                </div>
+                )}
+                {tab === "seller" && <p>Seller: {productData.seller}</p>}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
+      {/* Live Modal */}
       {showLiveModal && productData?.product_live_url && productData.product_live_url.trim() !== '' && (
         <div
           className={styles.liveModalOverlay}
@@ -1111,18 +1104,75 @@ const ProductDetailPage = () => {
                 <FaExpand />
               </button>
             </div>
-            <iframe
-              src={getEmbedUrl(productData.product_live_url)}
-              className={styles.liveModalIframe}
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-              frameBorder="0"
-              title="Live Video"
-            />
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              padding: '44px 0 0',
+              backgroundColor: '#000'
+            }}>
+              {isVideoLoading && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  color: '#fff',
+                  textAlign: 'center',
+                  padding: '20px'
+                }}>
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    border: '4px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '50%',
+                    borderTopColor: '#fff',
+                    animation: 'spin 1s ease-in-out infinite',
+                    marginBottom: '15px'
+                  }} />
+                  <p>Loading live stream...</p>
+                </div>
+              )}
+              <iframe
+                ref={iframeRef}
+                key={`${showLiveModal}-${productData.product_live_url}`}
+                src={getEmbedUrl(productData.product_live_url)}
+                onLoad={handleIframeLoad}
+                style={{
+                  border: 'none',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  backgroundColor: '#000',
+                  opacity: isVideoLoading ? 0 : 1,
+                  transition: 'opacity 0.3s ease-in-out',
+                  transform: 'scaleX(-1)'
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Live Stream"
+                frameBorder="0"
+                scrolling="no"
+              />
+            </div>
           </div>
         </div>
       )}
 
+      {/* Modals */}
       <ShippingOptionsModal
         isOpen={showShippingModal}
         onClose={() => setShowShippingModal(false)}
@@ -1145,7 +1195,7 @@ const ProductDetailPage = () => {
         initialBidAmount={typeof bidAmount === 'number' ? bidAmount : undefined}
         onBidSuccess={handleBidSuccess}
       />
-    </Layout>
+    </div>
   );
 };
 

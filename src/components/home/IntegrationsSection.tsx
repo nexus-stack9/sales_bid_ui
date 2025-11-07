@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ShieldCheck, CreditCard, TrendingUp, Truck, Zap, Clock } from "lucide-react";
+import { ShieldCheck, CreditCard, TrendingUp, Truck, Zap, Clock, Camera, Video } from "lucide-react";
 
 const IntegrationsSection = () => {
   // Replace generic integrations with auction-specific features
