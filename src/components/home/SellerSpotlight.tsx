@@ -9,61 +9,61 @@ const sellers = [
     id: 1,
     name: "Amazon",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/1024px-Amazon_logo.svg.png",
-    bgColor: "bg-amber-50"
+    bgColor: "bg-white"
   },
   {
     id: 2,
     name: "Target",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Target_Corporation_logo_%28vector%29.svg/1024px-Target_Corporation_logo_%28vector%29.svg.png",
-    bgColor: "bg-red-50"
+    bgColor: "bg-white"
   },
   {
     id: 3,
     name: "Mobile Carrier",
     logo: "https://cdn-icons-png.flaticon.com/512/3800/3800024.png",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-white"
   },
   {
     id: 4,
     name: "Costco Appliances",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Costco_logo.svg/1024px-Costco_logo.svg.png",
-    bgColor: "bg-red-50"
+    bgColor: "bg-white"
   },
   {
     id: 5,
     name: "Unilever",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Unilever_logo.svg/1024px-Unilever_logo.svg.png",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-white"
   },
   {
     id: 6,
     name: "BJ's",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/BJ%27s_Wholesale_Club_logo.svg/1024px-BJ%27s_Wholesale_Club_logo.svg.png",
-    bgColor: "bg-red-50"
+    bgColor: "bg-white"
   },
   {
     id: 7,
     name: "GE",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/General_Electric_logo.svg/1024px-General_Electric_logo.svg.png",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-white"
   },
   {
     id: 8,
     name: "Walmart",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Walmart_logo.svg/1024px-Walmart_logo.svg.png",
-    bgColor: "bg-blue-50"
+    bgColor: "bg-white"
   },
   {
     id: 9,
     name: "Flipkart",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Flipkart_logo.svg/1024px-Flipkart_logo.svg.png",
-    bgColor: "bg-yellow-50"
+    bgColor: "bg-white"
   },
   {
     id: 10,
     name: "Croma",
     logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Croma_Logo.svg/1024px-Croma_Logo.svg.png",
-    bgColor: "bg-purple-50"
+    bgColor: "bg-white"
   }
 ];
 
@@ -116,12 +116,24 @@ const SellerSpotlight = () => {
   };
 
   return (
-    <section className="py-12 bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-display font-semibold">Seller Spotlight</h2>
-          <Link to="/sellers" className="text-primary hover:underline">
-            View All Sellers
+    <section className="py-16 bg-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-1">
+              Seller Spotlight
+            </h2>
+            <p className="text-gray-500 text-sm sm:text-base">
+              Trusted brands and retailers
+            </p>
+          </div>
+          <Link 
+            to="/sellers" 
+            className="text-primary hover:text-primary/80 font-medium text-sm sm:text-base transition-colors flex items-center gap-1 group"
+          >
+            View All
+            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
@@ -132,47 +144,51 @@ const SellerSpotlight = () => {
               <button 
                 onClick={handlePrevious}
                 disabled={startIndex === 0}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200"
                 aria-label="Previous sellers"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5 text-gray-700" />
               </button>
 
               <button 
                 onClick={handleNext}
                 disabled={startIndex + visibleSellers >= sellers.length}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200"
                 aria-label="Next sellers"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-5 w-5 text-gray-700" />
               </button>
             </>
           )}
 
           <div 
-            className={`overflow-hidden ${!isMobile ? 'mx-10' : ''}`}
+            className={`overflow-hidden ${!isMobile ? 'px-2' : ''}`}
             ref={containerRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
             <div 
-              className="flex gap-4 transition-transform duration-300 ease-in-out"
+              className="flex gap-4 sm:gap-6 transition-transform duration-500 ease-out"
               style={{ transform: `translateX(-${startIndex * (100 / visibleSellers)}%)` }}
             >
               {sellers.map((seller) => (
                 <div 
                   key={seller.id}
-                  className={`flex-shrink-0 ${isMobile ? 'w-full' : 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4'} ${seller.bgColor} rounded-xl p-6 flex flex-col items-center justify-center transition-all hover:shadow-md`}
+                  className={`flex-shrink-0 ${isMobile ? 'w-full' : 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4'}`}
                 >
-                  <div className="w-16 h-16 mb-4 flex items-center justify-center">
-                    <img 
-                      src={seller.logo} 
-                      alt={seller.name} 
-                      className="max-w-full max-h-full object-contain"
-                    />
+                  <div className={`${seller.bgColor} rounded-2xl border border-gray-100 p-8 sm:p-10 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-xl hover:border-gray-200 hover:-translate-y-1 cursor-pointer group h-full`}>
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 mb-5 flex items-center justify-center">
+                      <img 
+                        src={seller.logo} 
+                        alt={seller.name} 
+                        className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                    <h3 className="text-center font-semibold text-gray-800 text-base sm:text-lg">
+                      {seller.name}
+                    </h3>
                   </div>
-                  <h3 className="text-center font-medium">{seller.name}</h3>
                 </div>
               ))}
             </div>
@@ -180,13 +196,15 @@ const SellerSpotlight = () => {
 
           {/* Mobile pagination indicators */}
           {isMobile && (
-            <div className="flex justify-center mt-4 gap-1">
+            <div className="flex justify-center mt-6 gap-2">
               {sellers.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setStartIndex(index)}
-                  className={`h-2 rounded-full transition-all ${
-                    index === startIndex ? 'w-4 bg-primary' : 'w-2 bg-gray-300'
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    index === startIndex 
+                      ? 'w-8 bg-primary' 
+                      : 'w-2 bg-gray-300 hover:bg-gray-400'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />

@@ -9,8 +9,8 @@ import bannerImage from "@/assets/banners/banner1.png";
 // Simplified BlurText component without animations
 const BlurText = ({ text, className }: { text: string; className?: string }) => {
   // Split the text to apply gradient only to specific words
-  const firstPart = "Exclusive auctions, unbeatable prices—";
-  const highlightedPart = "start buying today!";
+  const firstPart = "Exclusive deals,unbeatable prices—";
+  const highlightedPart = "start Buying  today!";
   
   return (
     <div className={cn("w-full flex flex-wrap justify-center", className)}>
@@ -64,7 +64,7 @@ const Hero = () => {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text"
             }}>
-          India’s Trusted B2B Liquidation Marketplace for Bulk Inventory
+              India’s Trusted B2B Liquidation Marketplace for Bulk Inventory
               <br />
             </span>
           </h1>
@@ -77,7 +77,7 @@ const Hero = () => {
           <div className="flex justify-center items-center gap-6 md:gap-12 mb-6">
             {[
               {
-                label: "BID",
+                label: "BUY",
                 icon: <Gavel className="h-8 w-8 text-primary mb-2" />,
                 color: "from-blue-500 to-indigo-600",
                 delay: 0,
@@ -132,18 +132,18 @@ const Hero = () => {
           {/* BlurText Effect */}
           <div className="mb-8">
             <BlurText 
-              text="Exclusive auctions, unbeatable prices—start bidding today!" 
+              text="Exclusive deals,unbeatable prices—start Buying today!" 
               className="text-gray-800"
             />
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-black text-white hover:bg-gray-800">
-              <Link to="/auctions">Explore Collection</Link>
+              <Link to="/auctions">Shop all auctions</Link>
             </Button>
             
             <Button asChild size="lg" variant="outline" className="border-gray-300">
-              <Link to="/sellers">Become a Verified Seller</Link>
+              <Link to="/sellers"> Become a Verified Seller</Link>
             </Button>
           </div>
         </div>

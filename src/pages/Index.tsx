@@ -8,7 +8,7 @@ import ReviewsMarquee from "@/components/home/ReviewsMarquee";
 import SellerSpotlight from "@/components/home/SellerSpotlight";
 import IntegrationsSection from "@/components/home/IntegrationsSection";
 import CompanyStats from "@/components/home/CompanyStats";
-import FeaturedAuctions from "@/components/home/FeaturedAuctions";
+// import FeaturedAuctions from "@/components/home/FeaturedAuctions";
 import Testimonials from "@/components/home/Testimonials";
 import TrendingCategories from "@/components/home/TrendingCategories";
 import FeaturedCountdown from "@/components/home/FeaturedCountdown";

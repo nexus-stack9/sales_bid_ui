@@ -7,7 +7,7 @@ const links = {
     // { label: 'Upcoming Auctions', href: '/auctions/upcoming' },
     { label: 'How it Works', href: '/how-it-works' },
     { label: 'Selling Services', href: '/selling-services' },
-    { label: 'Buyer Protection', href: '/buyer-protection' },
+    // { label: 'Buyer Protection', href: '/buyer-protection' },
   ],
   categories: [
     { label: 'Electronics', href: '/category/electronics' },
@@ -171,7 +171,7 @@ const Footer = () => {
           </div>
 
           {/* Contact & Apps */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             
 
             
@@ -181,7 +181,7 @@ const Footer = () => {
                 <li className="flex items-center gap-2">Phone: +918919583205, 9701090085</li>
                 <li className="flex items-center gap-2">Email: salesbid9@gmail.com</li>
               </ul>
-          </div>
+          </div> */}
         </div>
 
         {/* Bottom bar */}
