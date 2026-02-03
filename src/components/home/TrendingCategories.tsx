@@ -117,7 +117,7 @@ const TrendingCategories = () => {
                   className="opacity-0 group-hover:opacity-100 transition-all duration-200"
                 >
                   <Link 
-                    to={`/auctions?category=${category.name}`}
+                    to={`/products?category=${category.name}`}
                     className="inline-flex items-center text-xs sm:text-sm font-medium bg-white/20 backdrop-blur-sm px-2 py-1 sm:px-4 sm:py-2 rounded-full hover:bg-white/30 transition-colors"
                   >
                     Explore <span className="hidden sm:inline">Category</span> <ArrowRight className="ml-1 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform duration-200" />

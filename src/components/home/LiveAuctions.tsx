@@ -44,7 +44,7 @@ const LiveAuctions = () => {
   const handleCardClick = (productId: string) => {
     // Scroll to top before navigation
     window.scrollTo(0, 0);
-    navigate(`/auctions/${productId}`);
+    navigate(`/products/${productId}`);
   };
 
   // Load products when component mounts
@@ -200,7 +200,7 @@ const LiveAuctions = () => {
                       </h3>
                       <div className="flex justify-between items-center mt-4">
                         <span className="text-sm font-medium text-gray-500">
-                          {item.bids} {item.bids === 1 ? 'Bid' : 'Bids'}
+                          {item.bids} {item.bids === 1 ? 'Offer' : 'Offers'}
                         </span>
                         <span className="text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
                           Closes in{' '}

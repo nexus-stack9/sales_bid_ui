@@ -23,16 +23,16 @@ interface UserAddress {
   isPrimary: boolean;
 }
 
-interface DisplayBid {
+interface DisplayOrder {
   id: number;
   itemName: string;
   imageUrl: string;
-  bidAmount: number;
+  orderAmount: number;
   paymentDeadline?: Date;
 }
 
 export default function PaymentPage() {
-  // Support either /pay/:bidId or /pay/:orderId from route
+  // Support either /pay/:orderId or /pay/:orderId from route
   const { bidId, orderId } = useParams();
   const routeBidId = bidId || orderId; 
   const navigate = useNavigate();
@@ -54,9 +54,9 @@ export default function PaymentPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [bid, setBid] = useState<DisplayBid | null>(null);
+  const [order, setOrder] = useState<DisplayOrder | null>(null);
 
-  // Load bid details and user addresses
+  // Load order details and user addresses
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -74,15 +74,15 @@ export default function PaymentPage() {
         const primary = normalizedAddresses.find(a => a.isPrimary) || normalizedAddresses[0];
         setSelectedAddressId(primary ? String(primary.addressId) : "");
 
-        // Load bid details by filtering user's bids
-        const allBids = await getUserBids(String(userId));
-        const found = allBids.find(b => String(b.bid_id) === String(routeBidId));
+        // Load order details by filtering user's grouped orders
+        const allOrders = await getUserOrdersGrouped(String(userId));
+        const found = allOrders.find(b => String(b.bid_id) === String(routeBidId));
         if (found) {
-          setBid({
+          setOrder({
             id: found.bid_id,
-            itemName: found.product_name || 'Auction Item',
+            itemName: found.product_name || 'Product',
             imageUrl: found.image_path || '/placeholder.svg',
-            bidAmount: parseFloat(found.bid_amount || '0') || 0,
+            orderAmount: parseFloat(found.bid_amount || '0') || 0,
             // Use auction_end as a rough deadline fallback
             paymentDeadline: found.auction_end ? new Date(found.auction_end) : new Date(Date.now() + 12 * 60 * 60 * 1000),
           });
@@ -107,9 +107,9 @@ export default function PaymentPage() {
   }, [routeBidId, navigate]);
 
   const totalAmount = useMemo(() => {
-    const base = bid?.bidAmount ?? 0;
+    const base = order?.orderAmount ?? 0;
     return base + base * 0.03 + 25; // item + fee + shipping
-  }, [bid]);
+  }, [order]);
 
   const selectedAddressData = useMemo(() => {
     return addresses.find(a => String(a.addressId) === selectedAddressId) || null;
@@ -172,9 +172,9 @@ export default function PaymentPage() {
     const base = bid?.bidAmount ?? 0;
     const payload = {
       paymentMethod,
-      bid: bid ? {
-        id: bid.id,
-        itemName: bid.itemName,
+      order: order ? {
+        id: order.id,
+        itemName: order.itemName,
         amount: base,
       } : null,
       totals: {
@@ -194,14 +194,14 @@ export default function PaymentPage() {
 
     if (paymentMethod === 'razorpay') {
       const loaded = await loadRazorpay();
-      if (!loaded || !bid) return;
+      if (!loaded || !order) return;
 
       const options: any = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || '',
         amount: Math.round(totalAmount * 100),
         currency: 'INR',
         name: 'SalesBid',
-        description: bid.itemName,
+        description: order.itemName,
         image: '/favicon.ico',
         // order_id: '<server-generated-order-id>',
         handler: function () {
@@ -329,7 +329,7 @@ export default function PaymentPage() {
                     <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border border-warning/20">
                       <Clock className="h-4 w-4 text-warning animate-countdown flex-shrink-0" />
                       <span className="text-sm font-medium">
-                        Pay within: {getTimeRemaining(bid.paymentDeadline)}
+                        Pay within: {getTimeRemaining(order?.paymentDeadline)}
                       </span>
                     </div>
                   )}

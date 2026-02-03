@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { FaGavel, FaShieldAlt, FaShippingFast, FaRegHeart, FaRegCreditCard } from 'react-icons/fa';
-import { RiAuctionFill } from 'react-icons/ri';
+import { FaGavel, FaShieldAlt, FaShippingFast, FaRegHeart, FaRegCreditCard, FaShoppingBag } from 'react-icons/fa';
 import { MdVerified, MdOutlineSupportAgent } from 'react-icons/md';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 
 interface Category {
@@ -58,7 +57,7 @@ const BuyersPage = () => {
   };
 
   const handleCategoryClick = (categoryId: number) => {
-    navigate('/auctions', { state: { categoryId } });
+    navigate('/products', { state: { categoryId } });
   };
 
   const toggleViewAllCategories = () => {
@@ -75,33 +74,33 @@ const BuyersPage = () => {
   const benefits: Benefit[] = [
     {
       icon: <FaGavel className="text-3xl mb-4 text-blue-600" />,
-      title: "Exclusive Auctions",
-      description: "Access rare and unique items you won't find anywhere else"
+      title: "Curated Selection",
+      description: "Hand-picked inventory from verified suppliers"
     },
     {
       icon: <FaShieldAlt className="text-3xl mb-4 text-blue-600" />,
       title: "Buyer Protection",
-      description: "Secure transactions with our money-back guarantee"
+      description: "Guaranteed authenticity and secure payments"
     },
     {
       icon: <FaShippingFast className="text-3xl mb-4 text-blue-600" />,
-      title: "Global Shipping",
-      description: "Items delivered worldwide from trusted sellers"
+      title: "Global Logistics",
+      description: "Seamless shipping solutions and tracking"
     },
     {
       icon: <MdVerified className="text-3xl mb-4 text-blue-600" />,
-      title: "Verified Sellers",
-      description: "Shop with confidence from our vetted community"
+      title: "Verified Suppliers",
+      description: "Vetted sellers with transparent product histories"
     },
     {
       icon: <FaRegCreditCard className="text-3xl mb-4 text-blue-600" />,
       title: "Flexible Payments",
-      description: "Multiple payment options including installment plans"
+      description: "Multiple payment options including installments"
     },
     {
       icon: <MdOutlineSupportAgent className="text-3xl mb-4 text-blue-600" />,
       title: "Dedicated Support",
-      description: "24/7 assistance for all your bidding needs"
+      description: "24/7 assistance for purchasing and logistics"
     }
   ];
 
@@ -127,12 +126,12 @@ const BuyersPage = () => {
       author: "David R., Watch Collector"
     },
     {
-      quote: "As a first-time bidder, I was nervous but the platform made it so easy. Won my first auction and got a fantastic deal!",
+      quote: "As a first-time buyer, I was nervous, but the platform made purchasing simple—great deal on my first order!",
       author: "Sophia K., New Buyer"
     },
     {
-      quote: "The buyer protection saved me when an item wasn't as described. The team handled everything professionally.",
-      author: "Michael T., Frequent Bidder"
+      quote: "Buyer protection and responsive support made returns effortless. Highly recommend for business sourcing.",
+      author: "Michael T., Frequent Buyer"
     }
   ];
 
@@ -149,25 +148,23 @@ const BuyersPage = () => {
           <div className="container mx-auto px-4 py-28 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               <div className="flex justify-center mb-6">
-                <RiAuctionFill className="text-5xl text-blue-300" />
+                <div className="bg-white/10 p-4 rounded-full inline-flex items-center justify-center shadow-lg">
+                  <FaShoppingBag className="text-4xl text-white" />
+                </div>
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Discover <span className="text-blue-300">Extraordinary</span> Finds at Auction
+                Discover <span className="text-blue-300">Extraordinary</span> Wholesale Finds
               </h1>
               <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
-                Join millions of buyers in the world's most exciting online auctions. 
-                From rare collectibles to luxury items, find exactly what you're looking for.
+                Curated, verified inventory from trusted suppliers—streamlined purchasing for businesses and resellers.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button 
-                  onClick={() => setShowRegisterModal(true)}
-                  className="bg-white text-blue-700 font-bold py-4 px-8 rounded-full text-lg shadow-lg hover:bg-gray-100 transition"
-                >
-                  Join Free
-                </button>
-                <button className="border-2 border-white text-white font-bold py-4 px-8 rounded-full text-lg hover:bg-white hover:bg-opacity-10 transition">
-                  How It Works
-                </button>
+                <Link to="/register" className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg hover:opacity-95 transition">
+                  Create Account
+                </Link>
+                <Link to="/products" className="inline-flex items-center justify-center border-2 border-white text-white font-bold py-4 px-8 rounded-full text-lg hover:bg-white hover:bg-opacity-10 transition">
+                  Browse Products
+                </Link>
               </div>
             </div>
           </div>
@@ -182,7 +179,7 @@ const BuyersPage = () => {
               <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
                 WHY CHOOSE US
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy at Auction?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Shop With Us</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-lg">
                 Our platform offers unique advantages you won't find in traditional marketplaces
               </p>
@@ -268,7 +265,7 @@ const BuyersPage = () => {
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">How Buying Works</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                Getting started is easy. Follow these simple steps to begin bidding
+                Getting started is easy. Follow these simple steps to start shopping
               </p>
             </div>
             
@@ -288,13 +285,13 @@ const BuyersPage = () => {
                 
                 <div className="text-center">
                   <div className="bg-blue-100 text-blue-700 font-bold rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl">3</div>
-                  <h3 className="text-xl font-bold mb-3">Bid</h3>
-                  <p className="text-gray-600">Place your bids or use Buy It Now</p>
+                  <h3 className="text-xl font-bold mb-3">Buy</h3>
+                  <p className="text-gray-600">Purchase or use Buy It Now</p>
                 </div>
                 
                 <div className="text-center">
                   <div className="bg-blue-100 text-blue-700 font-bold rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl">4</div>
-                  <h3 className="text-xl font-bold mb-3">Win & Pay</h3>
+                  <h3 className="text-xl font-bold mb-3">Complete Purchase</h3>
                   <p className="text-gray-600">Secure your item and complete payment</p>
                 </div>
               </div>
@@ -339,20 +336,17 @@ const BuyersPage = () => {
           </div>
           
           <div className="container mx-auto px-4 py-20 relative z-10 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Start Bidding?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Start Shopping?</h2>
             <p className="text-xl mb-8 max-w-2xl mx-auto opacity-80">
               Join millions of buyers finding extraordinary items at amazing prices
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <button 
-                onClick={() => setShowRegisterModal(true)}
-                className="bg-white text-gray-900 font-bold py-3 px-8 rounded-full text-lg shadow-md hover:shadow-lg transition border border-gray-200 hover:bg-gray-50"
-              >
-                Register Free
-              </button>
-              <button className="border-2 border-gray-900 text-gray-900 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-900 hover:text-white transition">
-                Browse Auctions
-              </button>
+              <Link to="/register" className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-md hover:opacity-95 transition border border-transparent">
+                Create Account
+              </Link>
+              <Link to="/products" className="inline-flex items-center justify-center border-2 border-gray-900 text-gray-900 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-900 hover:text-white transition">
+                Browse Products
+              </Link>
             </div>
           </div>
         </div>
@@ -423,7 +417,7 @@ const BuyersPage = () => {
                       </div>
                       <div className="ml-3 text-sm">
                         <label htmlFor="notifications" className="font-medium text-gray-700">
-                          Receive auction notifications and updates
+                          Receive product updates and offers
                         </label>
                       </div>
                     </div>

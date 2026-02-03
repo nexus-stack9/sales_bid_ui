@@ -1,16 +1,16 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Gavel, Trophy, Repeat } from "lucide-react";
+// Changed icons to reflect ecommerce: ShoppingBag (Buy), Truck (Delivery), TrendingUp (Growth)
+import { ShoppingBag, Truck, TrendingUp } from "lucide-react"; 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import bannerImage from "@/assets/banners/banner1.png";
 
 // Simplified BlurText component without animations
 const BlurText = ({ text, className }: { text: string; className?: string }) => {
-  // Split the text to apply gradient only to specific words
-  const firstPart = "Exclusive deals,unbeatable prices—";
-  const highlightedPart = "start Buying  today!";
+  // Updated text content for ecommerce context
+  const firstPart = "Premium stock, wholesale rates—";
+  const highlightedPart = "start stocking up today!";
   
   return (
     <div className={cn("w-full flex flex-wrap justify-center", className)}>
@@ -45,7 +45,7 @@ const BlurText = ({ text, className }: { text: string; className?: string }) => 
 
 const Hero = () => {
   return (
-<section className="pt-20 pb-12 md:pb-16 relative bg-gray-50">
+    <section className="pt-20 pb-12 md:pb-16 relative bg-gray-50">
       
       {/* Dot pattern background */}
       <div className="absolute inset-0 z-0 opacity-50">
@@ -64,33 +64,33 @@ const Hero = () => {
               WebkitTextFillColor: "transparent",
               backgroundClip: "text"
             }}>
-              India’s Trusted B2B Liquidation Marketplace for Bulk Inventory
+              India’s Leading B2B Marketplace for Wholesale Buying
               <br />
             </span>
           </h1>
           
           <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-            Securely source bulk Surplus, Salvage, and Customer-Returned Inventory from India's top retailers and manufacturers. We turn excess stock into profit.
+            Instantly purchase bulk Surplus, Clearance, and Factory-Direct inventory from top brands. No auctions—just unbeatable fixed prices and fast shipping.
           </p>
           
-          {/* Bid Win Repeat Icons - Modern Interactive Layout */}
+          {/* Browse Order Grow Icons - Updated for Ecommerce */}
           <div className="flex justify-center items-center gap-6 md:gap-12 mb-6">
             {[
               {
-                label: "BUY",
-                icon: <Gavel className="h-8 w-8 text-primary mb-2" />,
+                label: "BROWSE",
+                icon: <ShoppingBag className="h-8 w-8 text-primary mb-2" />,
                 color: "from-blue-500 to-indigo-600",
                 delay: 0,
               },
               {
-                label: "WIN",
-                icon: <Trophy className="h-8 w-8 text-green-600 mb-2" />,
+                label: "ORDER",
+                icon: <Truck className="h-8 w-8 text-green-600 mb-2" />,
                 color: "from-green-500 to-emerald-600",
                 delay: 0.1,
               },
               {
-                label: "REPEAT",
-                icon: <Repeat className="h-8 w-8 text-yellow-500 mb-2" />,
+                label: "GROW",
+                icon: <TrendingUp className="h-8 w-8 text-yellow-500 mb-2" />,
                 color: "from-amber-500 to-yellow-600",
                 delay: 0.2,
               },
@@ -132,18 +132,18 @@ const Hero = () => {
           {/* BlurText Effect */}
           <div className="mb-8">
             <BlurText 
-              text="Exclusive deals,unbeatable prices—start Buying today!" 
+              text="Premium stock, wholesale rates—start stocking up today!" 
               className="text-gray-800"
             />
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-black text-white hover:bg-gray-800">
-              <Link to="/auctions">Shop all auctions</Link>
+              <Link to="/products">Explore Catalog</Link>
             </Button>
             
             <Button asChild size="lg" variant="outline" className="border-gray-300">
-              <Link to="/sellers"> Become a Verified Seller</Link>
+              <Link to="/sellers">Partner with Us</Link>
             </Button>
           </div>
         </div>

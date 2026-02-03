@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 const BottomNav = () => {
   const isMobile = useIsMobile();
   const isAuthenticated = !!Cookies.get('authToken');
-  const { bidsCount, wishlistCount } = useWishlist();
+  const { ordersCount, wishlistCount } = useWishlist();
   
   if (!isMobile) return null;
   
@@ -18,11 +18,11 @@ const BottomNav = () => {
         <span className="text-xs mt-1">Home</span>
       </Link>
       <Link 
-        to="/auctions" 
+        to="/products" 
         className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary"
       >
         <Package className="h-5 w-5" />
-        <span className="text-xs mt-1">Auctions</span>
+        <span className="text-xs mt-1">Products</span>
       </Link>
       <Link 
         to="/user/wishlist" 
@@ -44,13 +44,13 @@ const BottomNav = () => {
       >
         <div className="relative">
           <ShoppingCart className="h-5 w-5" />
-          {isAuthenticated && bidsCount > 0 && (
+          {isAuthenticated && ordersCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
-              {bidsCount > 9 ? '9+' : bidsCount}
+              {ordersCount > 9 ? '9+' : ordersCount}
             </span>
           )}
         </div>
-        <span className="text-xs mt-1">My Bids</span>
+        <span className="text-xs mt-1">My Orders</span>
       </Link> */}
       <Link 
         to={isAuthenticated ? "/user/profile" : "/signin"} 

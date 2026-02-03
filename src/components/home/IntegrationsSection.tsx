@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { ShieldCheck, CreditCard, TrendingUp, Truck, Zap, Clock, Camera, Video } from "lucide-react";
 
 const IntegrationsSection = () => {
-  // Replace generic integrations with auction-specific features
-  const auctionFeatures = [
+  // Platform-level features for e-commerce
+  const platformFeatures = [
     {
       id: 1,
       name: "Verified Buyers & Sellers",
@@ -24,9 +24,9 @@ const IntegrationsSection = () => {
     },
     {
       id: 3,
-      name: "Live Transparency",
+      name: "Live Product Demos",
       icon: <TrendingUp className="h-7 w-7" />,
-      description: "Watch sellers go live to showcase stock condition before the sale ends, ensuring full visibility.",
+      description: "Sellers can share live product demos and condition videos before purchase, ensuring full visibility.",
       color: "bg-purple-500",
       lightColor: "bg-purple-50",
       iconColor: "text-purple-600"
@@ -81,14 +81,14 @@ const IntegrationsSection = () => {
               Why Choose <span className="text-primary">Sales Bid</span>
             </h2>
             <p className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-              Our auction platform is designed with features that make buying and selling 
+              Our e-commerce platform is designed with features that make browsing, buying, and selling 
               a seamless, secure, and enjoyable experience.
             </p>
           </motion.div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {auctionFeatures.map((feature, index) => (
+          {platformFeatures.map((feature, index) => (
             <motion.div
               key={feature.id}
               initial={{ opacity: 0, y: 30 }}

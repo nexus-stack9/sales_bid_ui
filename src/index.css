@@ -190,7 +190,7 @@
 
   /* Hide bottom nav when filter panel is open on mobile */
   body.filter-open .bottom-nav,
-  body.bid-open .bottom-nav {
+  body.order-open .bottom-nav {
     display: none !important;
   }
 }
