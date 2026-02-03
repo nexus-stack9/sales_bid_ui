@@ -151,7 +151,7 @@ const SignUp = () => {
           </div>
 
           <h2 className="text-3xl font-bold mb-4">
-            Join Our Exclusive Bidding Community
+            Join Our Exclusive Shopping Community
           </h2>
           <p className="text-lg mb-8 opacity-90">
             Create your account today and start discovering unique treasures.
@@ -190,7 +190,7 @@ const SignUp = () => {
               Create Your Account
             </h2>
             <p className="mt-2 text-gray-600">
-              Join thousands of collectors and start bidding today
+              Join thousands of collectors and start shopping today
             </p>
           </div>
 

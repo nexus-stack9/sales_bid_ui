@@ -12,7 +12,7 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 // This component manages the wishlist state and provides it to the app
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [bidsCount, setBidsCount] = useState(0);
+  const [ordersCount, setOrdersCount] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [pathname, setPathname] = useState('');
@@ -22,7 +22,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     setPathname(newPathname);
   }, []);
 
-  // Update both wishlist and bids counts
+  // Update both wishlist and orders counts
   const updateCounts = useCallback(async () => {
     try {
       const userId = Cookies.get('userId');
@@ -36,7 +36,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       const response = await getUserProductCounts(userId);
       if (response.success && response.data) {
         setWishlistCount(response.data.wishlist_count || 0);
-        setBidsCount(response.data.bids_count || 0);
+        setOrdersCount(response.data.bids_count || 0);
       }
     } catch (error) {
       handleApiError(error);
@@ -162,7 +162,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   // Create a stable context value that includes the updatePathname function
   const contextValue = useMemo(() => ({
     wishlistCount,
-    bidsCount,
+    ordersCount,
     refreshWishlist: fetchWishlistCount,
     updatePathname,
     pathname,
@@ -175,7 +175,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       window.dispatchEvent(new Event(WISHLIST_UPDATE_EVENT));
     },
     updateCounts,
-  }), [wishlistCount, bidsCount, fetchWishlistCount, updatePathname, pathname, lastUpdate, updateCounts]);
+  }), [wishlistCount, ordersCount, fetchWishlistCount, updatePathname, pathname, lastUpdate, updateCounts]);
 
   return (
     <WishlistContext.Provider value={contextValue}>

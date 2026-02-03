@@ -13,7 +13,7 @@ import BidModal from './BidModal.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { getUserBids, placeBid, getUserIdFromToken } from '@/services/crudService';
+import { getUserOrdersGrouped, placeOrder, getUserIdFromToken } from '@/services/crudService';
 import { BidSkeleton, BidSkeletonMobile } from '@/components/skeletons/BidSkeleton';
 import React from 'react';
 
@@ -48,7 +48,7 @@ interface BidsResponse {
 
 const MyBids = () => {
   const { toast } = useToast();
-  const [bidsData, setBidsData] = useState<BidsResponse>({
+  const [ordersData, setOrdersData] = useState<OrdersResponse>({
     winning: [],
     losing: [],
     won: [],
@@ -85,24 +85,24 @@ const MyBids = () => {
         throw new Error('User not authenticated');
       }
 
-      const rawResponse = await getUserBids(bidderId);
+      const rawResponse = await getUserOrdersGrouped(bidderId);
       console.log('📡 API Response:', rawResponse);
 
       // Normalize: handle `unknown` and ensure all arrays exist
-      const normalized: BidsResponse = {
+      const normalized: OrdersResponse = {
         winning: Array.isArray(rawResponse?.winning) ? rawResponse.winning : [],
         losing: Array.isArray(rawResponse?.losing) ? rawResponse.losing : [],
         won: Array.isArray(rawResponse?.won) ? rawResponse.won : [],
         lost: Array.isArray(rawResponse?.lost) ? rawResponse.lost : [],
       };
 
-      setBidsData(normalized);
+      setOrdersData(normalized);
     } catch (error) {
       console.error('❌ Failed to fetch bids:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to load your bids. Please try again.',
+        description: 'Failed to load your orders. Please try again.',
       });
       setBidsData({ winning: [], losing: [], won: [], lost: [] });
     } finally {
@@ -196,15 +196,15 @@ const MyBids = () => {
     if (parseFloat(newBidAmount) < minBid) {
       toast({
         variant: 'destructive',
-        title: 'Invalid Bid',
-        description: `Bid must be at least ₹${minBid.toFixed(2)}`,
+        title: 'Invalid Offer',
+        description: `Offer must be at least ₹${minBid.toFixed(2)}`,
       });
       return;
     }
 
     try {
-      await placeBid(selectedBid.product_id.toString(), parseFloat(newBidAmount));
-      toast({ title: 'Success', description: `Bid of ₹${newBidAmount} placed!` });
+      await placeOrder(selectedBid.product_id.toString(), parseFloat(newBidAmount));
+      toast({ title: 'Success', description: `Order of ₹${newBidAmount} placed!` });
       await fetchBids();
       setIsModalOpen(false);
       setSelectedBid(null);
@@ -213,7 +213,7 @@ const MyBids = () => {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to place bid.',
+        description: error instanceof Error ? error.message : 'Failed to place order.',
       });
     }
   };

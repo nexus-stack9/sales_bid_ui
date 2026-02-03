@@ -182,15 +182,15 @@ const Wishlist: React.FC = () => {
         throw new Error('User not authenticated');
       }
 
-      await placeBid(bidModal.productId.toString(), amount);
+      await placeOrder(bidModal.productId.toString(), amount);
       
       // Close the modal and refresh data
       setBidModal(prev => ({ ...prev, isOpen: false, loading: false }));
       
       // Show success message
       toast({
-        title: 'Bid Placed!',
-        description: `Your bid of ₹${amount.toLocaleString('en-IN')} has been placed successfully.`,
+        title: 'Order Placed!',
+        description: `Your order of ₹${amount.toLocaleString('en-IN')} has been placed successfully.`,
       });
       
       // Refresh wishlist and trigger any necessary updates
@@ -382,7 +382,7 @@ const Wishlist: React.FC = () => {
                       </h3>
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm font-bold text-gray-600">
-                          {!item.bid_amount || item.bid_amount === '0' ? 'Starting Price' : 'Current Bid'}
+                          {!item.bid_amount || item.bid_amount === '0' ? 'Starting Price' : 'Current Price'}
                         </span>
                         <span className="text-sm font-bold text-primary">
                           {item.bid_amount && item.bid_amount !== '0' 
@@ -425,7 +425,7 @@ const Wishlist: React.FC = () => {
                           }`}
                           disabled={isAuctionEnded(item.auction_end)}
                         >
-                          {isAuctionEnded(item.auction_end) ? 'Ended' : 'Bid Now'}
+                          {isAuctionEnded(item.auction_end) ? 'Ended' : 'Buy Now'}
                         </button>
                       </div>
                     </div>

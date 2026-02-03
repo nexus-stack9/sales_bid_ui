@@ -130,7 +130,7 @@ const AuctionCard = ({
   };
 
   return (
-    <Link to={`/auctions/${id}`}>
+    <Link to={`/products/${id}`}>
       <div
         className={cn(
           'relative overflow-hidden rounded-lg border shadow-sm hover:shadow-md bg-white',
@@ -145,9 +145,9 @@ const AuctionCard = ({
             </Badge>
           )}
           {isLive ? (
-            <Badge variant="destructive">Live</Badge>
+            <Badge variant="destructive">Available</Badge>
           ) : (
-            <Badge className="bg-gray-200 text-gray-700">Upcoming</Badge>
+            <Badge className="bg-gray-200 text-gray-700">Coming Soon</Badge>
           )}
         </div>
 
@@ -192,7 +192,7 @@ const AuctionCard = ({
           {/* Price and Time */}
           <div className="flex justify-between items-end mt-2">
             <div>
-              <p className="text-xs text-gray-500">Current Bid</p>
+              <p className="text-xs text-gray-500">Price</p>
               <p className="text-lg font-bold text-green-700">
                 ₹{typeof currentBid === 'number' ? currentBid.toLocaleString('en-IN') : 'N/A'}
               </p>
@@ -206,7 +206,7 @@ const AuctionCard = ({
             {/* Time left */}
             <div className="flex items-center gap-1 text-sm text-gray-600">
               <Clock className="h-4 w-4 text-blue-500" />
-              <span className="font-medium">Ends in: {formatTimeLeft(timeRemaining)}</span>
+              <span className="font-medium">Sale ends: {formatTimeLeft(timeRemaining)}</span>
             </div>
           </div>
 
@@ -214,17 +214,17 @@ const AuctionCard = ({
           <div className="flex justify-between items-center text-sm text-gray-500 mt-2">
             <div className="flex items-center gap-1">
               <Eye className="h-4 w-4" />
-              <span>{watchers} watching</span>
+              <span>{watchers} views</span>
             </div>
             <div className="flex items-center gap-1">
               <Gavel className="h-4 w-4" />
-              <span>{bidsPlaced} bids</span>
+              <span>{bidsPlaced} sold</span>
             </div>
           </div>
 
           {/* Action */}
           <Button variant="outline" className="w-full mt-3 text-blue-600 border-blue-600">
-            View Auction
+            View Product
           </Button>
         </div>
       </div>

@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 
 const links = {
   marketplace: [
-    { label: 'Browse Lots', href: '/auctions' },
-    // { label: 'Upcoming Auctions', href: '/auctions/upcoming' },
+    { label: 'Browse Catalog', href: '/products' },
+    // { label: 'Upcoming Products', href: '/products/upcoming' },
     { label: 'How it Works', href: '/how-it-works' },
+
     { label: 'Selling Services', href: '/selling-services' },
     // { label: 'Buyer Protection', href: '/buyer-protection' },
   ],
@@ -62,7 +63,7 @@ const Footer = () => {
                 Join 50,000+ buyers and sellers on Sales Bid
               </h3>
               <p className="mt-2 text-slate-400 text-sm md:text-base">
-                Get weekly highlights on live auctions, hot categories, and insider tips.
+                Get weekly highlights on products, deals, and insider tips.
               </p>
             </div>
             <form onSubmit={handleSubscribe} className="w-full md:w-auto flex gap-3">
@@ -141,7 +142,7 @@ const Footer = () => {
                 <li key={l.label}>
                   {/* Clicking this link routes to auctions page with category as query param */}
                   <Link
-                    to={`/auctions?category=${encodeURIComponent(l.label)}`}
+                    to={`/products?category=${encodeURIComponent(l.label)}`}
                     className="inline-flex items-center gap-2 text-slate-400 transition hover:text-sky-400"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
