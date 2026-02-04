@@ -13,8 +13,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-// Mock data for featured products
-const featuredProducts = [
+// Mock data for featured auctions
+const featuredAuctions = [
   {
     id: '1',
     title: 'Apple iPhone 12 Pro - Lot of 10 Units - Fully Tested',
@@ -60,7 +60,7 @@ const featuredProducts = [
 const Featured = () => {
   const { ref, isInView } = useInView<HTMLDivElement>();
   const [showAll, setShowAll] = useState(false);
-  const displayedAuctions = showAll ? featuredProducts : featuredProducts.slice(0, 4);
+  const displayedAuctions = showAll ? featuredAuctions : featuredAuctions.slice(0, 4);
 
   return (
     <section ref={ref} className="py-20 bg-white overflow-hidden">
@@ -72,22 +72,22 @@ const Featured = () => {
           <div className="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary text-sm font-medium mb-4">
             Featured
           </div>
-          <h2 className="text-3xl md:text-4xl font-display font-bold">Featured Products</h2>
+          <h2 className="text-3xl md:text-4xl font-display font-bold">Premium Auction Deals</h2>
           <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Handpicked products with exceptional value and verified authenticity
+            Handpicked opportunities with exceptional value and verified authenticity
           </p>
         </div>
         
         <div className="md:hidden">
           <Carousel className="w-full">
             <CarouselContent>
-              {featuredProducts.map((product) => (
-                <CarouselItem key={product.id}>
+              {featuredAuctions.map((auction) => (
+                <CarouselItem key={auction.id}>
                   <div className="p-1">
                     <div 
                       className={`transition-all duration-700 delay-100 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                     >
-                      <AuctionGrid auctions={[product]} />
+                      <AuctionGrid auctions={[auction]} />
                     </div>
                   </div>
                 </CarouselItem>
@@ -109,13 +109,13 @@ const Featured = () => {
         </div>
         
         <div className="mt-12 text-center">
-          <Link to="/products">
+          <Link to="/auctions">
             <Button 
               variant="outline" 
               className={`border-primary text-primary hover:bg-primary-50 transition-all duration-500 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
               style={{ transitionDelay: '300ms' }}
             >
-              View All Products
+              View All Auctions
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>

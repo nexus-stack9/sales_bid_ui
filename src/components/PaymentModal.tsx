@@ -10,16 +10,16 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-interface Order {
+interface Bid {
   id: string;
   itemName: string;
   imageUrl: string;
-  orderAmount: number;
+  bidAmount: number;
   paymentDeadline?: Date;
 }
 
 interface PaymentModalProps {
-  order: Order;
+  bid: Bid;
   isOpen: boolean;
   onClose: () => void;
   onPaymentSuccess: () => void;
@@ -59,7 +59,7 @@ const savedAddresses: Address[] = [
   }
 ];
 
-export function PaymentModal({ order, isOpen, onClose, onPaymentSuccess }: PaymentModalProps) {
+export function PaymentModal({ bid, isOpen, onClose, onPaymentSuccess }: PaymentModalProps) {
   const [step, setStep] = useState<'payment' | 'address' | 'review' | 'processing' | 'success'>('payment');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [selectedAddress, setSelectedAddress] = useState(savedAddresses[0].id);
@@ -112,23 +112,23 @@ export function PaymentModal({ order, isOpen, onClose, onPaymentSuccess }: Payme
               <CardContent className="space-y-4">
                 <div className="flex gap-3">
                   <img
-                    src={order.imageUrl}
-                    alt={order.itemName}
+                    src={bid.imageUrl}
+                    alt={bid.itemName}
                     className="w-16 h-16 object-cover rounded-lg"
                   />
                   <div className="flex-1">
-                    <h4 className="font-medium text-sm leading-tight">{order.itemName}</h4>
+                    <h4 className="font-medium text-sm leading-tight">{bid.itemName}</h4>
                     <p className="text-2xl font-bold mt-2">
-                      ${order.orderAmount.toLocaleString()}
+                      ${bid.bidAmount.toLocaleString()}
                     </p>
                   </div>
                 </div>
 
-                {order.paymentDeadline && (
+                {bid.paymentDeadline && (
                   <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border border-warning/20">
                     <Clock className="h-4 w-4 text-warning animate-countdown" />
                     <span className="text-sm font-medium">
-                      Pay within: {getTimeRemaining(order.paymentDeadline)}
+                      Pay within: {getTimeRemaining(bid.paymentDeadline)}
                     </span>
                   </div>
                 )}
@@ -138,11 +138,11 @@ export function PaymentModal({ order, isOpen, onClose, onPaymentSuccess }: Payme
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Item Price</span>
-                    <span>${order.orderAmount.toLocaleString()}</span>
+                    <span>${bid.bidAmount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Processing Fee</span>
-                    <span>${(order.orderAmount * 0.03).toFixed(2)}</span>
+                    <span>${(bid.bidAmount * 0.03).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
@@ -151,7 +151,7 @@ export function PaymentModal({ order, isOpen, onClose, onPaymentSuccess }: Payme
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>${(order.orderAmount + (order.orderAmount * 0.03) + 25).toFixed(2)}</span>
+                    <span>${(bid.bidAmount + (bid.bidAmount * 0.03) + 25).toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -414,7 +414,7 @@ export function PaymentModal({ order, isOpen, onClose, onPaymentSuccess }: Payme
                       disabled={isProcessing}
                       className="bg-gradient-success shadow-success"
                     >
-                      {isProcessing ? 'Processing...' : `Pay $${(order.orderAmount + (order.orderAmount * 0.03) + 25).toFixed(2)}`}
+                      {isProcessing ? 'Processing...' : `Pay $${(bid.bidAmount + (bid.bidAmount * 0.03) + 25).toFixed(2)}`}
                     </Button>
                   </div>
                 </CardContent>

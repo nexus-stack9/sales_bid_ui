@@ -18,7 +18,7 @@ const testimonials = [
     role: "Online Reseller, Mumbai",
     image: "https://randomuser.me/api/portraits/men/76.jpg",
     content:
-      "As a full-time reseller, I’ve used several platforms, but Sales Bid truly stands out. The purchasing process is transparent, and the customer support team is always responsive and professional.",
+      "As a full-time reseller, I’ve used several platforms, but Sales Bid truly stands out. The bidding process is transparent, and the customer support team is always responsive and professional.",
     rating: 5,
   },
   {

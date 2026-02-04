@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 
 
-// Featured products data
+// Featured auctions data
 const featuredAuctions = [
   {
     id: "1",
@@ -52,14 +52,14 @@ const FeaturedAuctions = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
           <div>
-            <h2 className="text-3xl font-display font-bold mb-2">Featured Products</h2>
+            <h2 className="text-3xl font-display font-bold mb-2">Featured Auctions</h2>
             <p className="text-gray-600 max-w-2xl">
-              Discover our handpicked premium products with exceptional value and unique items
+              Discover our handpicked premium auctions with exceptional value and unique items
             </p>
           </div>
           <Button asChild variant="outline" className="mt-4 md:mt-0">
-            <Link to="/products" className="flex items-center">
-              View All Products <ArrowRight className="ml-2 h-4 w-4" />
+            <Link to="/auctions" className="flex items-center">
+              View All Auctions <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -74,7 +74,7 @@ const FeaturedAuctions = () => {
               viewport={{ once: true }}
               className="group"
             >
-              <Link to={`/products/${auction.id}`}>
+              <Link to={`/auctions/${auction.id}`}>
                 <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
                   <div className="relative">
                     <div className="absolute top-3 left-3 z-10">
@@ -100,19 +100,19 @@ const FeaturedAuctions = () => {
                     
                     <div className="flex justify-between items-baseline mb-3">
                       <div>
-                        <p className="text-xs text-gray-500">Price</p>
+                        <p className="text-xs text-gray-500">Current Bid</p>
                         <p className="text-xl font-bold text-primary">${auction.currentBid.toLocaleString()}</p>
                       </div>
                       <div className="flex items-center space-x-1 text-sm">
                         <Clock className="h-4 w-4 text-orange-500" />
-                        <span className="font-medium text-gray-700">Sale ends: {auction.timeLeft}</span>
+                        <span className="font-medium text-gray-700">{auction.timeLeft}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
                         <Eye className="h-4 w-4" />
-                        <span>{auction.watchers} views</span>
+                        <span>{auction.watchers} watching</span>
                       </div>
                       <Badge variant="outline" className="bg-gray-50">
                         {auction.category}
