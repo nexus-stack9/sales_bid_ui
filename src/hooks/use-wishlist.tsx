@@ -5,7 +5,7 @@ import type { WishlistContextType } from '@/context/wishlist.types';
 // Default values when context is not available
 const DEFAULT_CONTEXT: WishlistContextType = {
   wishlistCount: 0,
-  ordersCount: 0,
+  bidsCount: 0,
   pathname: '',
   lastUpdate: 0,
   updateCounts: async () => {},

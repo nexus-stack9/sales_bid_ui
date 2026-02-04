@@ -156,7 +156,7 @@ const SignIn = () => {
               <div className="bg-blue-500 p-2 rounded-full mr-4">
                 <CheckCircle className="h-5 w-5" />
               </div>
-              <p>Real-time inventory updates with live notifications</p>
+              <p>Real-time bidding with live notifications</p>
             </div>
             <div className="flex items-center bg-white bg-opacity-10 p-4 rounded-lg">
               <div className="bg-blue-500 p-2 rounded-full mr-4">

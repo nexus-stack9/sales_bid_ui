@@ -585,9 +585,9 @@ const ProductDetailPage = () => {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-medium text-amber-800">
-                      Suggested Price: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
+                      Next minimum bid: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
                     </p>
-                    <p className="text-xs text-amber-700 mt-1">Offers must be at least ₹50 higher</p>
+                    <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher</p>
                   </div>
                 </div>
               </div>
@@ -629,7 +629,7 @@ const ProductDetailPage = () => {
                 </div>
               </form>
               <div className={styles.quickBidSection}>
-                <h3>Quick Offer Options</h3>
+                <h3>Quick Bid Options</h3>
                 <div className={styles.quickBidOptions}>
                   {[50, 150, 250, 500].map((increment, index) => (
                     <button

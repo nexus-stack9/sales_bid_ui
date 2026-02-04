@@ -155,7 +155,7 @@ export const getProfileDetails = async (userId: string) => {
 
 };
 
-export const placeOrder = async (productId: string, orderAmount: number) => {
+export const placeBid = async (productId: string, bidAmount: number) => {
   try {
     const bidderId = getUserIdFromToken();
     
@@ -172,7 +172,7 @@ export const placeOrder = async (productId: string, orderAmount: number) => {
       body: JSON.stringify({
         product_id: productId,
         bidder_id: bidderId,
-        bid_amount: orderAmount
+        bid_amount: bidAmount
       })
     });
     
@@ -181,19 +181,19 @@ export const placeOrder = async (productId: string, orderAmount: number) => {
         throw new Error('Session expired. Please log in again.');
       }
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to place order');
+      throw new Error(errorData.message || 'Failed to place bid');
     }
     
     const result = await response.json();
     
-    // Trigger a wishlist update to refresh the orders count
+    // Trigger a wishlist update to refresh the bids count
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('wishlist-update'));
     }
     
     return result;
   } catch (error) {
-    console.error('Error placing order:', error);
+    console.error('Error placing bid:', error);
     throw error;
   }
 };
@@ -354,7 +354,7 @@ export const checkWishlistItem = async (productId: string, userId: string): Prom
   }
 };
 
-export interface Order {
+export interface Bid {
   bid_id: number;
   bidder_id: number;
   product_id: number;
@@ -375,32 +375,28 @@ export interface Order {
 }
 
 /**
- * Fetches all orders for a specific user
- * @param bidderId The ID of the user whose orders to fetch
- * @returns Promise<Order[]> Array of order objects with product details  getOrdersById
+ * Fetches all bids for a specific user
+ * @param bidderId The ID of the user whose bids to fetch
+ * @returns Promise<Bid[]> Array of bid objects with product details  getBidById
  */
 // types.ts
-export interface GroupedUserOrders {
-  winning: Order[];
-  losing: Order[];
-  won: Order[];
-  lost: Order[];
+export interface GroupedUserBids {
+  winning: Bid[];
+  losing: Bid[];
+  won: Bid[];
+  lost: Bid[];
 }
 
 // crudService.ts
-/**
- * Fetches grouped order data (winning/losing/won/lost) for a specific user
- * This wraps the legacy /bids/userBids endpoint and normalizes the grouped structure
- */
-export const getUserOrdersGrouped = async (userId: string): Promise<GroupedUserOrders> => {
+export const getUserBids = async (bidderId: string): Promise<GroupedUserBids> => {
   try {
     const token = Cookies.get('authToken');
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    // 🔁 Uses legacy bids endpoint to retrieve grouped data
-    const response = await fetch(`${API_BASE_URL}/bids/userBids/${userId}`, {
+    // 🔁 Changed endpoint to return grouped data
+    const response = await fetch(`${API_BASE_URL}/bids/userBids/${bidderId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -410,10 +406,10 @@ export const getUserOrdersGrouped = async (userId: string): Promise<GroupedUserO
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Error fetching grouped orders: ${errorData.message || response.statusText}`);
+      throw new Error(`Error fetching grouped bids: ${errorData.message || response.statusText}`);
     }
 
-    const data: GroupedUserOrders = await response.json();
+    const data: GroupedUserBids = await response.json();
 
     // Validate structure
     return {
@@ -423,20 +419,20 @@ export const getUserOrdersGrouped = async (userId: string): Promise<GroupedUserO
       lost: Array.isArray(data.lost) ? data.lost : []
     };
   } catch (error) {
-    console.error('Error fetching grouped user orders:', error);
+    console.error('Error fetching grouped user bids:', error);
     return { winning: [], losing: [], won: [], lost: [] };
   }
 };
 
 
-export const getOrdersById = async (userId: string): Promise<Order[]> => {
+export const getBidById = async (bidderId: string): Promise<Bid[]> => {
   try {
     const token = Cookies.get('authToken');
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_BASE_URL}/bids/getBidById/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/bids/getBidById/${bidderId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -446,11 +442,11 @@ export const getOrdersById = async (userId: string): Promise<Order[]> => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Error fetching user orders: ${errorData.message || response.statusText}`);
+      throw new Error(`Error fetching user bids: ${errorData.message || response.statusText}`);
     }
 
     const data = await response.json();
-    // Normalize the response to match our Order interface
+    // Normalize the response to match our Bid interface
     if (Array.isArray(data)) {
       return data.map(item => ({
         bid_id: item.bid_id,
@@ -474,8 +470,8 @@ export const getOrdersById = async (userId: string): Promise<Order[]> => {
     }
     return [];
   } catch (error) {
-    console.error('Error fetching user orders:', error);
-    throw new Error('Failed to fetch your orders. Please try again later.');
+    console.error('Error fetching user bids:', error);
+    throw new Error('Failed to fetch your bids. Please try again later.');
   }
 };
 

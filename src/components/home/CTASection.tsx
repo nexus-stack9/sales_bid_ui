@@ -19,20 +19,20 @@ const CTASection = () => {
     },
     {
       icon: <Store className="w-8 h-8" />,
-      title: "Shop Products",
-      description: "Discover unique items and purchase at great prices. New products added daily across categories.",
-      cta: "Shop Now",
-      route: "/products",
+      title: "Join Auctions",
+      description: "Discover unique items and bid to win at great prices. New auctions added daily with thousands of items.",
+      cta: "Start bidding",
+      route: "/auctions",
       color: "from-purple-500 to-purple-600",
       lightColor: "bg-purple-50",
       iconColor: "text-purple-600",
       borderColor: "border-purple-200",
-      stats: "500+ Daily Listings"
+      stats: "500+ Daily Auctions"
     },
     {
       icon: <Smartphone className="w-8 h-8" />,
       title: "Register Now",
-      description: "Create your account to access exclusive products and shop instantly.",
+      description: "Create your account to access exclusive auctions and start bidding instantly. Free to join with no obligations.",
       cta: "Sign up free",
       route: "/signup",
       color: "from-emerald-500 to-emerald-600",
@@ -214,9 +214,9 @@ const CTASection = () => {
                   viewport={{ once: true }}
                 >
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                    Search products via the largest network of{" "}
+                    Search auctions via the largest network of{" "}
                     <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                      B2B wholesale suppliers
+                      B2B liquidation marketplaces
                     </span>
                   </h3>
                   <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -277,8 +277,8 @@ const CTASection = () => {
                   size="lg"
                   className="bg-gradient-to-r from-primary to-blue-600 text-white hover:opacity-90 font-semibold shadow-lg hover:shadow-xl transition-all px-8"
                 >
-                  <Link to="/products">
-                    Explore Products
+                  <Link to="/auctions">
+                    Explore Auctions
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>

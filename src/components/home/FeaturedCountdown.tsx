@@ -56,12 +56,12 @@ const FeaturedCountdown = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <Badge className="bg-white/20 text-white mb-4">Featured Product</Badge>
+            <Badge className="bg-white/20 text-white mb-4">Featured Auction</Badge>
             <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-              Luxury Watch Collection — Limited Time Offer
+              Luxury Watch Collection Auction Ending Soon
             </h2>
             <p className="text-white/80 mb-8 text-lg">
-              Don't miss your chance to purchase this exclusive collection of premium timepieces from renowned brands. Current price is $4,850.
+              Don't miss your chance to bid on this exclusive collection of premium timepieces from renowned brands. Current highest bid is at $4,850.
             </p>
             
             <div className="flex space-x-6 mb-8">
@@ -73,7 +73,7 @@ const FeaturedCountdown = () => {
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                Buy Now
+                Place Your Bid
               </Button>
               <Button size="lg" variant="outline" className="text-white border-white/30 hover:bg-white/10">
                 View Details <ArrowUpRight className="ml-2 h-4 w-4" />
@@ -82,7 +82,7 @@ const FeaturedCountdown = () => {
             
             <div className="flex items-center mt-6 text-white/70">
               <Users className="h-5 w-5 mr-2" />
-              <span>47 people viewing this product</span>
+              <span>47 active bidders watching this auction</span>
             </div>
           </div>
           

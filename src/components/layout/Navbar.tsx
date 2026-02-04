@@ -37,7 +37,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { wishlistCount, ordersCount } = useWishlist();
+  const { wishlistCount, bidsCount } = useWishlist();
   const { categories, loading: categoriesLoading } = useCategories();
   const navigate = useNavigate();
 
@@ -86,7 +86,7 @@ const Navbar = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="search"
-                placeholder="Search products..."
+                placeholder="Search auctions..."
                 className="pl-10 pr-4 py-2 h-10 w-full rounded-md border border-input bg-background text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -109,10 +109,10 @@ const Navbar = () => {
         <nav className="hidden md:flex items-center space-x-6">
           <div className="flex items-center space-x-6">
             <Link
-              to="/products"
+              to="/auctions"
               className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased"
             >
-              All Products
+              All Auctions
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <div className="relative group">
@@ -134,7 +134,7 @@ const Navbar = () => {
                     {categories.map((category) => (
                       <Link
                         key={category}
-                        to={`/products?category=${encodeURIComponent(
+                        to={`/auctions?category=${encodeURIComponent(
                           category
                         )}`}
                         className="block px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 font-semibold tracking-wide transition-colors relative group/item"
@@ -244,9 +244,9 @@ const Navbar = () => {
                 <Button variant="ghost" size="icon">
                   <ShoppingCart className="h-5 w-5" />
                 </Button>
-                {ordersCount > 0 && (
+                {bidsCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
-                    {ordersCount > 9 ? '9+' : ordersCount}
+                    {bidsCount > 9 ? '9+' : bidsCount}
                   </span>
                 )}
               </Link>
@@ -265,7 +265,7 @@ const Navbar = () => {
               <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
               <input
                 type="search"
-                placeholder="Search products..."
+                placeholder="Search auctions..."
                 className="pl-10 h-9 w-64 rounded-md border border-input bg-background px-3"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -351,7 +351,7 @@ const Navbar = () => {
                             {categories.map((category) => (
                               <Link
                                 key={`mobile-${category}`}
-                                to={`/products?category=${encodeURIComponent(
+                                to={`/auctions?category=${encodeURIComponent(
                                   category
                                 )}`}
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-amber-600 transition-colors"
@@ -374,11 +374,11 @@ const Navbar = () => {
                       className="border-b border-gray-100"
                     >
                       <Link
-                        to="/products"
+                        to="/auctions"
                         className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        All Products
+                        All Auctions
                       </Link>
                     </AccordionItem>
 
