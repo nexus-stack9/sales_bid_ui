@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const links = {
   marketplace: [
-    { label: 'Browse Lots', href: '/auctions' },
+    { label: 'Browse Catalog', href: '/auctions' },
     // { label: 'Upcoming Auctions', href: '/auctions/upcoming' },
     { label: 'How it Works', href: '/how-it-works' },
     { label: 'Selling Services', href: '/selling-services' },
@@ -59,10 +59,10 @@ const Footer = () => {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6">
             <div className="flex-1">
               <h3 className="text-xl md:text-2xl font-semibold tracking-tight text-white">
-                Join 50,000+ buyers and sellers on Sales Bid
+                Join 50,000+ businesses on Sales Bid
               </h3>
               <p className="mt-2 text-slate-400 text-sm md:text-base">
-                Get weekly highlights on live auctions, hot categories, and insider tips.
+                Get weekly highlights on live listings, hot categories, and insider tips.
               </p>
             </div>
             <form onSubmit={handleSubscribe} className="w-full md:w-auto flex gap-3">
@@ -96,7 +96,7 @@ const Footer = () => {
               <span className="text-lg font-semibold tracking-tight text-white">Sales Bid</span>
             </div>
             <p className="text-sm leading-relaxed text-slate-400">
-              A premier B2B auction platform connecting buyers with liquidation, overstock, and returned
+              A premier B2B marketplace connecting buyers with liquidation, overstock, and returned
               inventory from top retailers and manufacturers.
             </p>
             <div className="flex items-center gap-3">

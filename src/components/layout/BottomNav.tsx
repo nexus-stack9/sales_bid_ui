@@ -22,7 +22,7 @@ const BottomNav = () => {
         className="flex flex-col items-center justify-center w-1/4 text-muted-foreground hover:text-primary"
       >
         <Package className="h-5 w-5" />
-        <span className="text-xs mt-1">Auctions</span>
+        <span className="text-xs mt-1">Marketplace</span>
       </Link>
       <Link 
         to="/user/wishlist" 

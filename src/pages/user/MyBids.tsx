@@ -102,7 +102,7 @@ const MyBids = () => {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to load your bids. Please try again.',
+        description: 'Failed to load your offers. Please try again.',
       });
       setBidsData({ winning: [], losing: [], won: [], lost: [] });
     } finally {
@@ -154,28 +154,28 @@ const MyBids = () => {
         return (
           <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border-0 font-medium shadow-sm">
             <Trophy className="w-3 h-3 mr-1.5" />
-            <span>Winning</span>
+            <span>Leading</span>
           </Badge>
         );
       case 'losing':
         return (
           <Badge className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 font-medium shadow-sm">
             <AlertTriangle className="w-3 h-3 mr-1.5" />
-            <span>Outbid</span>
+            <span>Outcompeted</span>
           </Badge>
         );
       case 'won':
         return (
           <Badge className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 font-medium shadow-sm">
             <Trophy className="w-3 h-3 mr-1.5" />
-            <span>Won</span>
+            <span>Allocated</span>
           </Badge>
         );
       case 'lost':
         return (
           <Badge className="bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white border-0 font-medium shadow-sm">
             <Clock className="w-3 h-3 mr-1.5" />
-            <span>Lost</span>
+            <span>Unsuccessful</span>
           </Badge>
         );
       default:
@@ -196,15 +196,15 @@ const MyBids = () => {
     if (parseFloat(newBidAmount) < minBid) {
       toast({
         variant: 'destructive',
-        title: 'Invalid Bid',
-        description: `Bid must be at least ₹${minBid.toFixed(2)}`,
+        title: 'Invalid Offer',
+        description: `Offer must be at least ₹${minBid.toFixed(2)}`,
       });
       return;
     }
 
     try {
       await placeBid(selectedBid.product_id.toString(), parseFloat(newBidAmount));
-      toast({ title: 'Success', description: `Bid of ₹${newBidAmount} placed!` });
+      toast({ title: 'Success', description: `Offer of ₹${newBidAmount} submitted!` });
       await fetchBids();
       setIsModalOpen(false);
       setSelectedBid(null);
@@ -213,7 +213,7 @@ const MyBids = () => {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to place bid.',
+        description: error instanceof Error ? error.message : 'Failed to submit offer.',
       });
     }
   };
@@ -264,13 +264,13 @@ const MyBids = () => {
 
           <div className="grid grid-cols-2 gap-2 mb-3">
             <div className="bg-gray-50 p-2 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">My Bid</div>
+              <div className="text-xs text-gray-500 mb-1">My Offer</div>
               <div className="text-sm font-semibold text-gray-900">
                 ₹{parseFloat(item.bid_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </div>
             </div>
             <div className="bg-gray-50 p-2 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">Highest Bid</div>
+              <div className="text-xs text-gray-500 mb-1">Highest Offer</div>
               <div className={cn(
                 "text-sm font-semibold",
                 parseFloat(item.bid_amount) >= parseFloat(item.max_bid_amount) ? "text-emerald-600" : "text-red-600"
@@ -331,7 +331,7 @@ const MyBids = () => {
                 }`}
                 disabled={['won', 'lost'].includes(item.bid_status)}
               >
-                {['won', 'lost'].includes(item.bid_status) ? 'Auction Ended' : 'Bid Again'}
+                {['won', 'lost'].includes(item.bid_status) ? 'Listing Ended' : 'Offer Again'}
               </button>
             )}
           </div>
@@ -359,7 +359,7 @@ const MyBids = () => {
           className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-medium px-8 shadow-md hover:shadow-lg"
           onClick={() => navigate('/auctions')}
         >
-          Browse Auctions
+          Browse Catalog
         </Button>
       )}
     </div>
@@ -391,7 +391,7 @@ const MyBids = () => {
       <div className="container py-8 px-4 sm:px-6 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">My Bids</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">My Offers</h1>
           </div>
         </div>
 
@@ -432,7 +432,7 @@ const MyBids = () => {
                 <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-100 rounded-xl p-4 flex items-center">
                   <Trophy className="w-5 h-5 text-emerald-600 mr-3" />
                   <p className="text-emerald-700 font-medium">
-                    You're winning {bidsData.winning.length} auction{bidsData.winning.length !== 1 ? 's' : ''}. Keep bidding!
+                    You're leading on {bidsData.winning.length} listing{bidsData.winning.length !== 1 ? 's' : ''}. Keep offering!
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-0 justify-items-center">
@@ -444,8 +444,8 @@ const MyBids = () => {
             ) : (
               <EmptyState
                 icon={<Trophy className="w-6 h-6 text-emerald-500" />}
-                title="No winning bids"
-                description="You're not currently winning any auctions. Try placing a higher bid!"
+                title="No leading offers"
+                description="You're not currently leading any listings. Try submitting a more competitive offer!"
                 showButton
               />
             )}
@@ -457,7 +457,7 @@ const MyBids = () => {
                 <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-xl p-4 flex items-center">
                   <AlertTriangle className="w-5 h-5 text-red-600 mr-3" />
                   <p className="text-red-700 font-medium">
-                    Outbid on {bidsData.losing.length} auction{bidsData.losing.length !== 1 ? 's' : ''}. Bid again to win!
+                    Outcompeted on {bidsData.losing.length} listing{bidsData.losing.length !== 1 ? 's' : ''}. Offer again to compete!
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-0 justify-items-center">
@@ -470,7 +470,7 @@ const MyBids = () => {
               <EmptyState
                 icon={<AlertTriangle className="w-6 h-6 text-red-500" />}
                 title="No losing bids"
-                description="Great job! You're not currently outbid on any auctions."
+                description="Great job! You're not currently outcompeted on any listings."
               />
             )}
           </TabsContent>
@@ -485,8 +485,8 @@ const MyBids = () => {
             ) : (
               <EmptyState
                 icon={<Trophy className="w-6 h-6 text-green-500" />}
-                title="No auctions won"
-                description="You haven't won any auctions yet. Keep bidding to win great deals!"
+                title="No listings allocated"
+                description="You haven't secured any listings yet. Continue submitting competitive offers to win inventory!"
               />
             )}
           </TabsContent>
@@ -501,8 +501,8 @@ const MyBids = () => {
             ) : (
               <EmptyState
                 icon={<Gavel className="w-6 h-6 text-gray-400" />}
-                title="No lost auctions"
-                description="You haven't lost any bids recently. Great job staying competitive!"
+                title="No unsuccessful offers"
+                description="You haven't had any unsuccessful offers recently. Great job staying competitive!"
               />
             )}
           </TabsContent>

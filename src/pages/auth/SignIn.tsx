@@ -136,14 +136,13 @@ const SignIn = () => {
         <div className="relative z-10">
           <div className="flex items-center mb-8">
             <Gavel className="h-10 w-10 mr-3" />
-            <h1 className="text-3xl font-bold">Premium Auctions</h1>
+            <h1 className="text-3xl font-bold">Premium Listings</h1>
           </div>
           <h2 className="text-4xl font-bold mb-6">
-            Discover Extraordinary Items
+            Discover Extraordinary Inventory
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join thousands of collectors and enthusiasts in the world's most
-            exclusive online auction platform.
+            Join thousands of businesses sourcing curated wholesale inventory with confidence.
           </p>
           <div className="space-y-4 max-w-md">
             <div className="flex items-center bg-white bg-opacity-10 p-4 rounded-lg">
@@ -180,7 +179,7 @@ const SignIn = () => {
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight">Welcome Back</h2>
             <p className="mt-2 text-muted-foreground">
-              Sign in to continue to your auctions dashboard
+              Sign in to continue to your dashboard
             </p>
           </div>
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">

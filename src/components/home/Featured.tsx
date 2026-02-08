@@ -72,9 +72,9 @@ const Featured = () => {
           <div className="inline-block px-3 py-1 rounded-full bg-primary-50 text-primary text-sm font-medium mb-4">
             Featured
           </div>
-          <h2 className="text-3xl md:text-4xl font-display font-bold">Premium Auction Deals</h2>
+          <h2 className="text-3xl md:text-4xl font-display font-bold">Premium Listings</h2>
           <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Handpicked opportunities with exceptional value and verified authenticity
+            Handpicked listings with wholesale-ready inventory and verified suppliers
           </p>
         </div>
         
@@ -115,7 +115,7 @@ const Featured = () => {
               className={`border-primary text-primary hover:bg-primary-50 transition-all duration-500 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
               style={{ transitionDelay: '300ms' }}
             >
-              View All Auctions
+              View All Listings
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>

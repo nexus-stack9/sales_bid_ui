@@ -157,14 +157,14 @@
 //                 Discover Premium Inventory at <span className="text-primary">Wholesale Prices</span>
 //               </h1>
 //               <p className="mt-4 text-lg text-muted-foreground">
-//                 Find and bid on high-quality merchandise from top retailers and manufacturers. Perfect for resellers, small businesses, and savvy shoppers.
+//                 Source high-quality inventory from leading retailers and manufacturers. Ideal for wholesalers, resellers, and procurement teams.
 //               </p>
               
 //               <div className="mt-8 flex flex-col sm:flex-row gap-4">
 //                 <div className="relative flex-1">
 //                   <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
 //                   <Input 
-//                     placeholder="Search for auctions, brands, or categories..." 
+//                     placeholder="Search listings, brands, or categories..." 
 //                     className="pl-10 py-6 text-base rounded-full"
 //                     value={searchQuery}
 //                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -236,10 +236,10 @@
 //           >
 //             <Tabs defaultValue="all" className="mb-8" onValueChange={setActiveTab}>
 //               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-//                 <h2 className="text-2xl font-display font-semibold">Explore Auctions</h2>
+//                 <h2 className="text-2xl font-display font-semibold">Explore Listings</h2>
 //                 <TabsList className="w-full sm:w-auto overflow-x-auto flex-nowrap">
 //                   <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white whitespace-nowrap">
-//                     All Auctions
+//                     All Listings
 //                   </TabsTrigger>
 //                   <TabsTrigger value="trending" className="data-[state=active]:bg-primary data-[state=active]:text-white whitespace-nowrap">
 //                     <TrendingUp className="h-4 w-4 mr-1" /> Trending
@@ -264,7 +264,7 @@
 //                   >
 //                     <div className="flex flex-col items-center">
 //                       <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-//                       <p className="mt-4 text-muted-foreground">Loading auctions...</p>
+//                       <p className="mt-4 text-muted-foreground">Loading listings...</p>
 //                     </div>
 //                   </motion.div>
 //                 ) : (

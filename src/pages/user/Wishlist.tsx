@@ -189,8 +189,8 @@ const Wishlist: React.FC = () => {
       
       // Show success message
       toast({
-        title: 'Bid Placed!',
-        description: `Your bid of ₹${amount.toLocaleString('en-IN')} has been placed successfully.`,
+        title: 'Offer Submitted!',
+        description: `Your offer of ₹${amount.toLocaleString('en-IN')} has been submitted successfully.`,
       });
       
       // Refresh wishlist and trigger any necessary updates
@@ -198,7 +198,7 @@ const Wishlist: React.FC = () => {
       triggerWishlistUpdate();
       
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to place bid';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit offer';
       setBidModal(prev => ({
         ...prev,
         loading: false,
@@ -343,13 +343,13 @@ const Wishlist: React.FC = () => {
                 Your wishlist is empty
               </h2>
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                Browse our luxury auctions and add items to your wishlist to keep track of what you love.
+                Browse our curated listings and add items to your wishlist to keep track of what you need.
               </p>
               <button 
                 onClick={() => navigate('/auctions')}
                 className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-all"
               >
-                Browse Auctions
+                Browse Catalog
               </button>
             </div>
           ) : (
@@ -382,7 +382,7 @@ const Wishlist: React.FC = () => {
                       </h3>
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm font-bold text-gray-600">
-                          {!item.bid_amount || item.bid_amount === '0' ? 'Starting Price' : 'Current Bid'}
+                          {!item.bid_amount || item.bid_amount === '0' ? 'Starting Price' : 'Current Price'}
                         </span>
                         <span className="text-sm font-bold text-primary">
                           {item.bid_amount && item.bid_amount !== '0' 
@@ -425,7 +425,7 @@ const Wishlist: React.FC = () => {
                           }`}
                           disabled={isAuctionEnded(item.auction_end)}
                         >
-                          {isAuctionEnded(item.auction_end) ? 'Ended' : 'Bid Now'}
+                          {isAuctionEnded(item.auction_end) ? 'Ended' : 'Place Offer'}
                         </button>
                       </div>
                     </div>

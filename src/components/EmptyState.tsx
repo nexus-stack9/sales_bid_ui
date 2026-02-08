@@ -17,7 +17,7 @@ export default function EmptyState({
   title,
   description,
   showButton = false,
-  buttonText = 'Browse Auctions',
+  buttonText = 'Browse Catalog',
   buttonHref = '/auctions',
   className = '',
 }: EmptyStateProps) {

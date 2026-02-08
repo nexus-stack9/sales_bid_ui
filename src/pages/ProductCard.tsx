@@ -222,7 +222,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 {/* Current Bid and Retail Price */}
                 <div className="space-y-1.5 mb-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">Current Bid</span>
+                    <span className="text-xs text-gray-500">Price</span>
                     <span className="text-sm font-bold text-gray-900">
                       {formatPrice(product.currentBid)}
                     </span>
@@ -241,7 +241,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 <div className="flex items-center justify-center gap-4 text-xs pt-2.5 mt-auto border-t border-gray-100">
                   <div className="flex items-center gap-1.5">
                     <Gavel className="h-3.5 w-3.5 text-gray-700" />
-                    <span className="text-gray-800">{product.totalBids} Bids</span>
+                    <span className="text-gray-800">{product.totalBids} Offers</span>
                   </div>
                   <div className="h-3 w-px bg-gray-300"></div>
                   <div className="flex items-center gap-1.5">
@@ -309,7 +309,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                     {formatPrice(product.retail_value)}
                   </span>
                 ) : (
-                  <span className="text-sm text-muted-foreground">Current bid</span>
+                  <span className="text-sm text-muted-foreground">Current price</span>
                 )}
               </div>
               {timeRemaining > 0 ? (
@@ -345,7 +345,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-sm text-primary border-primary/50">
                   <Gavel className="h-3 w-3 mr-1 text-primary" />
-                  {product.totalBids} bids
+                  {product.totalBids} offers
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
@@ -374,7 +374,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
                 }`}
                 size="sm"
               >
-                Place Bid
+                Place Offer
               </Button>
               {product.buyNowPrice && (
                 <Button 

@@ -156,11 +156,11 @@ const LiveAuctions = () => {
               ))
             ) : error ? (
               <div className="col-span-full text-center py-10">
-                <p className="text-red-500">Error loading auctions. Please try again later.</p>
+                <p className="text-red-500">Error loading listings. Please try again later.</p>
               </div>
             ) : auctionItems.length === 0 ? (
               <div className="col-span-full text-center py-10">
-                <p className="text-gray-500">No live auctions available at the moment.</p>
+                <p className="text-gray-500">No active listings available at the moment.</p>
               </div>
             ) : (
               auctionItems.map((item) => (
@@ -200,10 +200,10 @@ const LiveAuctions = () => {
                       </h3>
                       <div className="flex justify-between items-center mt-4">
                         <span className="text-sm font-medium text-gray-500">
-                          {item.bids} {item.bids === 1 ? 'Bid' : 'Bids'}
+                          {item.bids} {item.bids === 1 ? 'Offer' : 'Offers'}
                         </span>
                         <span className="text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
-                          Closes in{' '}
+                          Listing closes in{' '}
                           <span className="font-semibold">{item.endsIn}</span>
                         </span>
                       </div>
@@ -224,7 +224,7 @@ const LiveAuctions = () => {
             <div className="ml-3">
               <p className="text-base text-gray-800 font-medium">
                 <span className="font-bold text-sky-900">Transparency Alert:</span>{' '}
-                Live Stream Viewing available during final 15 minutes of offer periods for real-time lot inspection and maximum transparency.
+                Live stream viewing is available during final inspection windows for real-time lot inspection and maximum transparency.
               </p>
             </div>
           </div>

@@ -9,7 +9,7 @@ const SellingServices: React.FC = () => {
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Selling Services</h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            Maximize returns and efficiently liquidate inventory through our specialized auction marketplace.
+            Maximize returns and efficiently liquidate inventory through our specialized liquidation marketplace.
           </p>
         </div>
 
@@ -35,7 +35,7 @@ const SellingServices: React.FC = () => {
             </div>
             <h3 className="text-xl font-semibold mb-3 text-gray-900">Fast Liquidation</h3>
             <p className="text-slate-600">
-              Turn slow-moving inventory into cash quickly with our streamlined auction process and extensive buyer network.
+              Turn slow-moving inventory into cash quickly with our streamlined listing process and extensive buyer network.
             </p>
           </div>
 
@@ -84,9 +84,9 @@ const SellingServices: React.FC = () => {
               <div className="flex items-start mb-6">
                 <div className="bg-green-100 text-green-800 rounded-lg w-10 h-10 flex items-center justify-center font-bold text-lg mr-4 flex-shrink-0">3</div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-900">Auction Management</h3>
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900">Listing Management</h3>
                   <p className="text-slate-600">
-                    Our team handles all aspects of the auction process from bidding to payment collection.
+                    Our team handles all aspects of listing management from offers to payment collection.
                   </p>
                 </div>
               </div>
@@ -140,7 +140,7 @@ const SellingServices: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="text-xl italic mb-6">
-              "We liquidated $250,000 of excess inventory through their auction platform and achieved 40% higher returns than traditional liquidators. The process was seamless from start to finish."
+              "We liquidated $250,000 of excess inventory through their marketplace and achieved 40% higher returns than traditional liquidators. The process was seamless from start to finish."
             </p>
             <div>
               <p className="font-semibold">Jennifer Wilson</p>

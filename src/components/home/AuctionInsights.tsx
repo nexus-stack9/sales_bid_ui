@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 const insightCards = [
   {
     title: "Market Trends",
-    description: "Explore the latest trends in auction markets across different categories",
+    description: "Explore the latest trends in listing markets across different categories",
     icon: <TrendingUp className="h-6 w-6 text-blue-500" />,
     color: "bg-blue-50 border-blue-200",
     iconBg: "bg-blue-100",
@@ -27,7 +27,7 @@ const insightCards = [
     iconBg: "bg-green-100",
     stats: [
       { label: "Avg. Discount", value: "22%", trend: "neutral" },
-      { label: "Bid Increments", value: "₹500+", trend: "neutral" },
+      { label: "Offer Increments", value: "₹500+", trend: "neutral" },
       { label: "Final Price", value: "78%", trend: "up" }
     ],
     chartIcon: <BarChart className="h-16 w-16 text-green-200" />
@@ -59,10 +59,10 @@ const AuctionInsights = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-              Auction Insights & Analytics
+              Marketplace Insights & Analytics
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Make informed bidding decisions with our comprehensive auction analytics and market insights
+              Make informed procurement decisions with our comprehensive marketplace analytics and market insights
             </p>
           </motion.div>
         </div>
@@ -121,10 +121,10 @@ const AuctionInsights = () => {
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="mb-6 md:mb-0 md:mr-6 max-w-xl">
               <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                Get Personalized Auction Recommendations
+                Get Personalized Marketplace Recommendations
               </h3>
               <p className="text-gray-600 mb-6">
-                Our AI-powered recommendation engine analyzes your bidding history and preferences to suggest auctions that match your interests. Create an account to unlock personalized recommendations.
+                Our AI-powered recommendation engine analyzes your procurement and browsing activity to recommend listings and suppliers tailored to your needs. Create an account to unlock personalized insights.
               </p>
               <Button asChild className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white">
                 <Link to="/register">

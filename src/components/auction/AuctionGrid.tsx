@@ -185,9 +185,9 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       // Show a toast notification with the number of results
       if (results.length === 0) {
         // In a real app, you would use a toast notification system
-        console.log("No auctions found matching your criteria");
+        console.log("No listings found matching your criteria");
       } else {
-        console.log(`Found ${results.length} auctions matching your criteria`);
+        console.log(`Found ${results.length} listings matching your criteria`);
       }
     }, 600);
   };
@@ -215,7 +215,7 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search auctions..."
+          placeholder="Search listings..."
           className="pl-8 bg-background"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -523,7 +523,7 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
                 </SheetClose>
               </div>
               <SheetDescription>
-                Refine your auction search results
+                Refine your listing search results
               </SheetDescription>
             </SheetHeader>
             
@@ -578,7 +578,7 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
               >
                 <div className="flex flex-col items-center">
                   <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-                  <p className="mt-4 text-muted-foreground">Loading auctions...</p>
+                  <p className="mt-4 text-muted-foreground">Loading listings...</p>
                 </div>
               </motion.div>
             ) : filteredAuctions.length === 0 ? (
@@ -591,8 +591,8 @@ const AuctionGrid = ({ auctions, title }: AuctionGridProps) => {
               >
                 <div className="text-center">
                   <Package className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-semibold">No auctions found</h3>
-                  <p className="mt-2 text-muted-foreground">Try adjusting your filters or search term</p>
+                  <h3 className="mt-4 text-lg font-semibold">No listings found</h3>
+                  <p className="mt-2 text-muted-foreground">Try adjusting your filters or search criteria</p>
                   <Button onClick={resetFilters} className="mt-4">
                     Reset Filters
                   </Button>

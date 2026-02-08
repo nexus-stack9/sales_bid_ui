@@ -81,8 +81,7 @@ const IntegrationsSection = () => {
               Why Choose <span className="text-primary">Sales Bid</span>
             </h2>
             <p className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-              Our auction platform is designed with features that make buying and selling 
-              a seamless, secure, and enjoyable experience.
+              Our platform is designed with features that make B2B sourcing and selling seamless, secure, and efficient.
             </p>
           </motion.div>
         </div>

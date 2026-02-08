@@ -94,7 +94,7 @@ const Categories = () => {
                 </p>
                 <div className="mt-5 flex justify-between items-center">
                   <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full">
-                    {category.count} active auctions
+                    {category.count} active listings
                   </span>
                   <span className="text-sm font-semibold text-gray-800 flex items-center gap-1 transition-colors duration-200">
                     Explore Now

@@ -52,14 +52,14 @@ const FeaturedAuctions = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
           <div>
-            <h2 className="text-3xl font-display font-bold mb-2">Featured Auctions</h2>
+            <h2 className="text-3xl font-display font-bold mb-2">Featured Listings</h2>
             <p className="text-gray-600 max-w-2xl">
-              Discover our handpicked premium auctions with exceptional value and unique items
+              Discover handpicked wholesale listings and curated lots with verified condition reports and volume pricing.
             </p>
           </div>
           <Button asChild variant="outline" className="mt-4 md:mt-0">
             <Link to="/auctions" className="flex items-center">
-              View All Auctions <ArrowRight className="ml-2 h-4 w-4" />
+              View All Listings <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -100,7 +100,7 @@ const FeaturedAuctions = () => {
                     
                     <div className="flex justify-between items-baseline mb-3">
                       <div>
-                        <p className="text-xs text-gray-500">Current Bid</p>
+                        <p className="text-xs text-gray-500">Price</p>
                         <p className="text-xl font-bold text-primary">${auction.currentBid.toLocaleString()}</p>
                       </div>
                       <div className="flex items-center space-x-1 text-sm">
@@ -112,7 +112,7 @@ const FeaturedAuctions = () => {
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
                         <Eye className="h-4 w-4" />
-                        <span>{auction.watchers} watching</span>
+                        <span>{auction.watchers} views</span>
                       </div>
                       <Badge variant="outline" className="bg-gray-50">
                         {auction.category}

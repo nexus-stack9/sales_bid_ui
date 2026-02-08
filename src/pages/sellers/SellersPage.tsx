@@ -57,7 +57,7 @@ const SellersPage = () => {
       rating: 5
     },
     {
-      quote: "The seller tools helped me optimize my listings and get 40% more bids per item.",
+      quote: "The seller tools helped me optimize my listings and get 40% more offers per item.",
       author: "Lisa M., Jewelry Seller",
       rating: 5
     }
@@ -72,7 +72,7 @@ const SellersPage = () => {
     {
       icon: <MdAnalytics className="text-3xl mb-4 text-blue-600" />,
       title: "Advanced Analytics",
-      description: "Track views, bids, and performance metrics in real-time"
+      description: "Track views, offers, and performance metrics in real-time"
     },
     {
       icon: <FaTag className="text-3xl mb-4 text-blue-600" />,
@@ -558,7 +558,7 @@ Turn Your Unsold, Returned, or New Stock into Cash — Fast & Secure.
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Seller Tools</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                Everything you need to create compelling listings and manage your auctions efficiently.
+                Everything you need to create compelling listings and manage them efficiently.
               </p>
             </div>
             

@@ -387,7 +387,7 @@ const Profile = () => {
             <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No orders yet</h3>
             <p className="text-muted-foreground mb-4">When you make purchases, they will appear here.</p>
-            <Button onClick={() => navigate('/auctions')}>Browse Auctions</Button>
+            <Button onClick={() => navigate('/auctions')}>Browse Catalog</Button>
           </CardContent>
         </Card>
       )}
