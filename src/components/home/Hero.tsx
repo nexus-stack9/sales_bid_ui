@@ -139,11 +139,10 @@ const Hero = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-black text-white hover:bg-gray-800">
-              <Link to="/auctions">Shop all auctions</Link>
+              <Link to="/auctions">Browse Listings</Link>
             </Button>
-            
             <Button asChild size="lg" variant="outline" className="border-gray-300">
-              <Link to="/sellers"> Become a Verified Seller</Link>
+              <Link to="/sellers">Become a Verified Seller</Link>
             </Button>
           </div>
         </div>

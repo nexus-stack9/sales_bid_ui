@@ -86,7 +86,7 @@ const Navbar = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="search"
-                placeholder="Search auctions..."
+                placeholder="Search listings..."
                 className="pl-10 pr-4 py-2 h-10 w-full rounded-md border border-input bg-background text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -112,7 +112,7 @@ const Navbar = () => {
               to="/auctions"
               className="font-bold text-gray-800 hover:text-gray-900 relative group antialiased text-[15px] tracking-wide subpixel-antialiased"
             >
-              All Auctions
+              All Listings
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <div className="relative group">
@@ -378,7 +378,7 @@ const Navbar = () => {
                         className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        All Auctions
+                        All Listings
                       </Link>
                     </AccordionItem>
 

@@ -111,7 +111,7 @@ const SellersPage = () => {
               </div>
               <div className="bg-muted px-4 py-3 flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  See Auctions ({seller.auctionCount})
+                  See Listings ({seller.auctionCount})
                 </span>
                 <button className="text-primary text-sm hover:underline">
                   View

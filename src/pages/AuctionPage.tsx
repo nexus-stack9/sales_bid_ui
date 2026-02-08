@@ -837,7 +837,7 @@ const AuctionPage: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="ending_soon">Ending Soon</SelectItem>
                   <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="popularity">Most Bids</SelectItem>
+                  <SelectItem value="popularity">Most Offerers</SelectItem>
                   <SelectItem value="price_asc">Lowest Price</SelectItem>
                   <SelectItem value="price_desc">Highest Price</SelectItem>
                 </SelectContent>

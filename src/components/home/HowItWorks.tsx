@@ -10,31 +10,31 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-// Steps in the auction process
+// Steps in the procurement process
 const steps = [
   {
     icon: <Package className="h-8 w-8" />,
-    title: "Place Your Bid",
+    title: "Submit an Offer",
     description:
-      "Browse our extensive catalog and place bids on premium inventory from trusted sellers.",
+      "Browse our extensive catalog and submit offers on premium inventory from trusted suppliers.",
     color: "bg-blue-500",
     lightColor: "bg-blue-50",
     number: "01"
   },
   {
     icon: <CheckCircle className="h-8 w-8" />,
-    title: "Win Auctions",
+    title: "Secure Deals",
     description:
-      "Secure deals at competitive prices, often 40-60% below retail value.",
+      "Secure deals with competitive pricing and favorable terms for your business needs.",
     color: "bg-emerald-500",
     lightColor: "bg-emerald-50",
     number: "02"
   },
   {
     icon: <CreditCard className="h-8 w-8" />,
-    title: "Complete Payment",
+    title: "Complete Purchase",
     description:
-      "Use our secure payment system with multiple payment options for your convenience.",
+      "Use secure payments, PO/invoice options, and arrange shipping or pickup per your terms.",
     color: "bg-purple-500",
     lightColor: "bg-purple-50",
     number: "03"
@@ -86,11 +86,11 @@ const HowItWorks = () => {
               How It Works
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-gray-900 mb-6 leading-tight">
-              Maximize your returns with a{" "}
-              <span className="text-primary">Sales Bid</span> account
+              Optimize procurement with a{" "}
+              <span className="text-primary">SalesBid</span> account
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Join thousands of successful buyers getting premium inventory at unbeatable prices
+              Join thousands of businesses sourcing premium inventory with confidence
             </p>
           </motion.div>
         </div>
@@ -182,7 +182,7 @@ const HowItWorks = () => {
                 Ready to get started?
               </h4>
               <p className="mb-6 text-white/90">
-                Join our platform today and start bidding on premium inventory from trusted sellers.
+                Join our platform today and start sourcing and placing offers on premium inventory from trusted sellers.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
@@ -202,7 +202,7 @@ const HowItWorks = () => {
                   className="border-white text-white hover:bg-white/10"
                 >
                   <Link to="/auctions">
-                    Browse Auctions
+                    Browse Listings
                   </Link>
                 </Button>
               </div>

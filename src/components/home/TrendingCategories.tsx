@@ -108,7 +108,7 @@ const TrendingCategories = () => {
                 <p 
                   className="text-white/80 text-sm sm:text-base mb-2 sm:mb-3 transition-all duration-200 group-hover:text-white group-hover:font-medium"
                 >
-                  {category.count} active auctions
+                  {category.count} active listings
                 </p>
                 
                 <div className="h-px bg-white/40 mb-2 sm:mb-4 w-0 group-hover:w-full transition-all duration-300"></div>

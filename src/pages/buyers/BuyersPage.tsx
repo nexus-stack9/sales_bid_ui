@@ -75,7 +75,7 @@ const BuyersPage = () => {
   const benefits: Benefit[] = [
     {
       icon: <FaGavel className="text-3xl mb-4 text-blue-600" />,
-      title: "Exclusive Auctions",
+      title: "Exclusive Listings",
       description: "Access rare and unique items you won't find anywhere else"
     },
     {
@@ -152,11 +152,10 @@ const BuyersPage = () => {
                 <RiAuctionFill className="text-5xl text-blue-300" />
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Discover <span className="text-blue-300">Extraordinary</span> Finds at Auction
+                Discover <span className="text-blue-300">Extraordinary</span> Wholesale Finds
               </h1>
               <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
-                Join millions of buyers in the world's most exciting online auctions. 
-                From rare collectibles to luxury items, find exactly what you're looking for.
+                Join thousands of businesses sourcing high-quality inventory for resale and operations. From rare collectibles to bulk lots, find reliable suppliers and competitive pricing.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <button 
@@ -182,9 +181,9 @@ const BuyersPage = () => {
               <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
                 WHY CHOOSE US
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Buy at Auction?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Source with SalesBid?</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                Our platform offers unique advantages you won't find in traditional marketplaces
+                Our platform offers enterprise-grade sourcing tools, verified suppliers, and volume pricing advantages
               </p>
             </div>
             
@@ -268,7 +267,7 @@ const BuyersPage = () => {
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">How Buying Works</h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                Getting started is easy. Follow these simple steps to begin bidding
+                Getting started is easy. Follow these simple steps to begin sourcing and placing offers
               </p>
             </div>
             
@@ -288,8 +287,8 @@ const BuyersPage = () => {
                 
                 <div className="text-center">
                   <div className="bg-blue-100 text-blue-700 font-bold rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl">3</div>
-                  <h3 className="text-xl font-bold mb-3">Bid</h3>
-                  <p className="text-gray-600">Place your bids or use Buy It Now</p>
+                  <h3 className="text-xl font-bold mb-3">Offer</h3>
+                  <p className="text-gray-600">Place offers or use Buy It Now</p>
                 </div>
                 
                 <div className="text-center">
@@ -351,7 +350,7 @@ const BuyersPage = () => {
                 Register Free
               </button>
               <button className="border-2 border-gray-900 text-gray-900 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-900 hover:text-white transition">
-                Browse Auctions
+                Browse Catalog
               </button>
             </div>
           </div>
@@ -423,7 +422,7 @@ const BuyersPage = () => {
                       </div>
                       <div className="ml-3 text-sm">
                         <label htmlFor="notifications" className="font-medium text-gray-700">
-                          Receive auction notifications and updates
+                          Receive listing notifications and updates
                         </label>
                       </div>
                     </div>

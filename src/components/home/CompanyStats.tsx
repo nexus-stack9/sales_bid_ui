@@ -83,7 +83,7 @@ const CompanyStats = () => {
             <h2 className="text-4xl font-display font-bold text-white mb-2">
               {isVisible ? <CountUp end={2000} duration={2000} suffix="+" /> : "0"}
             </h2>
-            <p className="text-gray-300">Auctions</p>
+            <p className="text-gray-300">Listings</p>
           </motion.div>
           
           {/* Active Users */}

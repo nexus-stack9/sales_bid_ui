@@ -72,9 +72,9 @@ const Watchlist = () => {
         
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="active">Active Auctions</TabsTrigger>
-            <TabsTrigger value="ended">Ended Auctions</TabsTrigger>
-            <TabsTrigger value="won">Won Auctions</TabsTrigger>
+            <TabsTrigger value="active">Active Listings</TabsTrigger>
+            <TabsTrigger value="ended">Ended Listings</TabsTrigger>
+            <TabsTrigger value="won">Won Listings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="active" className="space-y-4">
@@ -100,7 +100,7 @@ const Watchlist = () => {
                     <CardContent className="p-3 md:p-4">
                       <h3 className="font-semibold text-sm md:text-base line-clamp-2 mb-2">{item.title}</h3>
                       <div className="flex justify-between text-xs md:text-sm mb-1">
-                        <span className="text-muted-foreground">Current Bid:</span>
+                        <span className="text-muted-foreground">Current Price:</span>
                         <span className="font-medium">{item.currentBid}</span>
                       </div>
                       <div className="flex justify-between text-xs md:text-sm">
@@ -108,7 +108,7 @@ const Watchlist = () => {
                         <span className="font-medium text-amber-600">{item.timeLeft}</span>
                       </div>
                       <div className="flex justify-between text-xs md:text-sm mt-1">
-                        <span className="text-muted-foreground">Bids:</span>
+                        <span className="text-muted-foreground">Offers:</span>
                         <span>{item.bids}</span>
                       </div>
                     </CardContent>
@@ -117,7 +117,7 @@ const Watchlist = () => {
                         View
                       </Button>
                       <Button size="sm" className="w-[48%] text-xs md:text-sm">
-                        Bid Now
+                        Place Offer
                       </Button>
                     </CardFooter>
                   </Card>
@@ -128,9 +128,9 @@ const Watchlist = () => {
                 <Heart className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h3 className="mt-4 text-lg font-medium">Your watchlist is empty</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Add items to your watchlist to keep track of auctions you're interested in.
+                  Add items to your watchlist to keep track of listings you're interested in.
                 </p>
-                <Button className="mt-6">Browse Auctions</Button>
+                <Button className="mt-6">Browse Catalog</Button>
               </div>
             )}
           </TabsContent>
@@ -138,9 +138,9 @@ const Watchlist = () => {
           <TabsContent value="ended">
             <div className="text-center py-12">
               <Clock className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium">No ended auctions</h3>
+              <h3 className="mt-4 text-lg font-medium">No ended listings</h3>
               <p className="mt-2 text-muted-foreground">
-                Auctions you've watched that have ended will appear here.
+                Listings you've watched that have ended will appear here.
               </p>
             </div>
           </TabsContent>
@@ -150,9 +150,9 @@ const Watchlist = () => {
               <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-primary text-2xl">🏆</span>
               </div>
-              <h3 className="mt-4 text-lg font-medium">No won auctions yet</h3>
+              <h3 className="mt-4 text-lg font-medium">No won listings yet</h3>
               <p className="mt-2 text-muted-foreground">
-                Auctions you've won will appear here.
+                Listings you've won will appear here.
               </p>
             </div>
           </TabsContent>

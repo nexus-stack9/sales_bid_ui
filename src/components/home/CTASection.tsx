@@ -19,20 +19,21 @@ const CTASection = () => {
     },
     {
       icon: <Store className="w-8 h-8" />,
-      title: "Join Auctions",
-      description: "Discover unique items and bid to win at great prices. New auctions added daily with thousands of items.",
-      cta: "Start bidding",
+      title: "Explore Listings",
+      description: "Discover premium inventory and submit offers to procure at competitive prices.",
+      cta: "Start sourcing",
       route: "/auctions",
       color: "from-purple-500 to-purple-600",
       lightColor: "bg-purple-50",
       iconColor: "text-purple-600",
       borderColor: "border-purple-200",
-      stats: "500+ Daily Auctions"
+      stats: "500+ Daily Listings"
     },
+
     {
       icon: <Smartphone className="w-8 h-8" />,
       title: "Register Now",
-      description: "Create your account to access exclusive auctions and start bidding instantly. Free to join with no obligations.",
+      description: "Create your account to access exclusive listings and start sourcing instantly. Free to join with no obligations.",
       cta: "Sign up free",
       route: "/signup",
       color: "from-emerald-500 to-emerald-600",
@@ -41,6 +42,7 @@ const CTASection = () => {
       borderColor: "border-emerald-200",
       stats: "Join 50K+ Users"
     },
+
   ];
 
   const benefits = [
@@ -105,13 +107,10 @@ const CTASection = () => {
               Get Started Today
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-gray-900 mb-4 leading-tight">
-              Ready to Start Your{" "}
-              <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                Sales Bid Journey?
-              </span>
+              Ready to Start Sourcing?
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-              Join thousands of users who are already buying and selling on Sales Bid
+              Join thousands of businesses sourcing and selling on Sales Bid
             </p>
           </motion.div>
 
@@ -214,7 +213,7 @@ const CTASection = () => {
                   viewport={{ once: true }}
                 >
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                    Search auctions via the largest network of{" "}
+                    Search listings via the largest network of{" "}
                     <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                       B2B liquidation marketplaces
                     </span>
@@ -278,7 +277,7 @@ const CTASection = () => {
                   className="bg-gradient-to-r from-primary to-blue-600 text-white hover:opacity-90 font-semibold shadow-lg hover:shadow-xl transition-all px-8"
                 >
                   <Link to="/auctions">
-                    Explore Auctions
+                    Explore Listings
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>

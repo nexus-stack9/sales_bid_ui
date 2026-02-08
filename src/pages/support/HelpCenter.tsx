@@ -24,7 +24,7 @@ const HelpCenter: React.FC = () => {
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">⌘K</span>
           </div>
-          <div className="text-sm text-slate-500 mt-2">Popular: bidding, payments, shipping, returns</div>
+          <div className="text-sm text-slate-500 mt-2">Popular: offers, payments, shipping, returns</div>
         </div>
 
         {/* Categories */}
@@ -36,8 +36,8 @@ const HelpCenter: React.FC = () => {
               to: "/support/faq",
             },
             {
-              title: "Bidding & Auctions",
-              desc: "How to bid, proxy bids, bid increments",
+              title: "Offers & Listings",
+              desc: "How to submit offers, proxy offers, offer increments",
               to: "/how-it-works",
             },
             {
@@ -75,7 +75,7 @@ const HelpCenter: React.FC = () => {
         {/* Quick links */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6">
-            <h4 className="text-xl font-semibold mb-2 text-gray-900">Bid with confidence</h4>
+            <h4 className="text-xl font-semibold mb-2 text-gray-900">Offer with confidence</h4>
             <p className="text-slate-600 mb-4">Learn how Buyer Protection keeps your purchases safe.</p>
             <Link to="/buyer-protection" className="text-blue-600 font-medium">Learn more →</Link>
           </div>

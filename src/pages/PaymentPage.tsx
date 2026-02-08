@@ -80,7 +80,7 @@ export default function PaymentPage() {
         if (found) {
           setBid({
             id: found.bid_id,
-            itemName: found.product_name || 'Auction Item',
+            itemName: found.product_name || 'Listing Item',
             imageUrl: found.image_path || '/placeholder.svg',
             bidAmount: parseFloat(found.bid_amount || '0') || 0,
             // Use auction_end as a rough deadline fallback
@@ -90,7 +90,7 @@ export default function PaymentPage() {
           // Fallback when not found - minimal safe default
           setBid({
             id: routeBidId ? Number(routeBidId) : 0,
-            itemName: 'Auction Item',
+            itemName: 'Listing Item',
             imageUrl: '/placeholder.svg',
             bidAmount: 0,
             paymentDeadline: new Date(Date.now() + 12 * 60 * 60 * 1000),
@@ -293,7 +293,7 @@ export default function PaymentPage() {
   {/* Title + Subtitle */}
   <div className="text-center flex-1">
     <p className="text-sm sm:text-base text-muted-foreground mt-1">
-      Secure checkout for your winning bid
+      Secure checkout for your order
     </p>
   </div>
 

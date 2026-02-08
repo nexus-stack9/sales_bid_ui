@@ -292,7 +292,7 @@ const ProductDetailPage = () => {
       toast({
         variant: 'default',
         title: 'Error',
-        description: 'Please enter a valid bid amount',
+        description: 'Please enter a valid offer amount',
         className: 'bg-white border border-red-200 text-foreground shadow-lg'
       });
       return;
@@ -574,7 +574,7 @@ const ProductDetailPage = () => {
           <div className={styles.desktopPlaceBidCard}>
             <div className={styles.placeBidCard}>
               <div className={styles.bidHeader}>
-                <span className={styles.bidLabel}>Place Your Bid</span>
+                <span className={styles.bidLabel}>Place Your Offer</span>
               </div>
               <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 mb-2 border border-amber-100">
                 <div className="flex items-center">
@@ -585,9 +585,9 @@ const ProductDetailPage = () => {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-medium text-amber-800">
-                      Next minimum bid: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
+                      Next minimum offer: <span className="font-bold">{formatCurrency(getCurrentBid() + 50)}</span>
                     </p>
-                    <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher</p>
+                    <p className="text-xs text-amber-700 mt-1">Offers must be at least ₹50 higher</p>
                   </div>
                 </div>
               </div>
@@ -601,7 +601,7 @@ const ProductDetailPage = () => {
                       onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       min={getCurrentBid() + 50}
                       step={50}
-                      placeholder="Enter your bid"
+                      placeholder="Enter your offer"
                       required
                       disabled={timeRemaining === 0}
                     />
@@ -613,7 +613,7 @@ const ProductDetailPage = () => {
                     className={styles.placeBidButton}
                     disabled={isSubmitting || timeRemaining === 0}
                   >
-                    {isSubmitting ? 'Placing Bid...' : timeRemaining === 0 ? 'Auction Ended' : 'Bid Now'}
+                    {isSubmitting ? 'Submitting Offer...' : timeRemaining === 0 ? 'Listing Ended' : 'Submit Offer'}
                     <FaGavel className={styles.buttonIcon} />
                   </button>
                   {hasBuyOption() && getCurrentBid() < parseFloat(productData.sale_price) && (
@@ -629,7 +629,7 @@ const ProductDetailPage = () => {
                 </div>
               </form>
               <div className={styles.quickBidSection}>
-                <h3>Quick Bid Options</h3>
+                <h3>Quick Offer Options</h3>
                 <div className={styles.quickBidOptions}>
                   {[50, 150, 250, 500].map((increment, index) => (
                     <button
@@ -666,7 +666,7 @@ const ProductDetailPage = () => {
             </div>
             <div className={styles.priceInfo}>
               <div className={styles.priceItem}>
-                <span className={styles.priceLabel}>Current Bid</span>
+                <span className={styles.priceLabel}>Current Price</span>
                 <span className={styles.priceValue}>{formatCurrency(getCurrentBid())}</span>
               </div>
               <div className={styles.priceItem}>
@@ -706,7 +706,7 @@ const ProductDetailPage = () => {
                   </div>
                 </div>
               ) : (
-                <span className={styles.endsInText}>Auction Ended</span>
+                <span className={styles.endsInText}>Listing Ended</span>
               )}
             </div>
             {productData?.product_live_url && productData.product_live_url.trim() !== '' && (
@@ -732,7 +732,7 @@ const ProductDetailPage = () => {
           {/* Mobile Bid Card */}
           <div className={styles.mobileBidCard}>
             <div className={styles.mobileBidAmount}>
-              Current Bid: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
+              Current Price: {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
             </div>
             <div className={styles.retailPercentageContainer}>
               <div className={styles.retailPercentageText}>
@@ -749,11 +749,11 @@ const ProductDetailPage = () => {
               MSRP: {formatCurrency(productData.retail_value)} / {formatCurrency(getPerUnitPrice(productData.retail_value))} per unit
             </div>
             <form onSubmit={handleBidSubmit} className={styles.mobileBidForm}>
-              <div className={styles.mobileBidLabel}>Place a new max bid</div>
+              <div className={styles.mobileBidLabel}>Place a new max offer</div>
               <input
                 type="number"
                 className={styles.mobileBidInput}
-                placeholder={`Enter max bid (${formatCurrency(getCurrentBid() + 50)}+)`}
+                placeholder={`Enter max offer (${formatCurrency(getCurrentBid() + 50)}+)`}
                 min={getCurrentBid() + 50}
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
@@ -764,7 +764,7 @@ const ProductDetailPage = () => {
                   className={styles.mobileBidButton}
                   disabled={isSubmitting || timeRemaining === 0}
                 >
-                  Bid Now
+                  Submit Offer
                 </button>
                 {hasBuyOption() && getCurrentBid() < parseFloat(productData.sale_price) && (
                   <button
@@ -782,7 +782,7 @@ const ProductDetailPage = () => {
           <div className={`${styles.topBox} ${styles.hideOnMobile}`}>
             <div className={styles.bidCard}>
               <div className={styles.bidHeader}>
-                <span className={styles.bidLabel}>CURRENT BID</span>
+                <span className={styles.bidLabel}>CURRENT PRICE</span>
               </div>
               <div className={styles.bidAmount}>
                 {formatCurrency(getCurrentBid())} / {formatCurrency(getPerUnitPrice(getCurrentBid()))} per unit
@@ -795,7 +795,7 @@ const ProductDetailPage = () => {
               </div>
             </div>
             <div className={styles.auctionDetails}>
-              <h3>Auction Details</h3>
+              <h3>Listing Details</h3>
               <div className={styles.detailItem}>
                 <span className={styles.detailLabel}>MSRP:</span>
                 <span className={styles.detailValue}>
@@ -803,7 +803,7 @@ const ProductDetailPage = () => {
                 </span>
               </div>
               <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Starting Bid:</span>
+                <span className={styles.detailLabel}>Starting Offer:</span>
                 <span className={styles.detailValue}>{formatCurrency(productData.starting_price)}</span>
               </div>
             </div>
@@ -924,7 +924,7 @@ const ProductDetailPage = () => {
           )}
           {activeTab === "bid-history" && (
             <div className={styles.bidHistoryTab}>
-              <h3>Bid History</h3>
+              <h3>Offer History</h3>
               <div className={styles.historyTable}>
                 <table>
                   <thead>

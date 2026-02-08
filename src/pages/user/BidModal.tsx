@@ -68,7 +68,7 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
     }
 
     if (amount <= currentBid) {
-      setError(`Bid amount must be higher than ${formatPrice(currentBid)}`);
+      setError(`Offer amount must be higher than ${formatPrice(currentBid)}`);
       return;
     }
 
@@ -81,14 +81,14 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
       }
       await placeBid(productId.toString(), amount);
       toast({
-        title: 'Bid Placed!',
-        description: `Your bid of ${formatPrice(amount)} has been placed successfully.`,
+        title: 'Offer Submitted!',
+        description: `Your offer of ${formatPrice(amount)} has been submitted successfully.`,
       });
       setBidAmount("");
       onBidSuccess?.();
       onClose();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to place bid';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit offer';
       setError(errorMessage);
       toast({
         variant: 'destructive',
@@ -112,7 +112,7 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
       <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 scale-100">
         <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
-          <h3 className="text-2xl font-bold text-gray-900 font-sans">Place Your Bid</h3>
+          <h3 className="text-2xl font-bold text-gray-900 font-sans">Place Your Offer</h3>
           <button 
             onClick={onClose} 
             className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none p-1 rounded-full hover:bg-gray-100"
@@ -131,9 +131,9 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-amber-800">
-                Minimum bid: <span className="font-bold">{formatPrice(currentBid + 50)}</span>
+                Minimum offer: <span className="font-bold">{formatPrice(currentBid + 50)}</span>
               </p>
-              <p className="text-xs text-amber-700 mt-1">Bids must be at least ₹50 higher than current bid</p>
+              <p className="text-xs text-amber-700 mt-1">Offers must be at least ₹50 higher than the current price</p>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <label htmlFor="bidAmount" className="block text-sm font-medium text-gray-700 mb-2">
-              Your Bid Amount
+              Your Offer Amount
             </label>
             <div className="relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -176,11 +176,11 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
           <div className="bg-gray-50 p-5 rounded-lg mb-6 border border-gray-200">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Current Bid</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Current Price</p>
                 <p className="text-lg font-bold text-gray-900">{formatPrice(currentBid)}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Your Bid</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Your Offer</p>
                 <p className="text-lg font-bold text-amber-600">
                   {bidAmount ? formatPrice(parseFloat(bidAmount)) : '--'}
                 </p>
@@ -188,7 +188,7 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
             </div>
             <div className="mt-4 pt-4 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                By placing a bid, you agree to our Terms of Service.
+                By submitting an offer, you agree to our Terms of Service.
               </p>
             </div>
           </div>
@@ -213,7 +213,7 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Placing Bid...
+                  Submitting Offer...
                 </span>
               ) : (
                 <span className="flex items-center justify-center">
@@ -221,7 +221,7 @@ const BidModal: React.FC<BidModalProps> = ({ isOpen, onClose, currentBid, produc
                     <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd" />
                     <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
                   </svg>
-                  Place Bid
+                  Submit Offer
                 </span>
               )}
             </button>

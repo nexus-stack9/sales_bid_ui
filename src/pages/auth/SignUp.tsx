@@ -147,16 +147,15 @@ const SignUp = () => {
         <div className="relative z-10">
           <div className="flex items-center mb-6">
             <Gavel className="h-8 w-8 mr-3" />
-            <h1 className="text-2xl font-bold">Premium Auctions</h1>
+            <h1 className="text-2xl font-bold">Premium Listings</h1>
           </div>
 
           <h2 className="text-3xl font-bold mb-4">
-            Join Our Exclusive Bidding Community
+            Join Our Exclusive Sourcing Community
           </h2>
           <p className="text-lg mb-8 opacity-90">
-            Create your account today and start discovering unique treasures.
+            Create your account and start sourcing verified inventory and bulk lots.
           </p>
-
           <div className="space-y-4 mb-8">
             <div className="flex items-center bg-white bg-opacity-10 p-3 rounded-lg backdrop-blur-sm">
               <ShoppingBag className="h-6 w-6 mr-3 text-purple-300 flex-shrink-0" />
@@ -165,7 +164,7 @@ const SignUp = () => {
 
             <div className="flex items-center bg-white bg-opacity-10 p-3 rounded-lg backdrop-blur-sm">
               <Clock className="h-6 w-6 mr-3 text-purple-300 flex-shrink-0" />
-              <p>Experience the thrill of real-time auctions</p>
+              <p>Experience streamlined B2B sourcing and live inventory updates</p>
             </div>
 
             <div className="flex items-center bg-white bg-opacity-10 p-3 rounded-lg backdrop-blur-sm">

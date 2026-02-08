@@ -397,7 +397,7 @@ const AllSellersPage = () => {
                         className="inline-flex items-center gap-2 text-slate-400 transition hover:text-sky-400"
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
-                        view auctions
+                        view listings
                       </Link>
                     </div>
                   </div>
