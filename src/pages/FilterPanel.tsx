@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Filter, Search } from "lucide-react";
+import { X } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterState, Product } from "@/types/auction";
-import dayjs from "dayjs";
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -40,6 +34,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   maxPrice = 50000,
 }) => {
   const [tempFilters, setTempFilters] = useState<FilterState>(filters);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    price: true,
+    categories: true,
+    timeLeft: false,
+    locations: false,
+    condition: true,
+  });
+
+  const toggleSection = (key: string) =>
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   // Update tempFilters when parent filters change
   useEffect(() => {
@@ -181,216 +185,330 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               opacity: { duration: 0 },
             }}
             className="fixed left-0 top-0 h-full w-80 bg-background border-r border-border z-50 lg:relative lg:w-full lg:h-auto lg:bg-transparent lg:border-0 flex flex-col"
+            style={{ fontFamily: 'Manrope, sans-serif' }}
           >
-            <Card className="h-full lg:h-auto flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-border lg:border-0">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-primary" />
-                  <h2 className="font-semibold text-lg">Filters</h2>
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {activeFiltersCount}
-                    </Badge>
-                  )}
+            <Card className="h-full lg:h-auto flex flex-col overflow-hidden rounded-none lg:rounded-2xl border border-gray-100 shadow-sm">
 
-                  {/* Apply Filters Button */}
-                  {unappliedChanges && (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={applyFilters}
-                      className="ml-2"
-                    >
-                      Apply
-                    </Button>
+              {/* Header — gradient bar, rounded-t-2xl to fill corners */}
+              <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-gray-700 leading-none">tune</span>
+                  <span className="text-[13px] font-black text-gray-900 uppercase tracking-widest">Filters</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="ml-1 bg-gray-900 text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center leading-none">
+                      {activeFiltersCount}
+                    </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* Clear All Button */}
-                  {activeFiltersCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleClearFilters}
-                      className="text-muted-foreground hover:text-foreground"
+                <div className="flex items-center gap-1">
+                  {unappliedChanges && (
+                    <button
+                      onClick={applyFilters}
+                      className="hidden lg:block text-[11px] font-black text-white bg-gray-900 hover:bg-gray-700 px-3 py-1 rounded-full transition-colors"
                     >
-                      Clear All
-                    </Button>
+                      Apply
+                    </button>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  {activeFiltersCount > 0 && (
+                    <button
+                      onClick={handleClearFilters}
+                      className="flex items-center gap-1 text-[11px] font-bold text-red-500 hover:text-white bg-red-50 hover:bg-red-500 px-2.5 py-1 rounded-full transition-all"
+                    >
+                      <span className="material-symbols-outlined text-[13px] leading-none">filter_list_off</span>
+                      Clear
+                    </button>
+                  )}
+                  <button
                     onClick={onClose}
-                    className="lg:hidden"
+                    className="lg:hidden text-gray-500 hover:text-gray-900 p-1 rounded-full transition-colors"
                   >
                     <X className="h-4 w-4" />
-                  </Button>
+                  </button>
                 </div>
               </div>
 
-              <ScrollArea className="flex-1 px-4 pb-4">
-                <div className="space-y-6 py-4">
+              <ScrollArea className="flex-1">
+                <div className="px-3 py-3 space-y-3">
+
                   {/* Price Range */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">
-                      Price Range: ₹
-                      {tempFilters.priceRange[0].toLocaleString("en-IN")} - ₹
-                      {tempFilters.priceRange[1].toLocaleString("en-IN")}
-                    </Label>
-                    <Slider
-                      value={tempFilters.priceRange}
-                      onValueChange={handlePriceRangeChange}
-                      max={maxPrice}
-                      min={0}
-                      step={100}
-                      className="w-full"
-                    />
+                  <div>
+                    <button
+                      onClick={() => toggleSection('price')}
+                      className="flex items-center justify-between w-full py-1 group"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[12px] text-[#FF6B3D] leading-none">payments</span>
+                        <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Price Range</span>
+                      </div>
+                      <span className={`material-symbols-outlined text-[16px] text-gray-400 leading-none transition-transform duration-200 ${openSections.price ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {openSections.price && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-2 pb-4">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[11px] font-black text-gray-900">
+                                ₹{tempFilters.priceRange[0].toLocaleString("en-IN")}
+                              </span>
+                              <span className="text-[11px] font-black text-gray-900">
+                                ₹{tempFilters.priceRange[1].toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                            <Slider
+                              value={tempFilters.priceRange}
+                              onValueChange={handlePriceRangeChange}
+                              max={maxPrice}
+                              min={0}
+                              step={100}
+                              className="w-full"
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+
+                  <hr className="border-gray-100" />
 
                   {/* Categories */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Categories</Label>
-                    <div className="space-y-2">
-                      {filterOptions.categories.length > 0 ? (
-                        filterOptions.categories.map((category) => (
-                          <div
-                            key={category}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`category-${category}`}
-                              checked={tempFilters.categories.includes(category)}
-                              onCheckedChange={(checked) =>
-                                handleCheckboxChange(
-                                  "categories",
-                                  category,
-                                  checked as boolean
-                                )
-                              }
-                            />
-                            <label
-                              htmlFor={`category-${category}`}
-                              className="text-sm font-normal cursor-pointer"
-                            >
-                              {category}
-                            </label>
+                  <div>
+                    <button
+                      onClick={() => toggleSection('categories')}
+                      className="flex items-center justify-between w-full py-1 group"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[12px] text-[#FF6B3D] leading-none">category</span>
+                        <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Categories</span>
+                        {tempFilters.categories.length > 0 && (
+                          <span className="text-[9px] font-black text-[#FF6B3D]">({tempFilters.categories.length})</span>
+                        )}
+                      </div>
+                      <span className={`material-symbols-outlined text-[16px] text-gray-400 leading-none transition-transform duration-200 ${openSections.categories ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {openSections.categories && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-1 space-y-0.5">
+                            {filterOptions.categories.length > 0 ? (
+                              filterOptions.categories.map((category) => {
+                                const checked = tempFilters.categories.includes(category);
+                                return (
+                                  <div
+                                    key={category}
+                                    onClick={() => handleCheckboxChange("categories", category, !checked)}
+                                    className={`flex items-center gap-2 px-2 py-1 rounded-lg cursor-pointer transition-all select-none ${
+                                      checked ? 'bg-orange-50 text-[#FF6B3D]' : 'hover:bg-gray-50 text-gray-600'
+                                    }`}
+                                  >
+                                    <span
+                                      className="w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center shrink-0 transition-all"
+                                      style={checked ? { background: 'linear-gradient(to right, #FF6B3D, #FFB444)', borderColor: 'transparent' } : { borderColor: '#d1d5db', background: 'white' }}
+                                    >
+                                      {checked && (
+                                        <span className="material-symbols-outlined text-[10px] text-white leading-none" style={{ fontVariationSettings: `'FILL' 1` }}>check</span>
+                                      )}
+                                    </span>
+                                    <span className="text-[11px] font-semibold">{category}</span>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <p className="text-[11px] text-gray-400 px-1">No categories available</p>
+                            )}
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No categories available
-                        </p>
+                        </motion.div>
                       )}
-                    </div>
+                    </AnimatePresence>
                   </div>
+
+                  <hr className="border-gray-100" />
 
                   {/* Time Left */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Time Left</Label>
-                    <div className="space-y-2">
-                      {timeLeftOptions.map((option) => (
-                        <div
-                          key={option.value}
-                          className="flex items-center space-x-2"
+                  <div>
+                    <button
+                      onClick={() => toggleSection('timeLeft')}
+                      className="flex items-center justify-between w-full py-1 group"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[12px] text-[#FF6B3D] leading-none">timer</span>
+                        <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Time Left</span>
+                        {tempFilters.timeLeft.length > 0 && (
+                          <span className="text-[9px] font-black text-[#FF6B3D]">({tempFilters.timeLeft.length})</span>
+                        )}
+                      </div>
+                      <span className={`material-symbols-outlined text-[16px] text-gray-400 leading-none transition-transform duration-200 ${openSections.timeLeft ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {openSections.timeLeft && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
                         >
-                          <Checkbox
-                            id={option.value}
-                            checked={tempFilters.timeLeft.includes(option.value)}
-                            onCheckedChange={(checked) =>
-                              handleCheckboxChange(
-                                "timeLeft",
-                                option.value,
-                                checked as boolean
-                              )
-                            }
-                          />
-                          <label
-                            htmlFor={option.value}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+                          <div className="pt-2 flex flex-wrap gap-1.5">
+                            {timeLeftOptions.map((option) => {
+                              const checked = tempFilters.timeLeft.includes(option.value);
+                              return (
+                                <button
+                                  key={option.value}
+                                  onClick={() => handleCheckboxChange("timeLeft", option.value, !checked)}
+                                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
+                                    checked ? 'text-white border-transparent shadow-sm' : 'border-gray-200 text-gray-600 hover:border-[#FF6B3D] hover:text-[#FF6B3D] bg-white'
+                                  }`}
+                                  style={checked ? { background: 'linear-gradient(to right, #FF6B3D, #FFB444)' } : {}}
+                                >
+                                  {option.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+
+                  <hr className="border-gray-100" />
 
                   {/* Locations */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Locations</Label>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {filterOptions.locations.length > 0 ? (
-                        filterOptions.locations.map((location) => (
-                          <div
-                            key={location}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`location-${location}`}
-                              checked={tempFilters.locations.includes(location)}
-                              onCheckedChange={(checked) =>
-                                handleCheckboxChange(
-                                  "locations",
-                                  location,
-                                  checked as boolean
-                                )
-                              }
-                            />
-                            <label
-                              htmlFor={`location-${location}`}
-                              className="text-sm font-normal cursor-pointer"
-                            >
-                              {location}
-                            </label>
+                  <div>
+                    <button
+                      onClick={() => toggleSection('locations')}
+                      className="flex items-center justify-between w-full py-1 group"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[12px] text-[#FF6B3D] leading-none">location_on</span>
+                        <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Locations</span>
+                        {tempFilters.locations.length > 0 && (
+                          <span className="text-[9px] font-black text-[#FF6B3D]">({tempFilters.locations.length})</span>
+                        )}
+                      </div>
+                      <span className={`material-symbols-outlined text-[16px] text-gray-400 leading-none transition-transform duration-200 ${openSections.locations ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {openSections.locations && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-1 space-y-0.5 max-h-44 overflow-y-auto">
+                            {filterOptions.locations.length > 0 ? (
+                              filterOptions.locations.map((location) => {
+                                const checked = tempFilters.locations.includes(location);
+                                return (
+                                  <div
+                                    key={location}
+                                    onClick={() => handleCheckboxChange("locations", location, !checked)}
+                                    className={`flex items-center gap-2 px-2 py-1 rounded-lg cursor-pointer transition-all select-none ${
+                                      checked ? 'bg-orange-50 text-[#FF6B3D]' : 'hover:bg-gray-50 text-gray-600'
+                                    }`}
+                                  >
+                                    <span
+                                      className="w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center shrink-0 transition-all"
+                                      style={checked ? { background: 'linear-gradient(to right, #FF6B3D, #FFB444)', borderColor: 'transparent' } : { borderColor: '#d1d5db', background: 'white' }}
+                                    >
+                                      {checked && (
+                                        <span className="material-symbols-outlined text-[10px] text-white leading-none" style={{ fontVariationSettings: `'FILL' 1` }}>check</span>
+                                      )}
+                                    </span>
+                                    <span className="text-[11px] font-semibold">{location}</span>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <p className="text-[11px] text-gray-400 px-1">No locations available</p>
+                            )}
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No locations available
-                        </p>
+                        </motion.div>
                       )}
-                    </div>
+                    </AnimatePresence>
                   </div>
 
+                  <hr className="border-gray-100" />
+
                   {/* Condition */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Condition</Label>
-                    <div className="space-y-2">
-                      {filterOptions.conditions.length > 0 ? (
-                        filterOptions.conditions.map((condition) => (
-                          <div
-                            key={condition}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`condition-${condition}`}
-                              checked={tempFilters.condition.includes(condition)}
-                              onCheckedChange={(checked) =>
-                                handleCheckboxChange(
-                                  "condition",
-                                  condition,
-                                  checked as boolean
-                                )
-                              }
-                            />
-                            <label
-                              htmlFor={`condition-${condition}`}
-                              className="text-sm font-normal cursor-pointer"
-                            >
-                              {condition}
-                            </label>
+                  <div>
+                    <button
+                      onClick={() => toggleSection('condition')}
+                      className="flex items-center justify-between w-full py-1 group"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[12px] text-[#FF6B3D] leading-none">verified</span>
+                        <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Condition</span>
+                        {tempFilters.condition.length > 0 && (
+                          <span className="text-[9px] font-black text-[#FF6B3D]">({tempFilters.condition.length})</span>
+                        )}
+                      </div>
+                      <span className={`material-symbols-outlined text-[16px] text-gray-400 leading-none transition-transform duration-200 ${openSections.condition ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {openSections.condition && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-2 flex flex-wrap gap-1.5">
+                            {filterOptions.conditions.length > 0 ? (
+                              filterOptions.conditions.map((condition) => {
+                                const checked = tempFilters.condition.includes(condition);
+                                return (
+                                  <button
+                                    key={condition}
+                                    onClick={() => handleCheckboxChange("condition", condition, !checked)}
+                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
+                                      checked ? 'text-white border-transparent shadow-sm' : 'border-gray-200 text-gray-600 hover:border-[#FF6B3D] hover:text-[#FF6B3D] bg-white'
+                                    }`}
+                                    style={checked ? { background: 'linear-gradient(to right, #FF6B3D, #FFB444)' } : {}}
+                                  >
+                                    {condition}
+                                  </button>
+                                );
+                              })
+                            ) : (
+                              <p className="text-[11px] text-gray-400 px-1">No conditions available</p>
+                            )}
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No conditions available
-                        </p>
+                        </motion.div>
                       )}
-                    </div>
+                    </AnimatePresence>
                   </div>
+
+
+
                 </div>
               </ScrollArea>
+
+              {/* Footer Apply button — always visible */}
+              {unappliedChanges && (
+                <div className="px-4 py-3 border-t border-gray-100">
+                  <button
+                    onClick={applyFilters}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B3D] to-[#FFB444] text-white text-[12px] font-black uppercase tracking-widest shadow-sm hover:opacity-90 transition-opacity"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              )}
+
             </Card>
           </motion.div>
         </>
