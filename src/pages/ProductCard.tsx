@@ -2,8 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MapPin, Tag, Clock, Gavel, Hourglass, Play } from 'lucide-react';
-import { FaClock as FaClockIcon } from 'react-icons/fa';
+import { Heart, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -121,143 +120,168 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
   }, [product.timeLeft]);
 
   return (
-    <motion.div className="group relative overflow-hidden w-full">
-      <Card 
+    <motion.div className="group relative overflow-hidden w-full font-[Manrope,sans-serif]">
+      <Card
         onClick={handleCardClick}
-        className="relative overflow-hidden group h-full w-full max-w-none flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-gray-300 hover:border-gray-500 hover:shadow-md sm:max-w-[340px] lg:max-w-[380px] xl:max-w-[420px] rounded-lg mx-auto w-[calc(100%-16px)] sm:w-full"
+        className="relative overflow-hidden group h-full w-full flex flex-col hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 hover:border-gray-400 rounded-2xl"
       >
         {viewMode === 'grid' ? (
-          <div className="flex flex-col h-full">
-            {/* Image Container */}
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-50 rounded-t-lg">
+          <div className="flex flex-col h-full" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            {/* Image Container — full coverage, taller */}
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100 rounded-t-2xl">
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               />
-              
-              {/* Condition Ribbon */}
-              <div className="absolute left-0 top-2 w-auto overflow-hidden z-10">
-                <div className="bg-primary text-white text-[10px] font-medium py-0.5 px-2 relative shadow-sm">
-                  <div className="absolute -left-1 top-0 w-0 h-0 border-t-5 border-t-primary border-r-5 border-r-transparent"></div>
-                  <div className="absolute -right-1 top-0 w-0 h-0 border-b-5 border-b-primary border-l-5 border-l-transparent"></div>
-                  {product.condition}
+
+              {/* Condition Ribbon — top LEFT */}
+              {product.condition && (
+                <div className="absolute top-3 left-0 z-10">
+                  <div
+                    className="bg-gradient-to-r from-[#FF6B3D] to-[#FFB444] text-white text-[8px] font-black uppercase tracking-widest shadow-md pl-2 pr-3 py-[4px]"
+                    style={{ clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%)' }}
+                  >
+                    {product.condition}
+                  </div>
                 </div>
-              </div>
-              
-              {/* Wishlist Button */}
-              <button 
-                className={`absolute top-2 right-2 p-2 rounded-full transition-colors z-10 ${
-                  isInWishlist 
-                    ? 'bg-red-50 text-red-500 hover:bg-red-100' 
-                    : 'bg-white/90 text-gray-600 hover:bg-white hover:text-red-500'
+              )}
+
+              {/* Wishlist Button — top RIGHT (swapped) */}
+              <button
+                className={`absolute top-2.5 right-2.5 w-7 h-7 flex items-center justify-center rounded-full border transition-colors z-10 ${
+                  isInWishlist
+                    ? 'bg-white border-red-300 text-red-500 hover:bg-red-50'
+                    : 'bg-white border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500'
                 }`}
                 onClick={toggleWishlist}
                 disabled={isWishlistLoading}
                 aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
               >
-                <Heart 
-                  className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} 
-                />
+                <span
+                  className="material-symbols-outlined text-[15px] leading-none"
+                  style={{ fontVariationSettings: isInWishlist ? `'FILL' 1` : `'FILL' 0` }}
+                >
+                  favorite
+                </span>
               </button>
-              
-              {/* Live Indicator */}
+
+              {/* Live Badge */}
               {product.product_live_url && (
-                <div className="absolute bottom-2 right-2 z-10">
-                  <div className="flex items-center bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md animate-pulse">
-                    <span className="w-2 h-2 bg-white rounded-full mr-1.5"></span>
-                    LIVE
+                <div className="absolute bottom-2.5 right-2.5 z-10">
+                  <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-lg">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                    </span>
+                    Live
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Content */}
-            <div className="p-2.5 sm:p-4 flex-1 flex flex-col rounded-b-lg">
-              <div className="mb-2">
-                <h3 
-                  className="font-medium text-gray-900 text-[14px] leading-tight line-clamp-2 mb-1.5 group-hover:text-primary transition-colors"
-                  title={product.name}
-                >
-                  {product.name}
-                </h3>
-                
-                {/* Category and Location Row */}
-                <div className="flex items-center gap-1.5 mb-1.5 overflow-hidden">
-                  {/* Category Tag */}
-                  <span className="inline-flex items-center bg-gray-200 text-gray-900 text-[12px] font-semibold px-2 py-0.5 rounded-full border border-gray-300 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
-                    <svg className="w-2 h-2 mr-1 text-gray-700" fill="currentColor" viewBox="0 0 8 8">
-                      <circle cx="4" cy="4" r="3" />
-                    </svg>
+            {/* Card Content */}
+            <div className="p-3 flex-1 flex flex-col gap-2">
+
+              {/* Category + Location */}
+              <div className="flex items-center gap-2 bg-gray-50 px-2 py-1 overflow-hidden">
+                {/* Category */}
+                <div title={product.category || 'Category'} className="flex items-center gap-1 pl-1.5 border-l-2 border-[#FF6B3D] min-w-0 flex-1 cursor-default">
+                  <span className="material-symbols-outlined text-[11px] text-[#FF6B3D] leading-none shrink-0">category</span>
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-gray-600 truncate">
                     {product.category || 'Category'}
                   </span>
-
-                  {/* Location Tag */}
-                  <div className="flex items-center gap-1 text-xs text-gray-600 bg-blue-100 px-2 py-1 rounded-full">
-                    <MapPin className="h-3 w-3 text-gray-700" />
-                    <span className="truncate max-w-[90px] font-bold" title={product.location}>
-                      {product.location}
-                    </span>
-                  </div>
                 </div>
+                {product.location && (
+                  <>
+                    <span className="text-gray-300 text-[10px] shrink-0">·</span>
+                    {/* Location */}
+                    <div title={product.location} className="flex items-center gap-1 pl-1.5 border-l-2 border-indigo-400 min-w-0 flex-1 cursor-default">
+                      <span className="material-symbols-outlined text-[11px] text-indigo-400 leading-none shrink-0">location_on</span>
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider text-gray-600 truncate">
+                        {product.location}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
-                {/* Progress Bar */}
+              {/* Product Name */}
+              <h3
+                className="text-[13px] font-black text-gray-900 tracking-tight leading-snug line-clamp-2 group-hover:text-primary transition-colors"
+                style={{ fontFamily: 'Manrope, sans-serif' }}
+                title={product.name}
+              >
+                {product.name}
+              </h3>
+
+              {/* Bid + MSRP row */}
+              <div className="flex items-end justify-between gap-1">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Current Bid</span>
+                  <span className="text-[13px] font-black text-gray-900 leading-none tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    {formatPrice(product.currentBid)}
+                  </span>
+                </div>
                 {product.retail_value && (
-                  <div className="space-y-1.5 mb-2">
-                    <div className="flex items-center justify-between text-xs">
-                    <span className="text-xs font-medium text-primary">
-                      {Math.round((product.currentBid / product.retail_value) * 100)}% of MSRP
+                  <div className="flex flex-col gap-0.5 items-end">
+                    <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">MSRP</span>
+                    <span className="text-[13px] font-bold text-gray-500 leading-none" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                      {formatPrice(product.retail_value)}
                     </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="bg-primary h-full rounded-full transition-all duration-500 shadow-sm" 
-                        style={{ width: `${Math.min(100, (product.currentBid / product.retail_value) * 100)}%` }}
-                      />
-                    </div>
                   </div>
                 )}
+              </div>
 
-                {/* Current Bid and Retail Price */}
-                <div className="space-y-1.5 mb-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">Price</span>
-                    <span className="text-sm font-bold text-gray-900">
-                      {formatPrice(product.currentBid)}
-                    </span>
+              {/* Progress Bar */}
+              {product.retail_value && (
+                <div className="flex items-center gap-2">
+                  <div className="h-1 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#FF6B3D] to-[#FFB444] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Math.round((product.currentBid / product.retail_value) * 100))}%` }}
+                    />
                   </div>
-                  {product.retail_value && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">MSRP</span>
-                      <span className="text-xs text-gray-500">
-                        {formatPrice(product.retail_value)}
-                      </span>
-                    </div>
-                  )}
+                  <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    {Math.min(100, Math.round((product.currentBid / product.retail_value) * 100))}% of MSRP
+                  </span>
                 </div>
+              )}
 
-                {/* Bids and Time Left */}
-                <div className="flex items-center justify-center gap-4 text-xs pt-2.5 mt-auto border-t border-gray-100">
-                  <div className="flex items-center gap-1.5">
-                    <Gavel className="h-3.5 w-3.5 text-gray-700" />
-                    <span className="text-gray-800">{product.totalBids} Offers</span>
-                  </div>
-                  <div className="h-3 w-px bg-gray-300"></div>
-                  <div className="flex items-center gap-1.5">
-                    <FaClockIcon className="h-3.5 w-3.5 text-gray-700" />
+              {/* Divider */}
+              <hr className="border-gray-100" />
+
+              {/* Footer: ENDS IN | ACTIVE STATUS */}
+              <div className="flex items-center justify-between mt-auto">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Ends In</span>
+                  <div className="flex items-center gap-1 text-gray-800">
+                    <span className="material-symbols-outlined text-[15px] text-[#FF6B3D] leading-none">timer</span>
                     {timeRemaining > 0 ? (
-                      <span className="text-gray-800">
-                        {Math.floor(timeRemaining / 86400) > 0 && `${Math.floor(timeRemaining / 86400)}d `}
-                        {Math.floor((timeRemaining % 86400) / 3600)}h {Math.floor((timeRemaining % 3600) / 60)}m left
+                      <span className="text-[12px] font-extrabold tabular-nums">
+                        {String(Math.floor((timeRemaining % 86400) / 3600)).padStart(2, '0')}:
+                        {String(Math.floor((timeRemaining % 3600) / 60)).padStart(2, '0')}:
+                        {String(timeRemaining % 60).padStart(2, '0')}
                       </span>
                     ) : (
-                      <span className="text-gray-800">Ended</span>
+                      <span className="text-[12px] font-extrabold text-gray-400">Ended</span>
                     )}
                   </div>
                 </div>
+
+                <div className="w-px h-6 bg-gray-100" />
+
+                <div className="flex flex-col gap-0.5 items-end">
+                  <span className="text-[9px] font-extrabold text-gray-500 uppercase tracking-widest">Active Status</span>
+                  <div className="flex items-center gap-1 text-gray-800">
+                    <span className="material-symbols-outlined text-[15px] text-gray-500 leading-none">gavel</span>
+                    <span className="text-[12px] font-extrabold tabular-nums">{product.totalBids} Offers</span>
+                  </div>
+                </div>
               </div>
+
             </div>
+          </div>
           ) : (
             <div className="space-y-3 p-4 h-full flex flex-col rounded-lg">
               <div className="flex items-center gap-4">
@@ -344,7 +368,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-sm text-primary border-primary/50">
-                  <Gavel className="h-3 w-3 mr-1 text-primary" />
+                  <span className="material-symbols-outlined text-[12px] mr-1 text-primary leading-none">gavel</span>
                   {product.totalBids} offers
                 </Badge>
               </div>

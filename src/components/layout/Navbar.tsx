@@ -318,9 +318,9 @@ const Navbar = () => {
             )}
           </div>
           {!isMobileSearchOpen && (
-            <Sheet>
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -379,6 +379,19 @@ const Navbar = () => {
                         onClick={() => setIsMenuOpen(false)}
                       >
                         All Listings
+                      </Link>
+                    </AccordionItem>
+
+                    <AccordionItem
+                      value="allSellers"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/allSellersPage"
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        All Sellers
                       </Link>
                     </AccordionItem>
 

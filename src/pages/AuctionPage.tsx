@@ -47,6 +47,7 @@ const AuctionPage: React.FC = () => {
   // Use ref to prevent initial load race conditions
   const hasInitiallyLoaded = useRef(false);
   const lastRequestRef = useRef<string>("");
+  const filtersAppliedDirectly = useRef(false);
   const [maxPrice, setMaxPrice] = useState<number>(50000);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
 
@@ -103,12 +104,13 @@ const AuctionPage: React.FC = () => {
     const currentPage = pagination.currentPage;
 
     if (currentPage === 1) {
-      setIsWishlistLoading(true);
+      // Only set wishlist loading on the very first page load (not on filter changes)
+      const isInitialLoad = !hasInitiallyLoaded.current;
+      if (isInitialLoad) setIsWishlistLoading(true);
       const mapped = apiProducts.map(mapApiProductToProduct);
       setMobileMappedProducts(mapped);
       setPreviousPage(1);
-      // Small delay to ensure wishlist state is reflected
-      setTimeout(() => setIsWishlistLoading(false), 50);
+      if (isInitialLoad) setTimeout(() => setIsWishlistLoading(false), 50);
     } else if (currentPage > previousPage && apiProducts.length > 0) {
       const newBatch = apiProducts.map(mapApiProductToProduct);
       setMobileMappedProducts((prev) => [...prev, ...newBatch]);
@@ -361,7 +363,10 @@ const AuctionPage: React.FC = () => {
         const skeletons = generateSkeletonProducts(20, mobileMappedProducts.length);
         prods = [...prods, ...skeletons];
       }
-      return prods;
+      // Apply sort on mobile too
+      const realProds = prods.filter(p => !p.id.startsWith('skeleton'));
+      const skeletonProds = prods.filter(p => p.id.startsWith('skeleton'));
+      return [...sortProducts(realProds, sortBy), ...skeletonProds];
     } else {
       if (!apiProducts.length) return [];
       const mapped = apiProducts.map(mapApiProductToProduct);
@@ -431,9 +436,14 @@ const AuctionPage: React.FC = () => {
   useEffect(() => {
     if (!hasInitiallyLoaded.current) return;
 
-    // Reset mobile products when filters or sort change
+    // Skip if filters were applied directly (already loaded in handleFiltersChange)
+    if (filtersAppliedDirectly.current) {
+      filtersAppliedDirectly.current = false;
+      return;
+    }
+
+    // Reset page tracker so new page-1 data replaces old products
     if (isMobile) {
-      setMobileMappedProducts([]);
       setPreviousPage(0);
     }
 
@@ -444,15 +454,27 @@ const AuctionPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [filters, sortBy]);
 
-  // Reset to first page when filters or sort change
+  // Apply filters immediately (no debounce) — used by the Apply button
   const handleFiltersChange = (newFilters: FilterState) => {
-    setFilters(newFilters);
+    if (isMobile) {
+      setPreviousPage(0);
+    }
+    filtersAppliedDirectly.current = true;
     lastRequestRef.current = "";
+    setFilters(newFilters);
+    // Call API immediately — no 300ms wait
+    loadProductsWithParams(1, 20, newFilters, sortBy);
   };
 
   const handleSortChange = (newSortBy: SortOption) => {
-    setSortBy(newSortBy);
+    if (isMobile) {
+      setPreviousPage(0);
+    }
+    filtersAppliedDirectly.current = true;
     lastRequestRef.current = "";
+    setSortBy(newSortBy);
+    // Call API immediately — no 300ms wait
+    loadProductsWithParams(1, 20, filters, newSortBy);
   };
 
   // Pagination handlers
@@ -574,15 +596,11 @@ const AuctionPage: React.FC = () => {
 
   // Results info component
   const ResultsInfo = () => {
-    const { start, end, total } = getShowingInfo();
+    const { total } = getShowingInfo();
     if (total === 0) return null;
 
     return (
-      <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
-        <span>
-          Showing {start} to {end} of {total} results
-        </span>
-
+      <div className="flex items-center justify-end mb-4">
         <div className="hidden lg:block">
           <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortOption)}>
             <SelectTrigger className="w-48">
@@ -775,8 +793,10 @@ const AuctionPage: React.FC = () => {
   );
 
   // Check if we should show skeleton
+  // On mobile, don't show full-page skeleton when we already have products (prevents blink on filter change)
+  const hasExistingProducts = isMobile ? mobileMappedProducts.length > 0 : apiProducts.length > 0;
   const shouldShowSkeleton =
-    isLoading ||
+    (!hasExistingProducts && isLoading) ||
     !filtersInitialized ||
     (!hasInitiallyLoaded.current && apiProducts.length === 0) ||
     isWishlistLoading;
@@ -811,16 +831,17 @@ const AuctionPage: React.FC = () => {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Mobile Filter Bar */}
-            <div className="flex items-center justify-between mb-6 lg:hidden">
+            <div className="flex items-center justify-between mb-2 lg:hidden">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => setIsFilterOpen(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1.5 h-8 px-3 text-xs"
               >
-                <Filter className="h-4 w-4" />
+                <Filter className="h-3 w-3" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="ml-1">
+                  <Badge variant="secondary" className="ml-1 text-[10px] h-4 px-1">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -830,8 +851,8 @@ const AuctionPage: React.FC = () => {
                 value={sortBy}
                 onValueChange={(value) => handleSortChange(value as SortOption)}
               >
-                <SelectTrigger className="w-48">
-                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                <SelectTrigger className="w-36 h-8 text-xs">
+                  <SlidersHorizontal className="h-3 w-3 mr-1.5" />
                   Sort by
                 </SelectTrigger>
                 <SelectContent>
@@ -849,7 +870,7 @@ const AuctionPage: React.FC = () => {
 
             {/* Products Grid */}
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 px-6 sm:px-0">
                 {allProducts.map((product) =>
                   product.id.startsWith("skeleton") ? (
                     <ProductSkeleton key={product.id} />
