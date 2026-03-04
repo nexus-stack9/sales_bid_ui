@@ -35,21 +35,23 @@ interface Pagination {
   itemsPerPage: number;
 }
 
+const BTN_GRAD = 'linear-gradient(to right, #FF6B3D, #FFB444)';
+
 /* ─── Skeleton Card ─── */
 const SkeletonCard = () => (
-  <div className="bg-white rounded-xl border border-gray-200/60 p-5 animate-pulse">
-    <div className="flex items-center gap-3 mb-5">
-      <div className="w-10 h-10 rounded-full bg-gray-100" />
+  <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.03)] animate-pulse">
+    <div className="flex items-center gap-4 mb-6">
+      <div className="w-12 h-12 rounded-full bg-gray-100" />
       <div className="flex-1">
-        <div className="h-4 w-28 bg-gray-100 rounded mb-1.5" />
-        <div className="h-3 w-20 bg-gray-50 rounded" />
+        <div className="h-4 w-32 bg-gray-100 rounded mb-2" />
+        <div className="h-3 w-24 bg-gray-50 rounded" />
       </div>
     </div>
-    <div className="flex gap-4 mb-5">
-      <div className="flex-1 h-14 bg-gray-50 rounded-lg" />
-      <div className="flex-1 h-14 bg-gray-50 rounded-lg" />
+    <div className="flex gap-4 mb-6">
+      <div className="flex-1 h-14 bg-gray-50 rounded-xl" />
+      <div className="flex-1 h-14 bg-gray-50 rounded-xl" />
     </div>
-    <div className="h-9 bg-gray-100 rounded-lg" />
+    <div className="h-10 bg-gray-100 rounded-lg" />
   </div>
 );
 
@@ -150,12 +152,12 @@ const AllSellersPage = () => {
   /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f4f5f7]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <div className="h-6 w-36 bg-gray-200 rounded mb-1 animate-pulse" />
-          <div className="h-4 w-56 bg-gray-100 rounded mb-8 animate-pulse" />
-          <div className="h-10 bg-white rounded-lg border border-gray-200/60 mb-8 animate-pulse" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="min-h-screen bg-white">
+        <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
+          <div className="h-8 w-48 bg-gray-100 rounded mb-2 animate-pulse" />
+          <div className="h-4 w-64 bg-gray-50 rounded mb-10 animate-pulse" />
+          <div className="h-12 bg-white rounded-xl border border-gray-100 mb-10 animate-pulse shadow-sm" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         </div>
@@ -166,16 +168,20 @@ const AllSellersPage = () => {
   /* ── Error ── */
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f4f5f7] flex items-center justify-center" style={{ fontFamily: 'Manrope, sans-serif' }}>
-        <div className="text-center max-w-sm mx-4">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-red-50 flex items-center justify-center">
-            <svg className="h-6 w-6 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-sm mx-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-sm border border-red-100">
+            <svg className="h-8 w-8 text-[#FF6B3D]" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
           </div>
-          <h3 className="text-base font-bold text-gray-900 mb-1">Something went wrong</h3>
-          <p className="text-sm text-gray-500 mb-4">{error}</p>
-          <button onClick={() => window.location.reload()} className="px-4 py-2 text-xs font-bold rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h3>
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-2.5 text-sm font-semibold rounded-lg text-white hover:opacity-90 transition-opacity"
+            style={{ background: BTN_GRAD }}
+          >
             Try Again
           </button>
         </div>
@@ -184,59 +190,63 @@ const AllSellersPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
 
         {/* ── Header ── */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">Sellers</h1>
-          <p className="text-gray-400 text-xs mt-0.5">Browse trusted vendors and their products</p>
+        <div className="mb-10 text-center md:text-left">
+          <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 tracking-tight mb-2">Verified Sellers</h1>
+          <p className="text-gray-500 text-sm leading-relaxed max-w-2xl">
+            Browse our network of trusted, KYC-verified liquidators, businesses, and galleries across India.
+          </p>
         </div>
 
         {/* ── Search + Filter ── */}
-        <div className="flex items-center gap-2 mb-6">
-          <div className="relative flex-1 max-w-sm">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[11px]" />
+        <div className="flex flex-col sm:flex-row items-center gap-3 mb-8">
+          <div className="relative w-full sm:flex-1 sm:max-w-md">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
             <input
               type="text"
               name="searchQuery"
               value={filters.searchQuery}
               onChange={handleFilterChange}
-              placeholder="Search sellers..."
-              className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition outline-none placeholder:text-gray-400"
+              placeholder="Search by seller or business name..."
+              className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-100 focus:border-[#FF6B3D] transition-all outline-none placeholder:text-gray-400"
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-gray-200 hover:border-gray-300 text-xs font-semibold text-gray-600 transition"
+            className={`w-full sm:w-auto flex justify-center items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold transition-colors ${
+              showFilters ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
+            }`}
           >
-            <FaFilter className="text-[10px] text-gray-400" />
+            <FaFilter className={`text-xs ${showFilters ? 'text-white' : 'text-gray-400'}`} />
             Filters
-            {showFilters ? <FaChevronUp className="text-[9px] text-gray-400" /> : <FaChevronDown className="text-[9px] text-gray-400" />}
+            {showFilters ? <FaChevronUp className="text-[10px]" /> : <FaChevronDown className="text-[10px]" />}
           </button>
         </div>
 
         {/* Expanded Filters */}
         {showFilters && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Type</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-2">Business Type</label>
                 <select name="businessType" value={filters.businessType} onChange={handleFilterChange}
-                  className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition">
+                  className="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-100 focus:border-[#FF6B3D] outline-none transition">
                   {businessTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-2">Account Status</label>
                 <select name="status" value={filters.status} onChange={handleFilterChange}
-                  className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 outline-none transition">
+                  className="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-100 focus:border-[#FF6B3D] outline-none transition">
                   {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
               <div className="flex items-end">
-                <button onClick={resetFilters} className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition">
-                  Reset
+                <button onClick={resetFilters} className="px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-900 hover:bg-white rounded-xl transition-colors border border-transparent hover:border-gray-200">
+                  Reset Filters
                 </button>
               </div>
             </div>
@@ -244,105 +254,110 @@ const AllSellersPage = () => {
         )}
 
         {/* ── Results Count ── */}
-        <p className="text-xs text-gray-400 mb-4">
-          {filteredSellers.length} seller{filteredSellers.length !== 1 ? 's' : ''}
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-sm font-semibold text-gray-900 border-l-2 pl-3" style={{ borderColor: '#FF6B3D' }}>
+            {filteredSellers.length} verified seller{filteredSellers.length !== 1 ? 's' : ''}
+          </p>
+        </div>
 
         {/* ── Cards Grid ── */}
         {paginatedSellers.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedSellers.map(seller => (
               <div
                 key={seller.vendor_id}
-                className="bg-white rounded-xl border border-gray-200/60 hover:border-gray-300 hover:shadow-lg transition-all duration-200 p-5 flex flex-col"
+                className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col shadow-[0_2px_12px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 group"
               >
                 {/* Top: avatar + name + status */}
-                <div className="flex items-start gap-3 mb-4">
+                <div className="flex items-start gap-4 mb-6">
                   {/* Avatar */}
                   <div className="flex-shrink-0">
                     {seller.profile_picture ? (
                       <img
                         src={seller.profile_picture}
                         alt={seller.business_name || seller.vendor_name}
-                        className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                        className="w-14 h-14 rounded-full object-cover border border-gray-100 shadow-sm"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-xs font-bold text-gray-500">{getInitials(seller)}</span>
+                      <div className="w-14 h-14 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center">
+                        <span className="text-sm font-bold text-gray-400 tracking-wider flex items-center justify-center">
+                          {getInitials(seller)}
+                        </span>
                       </div>
                     )}
                   </div>
                   {/* Name & subtitle */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-gray-900 truncate leading-tight">
+                  <div className="flex-1 min-w-0 pt-1">
+                    <h3 className="text-base font-semibold text-gray-900 truncate mb-0.5">
                       {seller.business_name || seller.vendor_name}
                     </h3>
-                    <p className="text-[11px] text-gray-400 truncate">
+                    <p className="text-xs text-gray-500 truncate">
                       {seller.business_name ? seller.vendor_name : seller.business_type || 'Seller'}
                     </p>
                   </div>
                   {/* Status badge */}
                   <span
-                    className={`flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    className={`flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${
                       seller.vendor_active
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-gray-100 text-gray-500'
+                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50'
+                        : 'bg-gray-50 text-gray-500 border border-gray-200'
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${seller.vendor_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-                    {seller.vendor_active ? 'Active' : 'Inactive'}
+                    <span className={`w-1.5 h-1.5 rounded-full ${seller.vendor_active ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                    {seller.vendor_active ? 'Verifed' : 'Offline'}
                   </span>
                 </div>
 
                 {/* Stats */}
-                <div className="flex gap-3 mb-4">
-                  <div className="flex-1 bg-[#f8f9fa] rounded-lg px-3 py-2.5">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                      <HiOutlineCube className="text-[11px]" />
-                      Total
+                <div className="flex gap-3 mb-6">
+                  <div className="flex-1 bg-gray-50 rounded-xl p-4 flex flex-col justify-center border border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                      <HiOutlineCube className="text-[#FF6B3D] text-sm" />
+                      Listed
                     </p>
-                    <p className="text-lg font-extrabold text-gray-900 leading-none">{seller.total}</p>
+                    <p className="text-xl font-bold text-gray-900 leading-none">{seller.total}</p>
                   </div>
-                  <div className="flex-1 bg-[#f8f9fa] rounded-lg px-3 py-2.5">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                      <HiOutlineShoppingCart className="text-[11px]" />
+                  <div className="flex-1 bg-gray-50 rounded-xl p-4 flex flex-col justify-center border border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                      <HiOutlineShoppingCart className="text-[#FF6B3D] text-sm" />
                       Active
                     </p>
-                    <p className="text-lg font-extrabold text-emerald-600 leading-none">{seller.active_products}</p>
+                    <p className="text-xl font-bold text-gray-900 leading-none">{seller.active_products}</p>
                   </div>
                 </div>
 
                 {/* Footer: member since + CTA */}
-                <div className="mt-auto">
-                  {seller.created_at && (
-                    <p className="text-[10px] text-gray-400 mb-3">
-                      Joined {formatDate(seller.created_at)}
-                    </p>
-                  )}
+                <div className="mt-auto flex items-center justify-between pt-2">
+                  <p className="text-[11px] font-medium text-gray-400">
+                    Joined {seller.created_at ? formatDate(seller.created_at) : 'Recently'}
+                  </p>
                   <Link
                     to={`/auctions?vendor_id=${seller.vendor_id}`}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-900 hover:text-white transition-all duration-200"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold text-white shadow-sm hover:opacity-90 transition-opacity"
+                    style={{ background: BTN_GRAD }}
                   >
-                    View Products
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
+                    View Lots
+                    <FaChevronRight className="text-[10px]" />
                   </Link>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center py-24 px-6 border border-gray-100 bg-gray-50/50 rounded-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center mb-6">
               <HiOutlineCube className="text-2xl text-gray-300" />
             </div>
-            <h3 className="text-sm font-bold text-gray-900 mb-1">No sellers found</h3>
-            <p className="text-xs text-gray-400 mb-4 text-center max-w-xs">
-              Try adjusting your search or filters.
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Verified Sellers Found</h3>
+            <p className="text-sm text-gray-500 mb-6 text-center max-w-sm leading-relaxed">
+              We couldn't find any sellers matching your current filters or search terms.
             </p>
-            <button onClick={resetFilters} className="px-4 py-2 text-xs font-bold rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition">
-              Reset filters
+            <button 
+              onClick={resetFilters} 
+              className="px-6 py-2.5 text-sm font-semibold rounded-lg text-white hover:opacity-90 transition-opacity"
+              style={{ background: BTN_GRAD }}
+            >
+              Clear Filters
             </button>
           </div>
         )}

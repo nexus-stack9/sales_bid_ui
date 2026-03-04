@@ -20,9 +20,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Proxima Nova', 'sans-serif'],
-				// You can keep other font families for specific use cases
-				display: ['Proxima Nova', 'sans-serif'],
+				sans: ['Manrope', 'sans-serif'],
+				display: ['Manrope', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -127,7 +126,7 @@ export default {
 						transform: 'translateY(10px)'
 					},
 					'100%': {
-						opacity: '1', 
+						opacity: '1',
 						transform: 'translateY(0)'
 					}
 				},

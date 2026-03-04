@@ -9,8 +9,8 @@ import bannerImage from "@/assets/banners/banner1.png";
 // Simplified BlurText component without animations
 const BlurText = ({ text, className }: { text: string; className?: string }) => {
   // Split the text to apply gradient only to specific words
-  const firstPart = "Exclusive deals,unbeatable prices—";
-  const highlightedPart = "start Buying  today!";
+  const firstPart = "Exclusive deals, unbeatable prices —";
+  const highlightedPart = "start Buying today!";
   
   return (
     <div className={cn("w-full flex flex-wrap justify-center", className)}>
@@ -57,7 +57,7 @@ const Hero = () => {
       
       <div className="container relative z-10 mx-auto px-4 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight mb-6">
+          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight mb-6">
             <span className="inline-block" style={{
               background: "linear-gradient(135deg, #0a2240 0%, #1a4b8c 50%, #0a2240 100%)",
               WebkitBackgroundClip: "text",
