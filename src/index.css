@@ -37,6 +37,7 @@
 @layer base {
   html {
     font-family: 'Manrope', sans-serif;
+    font-weight: 600;
   }
 
   :root {
@@ -114,11 +115,13 @@
 @layer base {
   * {
     @apply border-border;
+    font-weight: 600;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: 'Manrope', sans-serif;
+    font-weight: 600;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
