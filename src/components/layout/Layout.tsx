@@ -13,6 +13,9 @@ const Layout = ({ children }: LayoutProps) => {
   const isMobile = useIsMobile();
   const { pathname } = useLocation();
 
+  // Check if current route is auth page (signin or signup)
+  const isAuthPage = pathname === '/signin' || pathname === '/signup';
+
   // Scroll to top when path changes
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -20,10 +23,10 @@ const Layout = ({ children }: LayoutProps) => {
   
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      {!isAuthPage && <Navbar />}
       <main className={`flex-1 ${isMobile ? 'pb-20' : ''}`}>{children}</main>
-      <BottomNav />
-      <Footer />
+      {!isAuthPage && <BottomNav />}
+      {!isAuthPage && <Footer />}
     </div>
   );
 };

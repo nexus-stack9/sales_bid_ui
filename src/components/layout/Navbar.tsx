@@ -65,45 +65,158 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-sm border-b border-border">
       <div className="container flex h-16 items-center justify-between px-4 md:px-8">
-        {/* Logo - Hidden when mobile search is open */}
+        {/* Mobile Menu Icon - Left side (hidden on desktop) */}
         {!isMobileSearchOpen && (
-          <Link to="/" className="flex items-center space-x-3">
-            <img
-              src={salesBidLogo}
-              alt="Sales Bid Logo"
-              className="h-12 w-auto object-contain"
-            />
-          </Link>
+          <div className="md:hidden">
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMenuOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-[300px] sm:w-[400px] bg-white p-0">
+                <SheetHeader className="p-4 border-b">
+                  <SheetTitle className="text-left">Menu</SheetTitle>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto">
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full flex flex-col"
+                  >
+                    <AccordionItem
+                      value="categories"
+                      className="border-b border-gray-100"
+                    >
+                      <AccordionTrigger className="px-4 py-3 text-base font-medium hover:no-underline hover:text-amber-600">
+                        Categories
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-2 max-h-48 overflow-y-auto">
+                        {categoriesLoading ? (
+                          <div className="flex items-center justify-center p-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                          </div>
+                        ) : categories.length > 0 ? (
+                          <div className="space-y-0">
+                            {categories.map((category) => (
+                              <Link
+                                key={`mobile-${category}`}
+                                to={`/auctions?category=${encodeURIComponent(
+                                  category
+                                )}`}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-amber-600 transition-colors"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                {category}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="px-4 text-sm text-gray-500">
+                            No categories available
+                          </p>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem
+                      value="auctions"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/auctions"
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        All Listings
+                      </Link>
+                    </AccordionItem>
+
+                    <AccordionItem
+                      value="allSellers"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/allSellersPage"
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        All Sellers
+                      </Link>
+                    </AccordionItem>
+
+                    <AccordionItem
+                      value="buyers"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/buyers"
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        For Buyers
+                      </Link>
+                    </AccordionItem>
+
+                    <AccordionItem
+                      value="sellers"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/sellers"
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        For Sellers
+                      </Link>
+                    </AccordionItem>
+
+                    <AccordionItem
+                      value="how-it-works"
+                      className="border-b border-gray-100"
+                    >
+                      <Link
+                        to="/how-it-works"
+                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        How It Works
+                      </Link>
+                    </AccordionItem>
+                  </Accordion>
+                  <div className="border-t border-gray-100">
+                    {!token && (
+                      <Link
+                        to="/signin"
+                        className="flex items-center px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User className="mr-3 h-5 w-5" />
+                        Sign In
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         )}
 
-        {/* Mobile Search Form - Shown when search is active */}
-        {isMobileSearchOpen && (
-          <form
-            onSubmit={handleMobileSearchSubmit}
-            className="flex-1 flex items-center"
-          >
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="search"
-                placeholder="Search listings..."
-                className="pl-10 pr-4 py-2 h-10 w-full rounded-md border border-input bg-background text-sm"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleMobileSearchClose}
-              className="ml-3 h-10 w-10 flex items-center justify-center"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </form>
-        )}
+        {/* Logo - Left on desktop, centered on mobile */}
+        <Link
+          to="/"
+          className="flex items-center space-x-3 md:static md:left-auto md:transform-none"
+        >
+          <img
+            src={salesBidLogo}
+            alt="Sales Bid Logo"
+            className="h-12 w-auto object-contain"
+          />
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
@@ -230,7 +343,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-2">
           {isMobile ? (
             <div className="flex items-center space-x-3">
-              {!isMobileSearchOpen && (
+              {!isMobileSearchOpen ? (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -238,6 +351,32 @@ const Navbar = () => {
                 >
                   <Search className="h-5 w-5" />
                 </Button>
+              ) : (
+                <form
+                  onSubmit={handleMobileSearchSubmit}
+                  className="flex items-center"
+                >
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="search"
+                      placeholder="Search listings..."
+                      className="pl-10 pr-4 py-2 h-10 w-full rounded-md border border-input bg-background text-sm"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleMobileSearchClose}
+                    className="ml-3 h-10 w-10 flex items-center justify-center"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </form>
               )}
               {/* My Bids - Commented Out 
               <Link to="/my-bids" className="relative">
@@ -317,126 +456,6 @@ const Navbar = () => {
               </Link>
             )}
           </div>
-          {!isMobileSearchOpen && (
-            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="w-[300px] sm:w-[400px] bg-white p-0">
-                <SheetHeader className="p-4 border-b">
-                  <SheetTitle className="text-left">Menu</SheetTitle>
-                </SheetHeader>
-                <div className="flex-1 overflow-y-auto">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="w-full flex flex-col"
-                  >
-                    <AccordionItem
-                      value="categories"
-                      className="border-b border-gray-100"
-                    >
-                      <AccordionTrigger className="px-4 py-3 text-base font-medium hover:no-underline hover:text-amber-600">
-                        Categories
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-2 max-h-48 overflow-y-auto">
-                        {categoriesLoading ? (
-                          <div className="flex items-center justify-center p-2">
-                            <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
-                          </div>
-                        ) : categories.length > 0 ? (
-                          <div className="space-y-0">
-                            {categories.map((category) => (
-                              <Link
-                                key={`mobile-${category}`}
-                                to={`/auctions?category=${encodeURIComponent(
-                                  category
-                                )}`}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-amber-600 transition-colors"
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                {category}
-                              </Link>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="px-4 text-sm text-gray-500">
-                            No categories available
-                          </p>
-                        )}
-                      </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem
-                      value="auctions"
-                      className="border-b border-gray-100"
-                    >
-                      <Link
-                        to="/auctions"
-                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        All Listings
-                      </Link>
-                    </AccordionItem>
-
-                    <AccordionItem
-                      value="allSellers"
-                      className="border-b border-gray-100"
-                    >
-                      <Link
-                        to="/allSellersPage"
-                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        All Sellers
-                      </Link>
-                    </AccordionItem>
-
-                    <AccordionItem
-                      value="sellers"
-                      className="border-b border-gray-100"
-                    >
-                      <Link
-                        to="/sellers"
-                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        For Sellers
-                      </Link>
-                    </AccordionItem>
-
-                    <AccordionItem
-                      value="how-it-works"
-                      className="border-b border-gray-100"
-                    >
-                      <Link
-                        to="/how-it-works"
-                        className="block px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        How It Works
-                      </Link>
-                    </AccordionItem>
-                  </Accordion>
-                  <div className="border-t border-gray-100">
-                    {!token && (
-                      <Link
-                        to="/signin"
-                        className="flex items-center px-4 py-3 text-base font-medium hover:text-amber-600 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <User className="mr-3 h-5 w-5" />
-                        Sign In
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
         </div>
       </div>
     </header>
