@@ -1,6 +1,6 @@
 /* eslint-disable no-useless-catch */
 import CryptoJS from 'crypto-js';
-import Cookies from "js-cookie"; 
+import Cookies from "js-cookie";
 interface RegisterUserData {
   firstName: string;
   lastName: string;
@@ -29,6 +29,16 @@ interface ResetPasswordData {
   newPassword: string;
 }
 
+interface SendLoginOtpData {
+  phone: string;
+}
+
+interface VerifyLoginOtpData {
+  phone: string;
+  otp: string;
+  sessionId: string;
+}
+
 // Get the API base URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -38,7 +48,6 @@ const encryptPassword = (password: string) => {
 };
 
 export const registerUser = async (userData: RegisterUserData) => {
-  // eslint-disable-next-line no-useless-catch
   try {
     const encryptedUserData = {
       ...userData,
@@ -53,16 +62,18 @@ export const registerUser = async (userData: RegisterUserData) => {
       body: JSON.stringify(encryptedUserData),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error('Registration failed');
+      throw new Error(data.error || 'Registration failed');
     }
 
-    const data = await response.json();
     return data;
   } catch (error) {
     throw error;
   }
 };
+
 
 export const loginUser = async (userData: LoginUserData) => {
   try {
@@ -160,6 +171,74 @@ export const resetPassword = async (data: ResetPasswordData) => {
   }
 };
 
+export const sendLoginOtp = async (data: SendLoginOtpData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+    if (!response.ok) {
+      throw new Error(responseData.error || 'Failed to send OTP');
+    }
+    return responseData;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifyLoginOtp = async (data: VerifyLoginOtpData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+    if (!response.ok) {
+      throw new Error(responseData.error || 'Failed to verify OTP');
+    }
+    return responseData;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendRegistrationOtp = async (data: { email: string }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/send-registration-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+    if (!response.ok) {
+      throw new Error(responseData.error || 'Failed to send registration OTP');
+    }
+    return responseData;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifyRegistrationOtp = async (data: { email: string; otp: string }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-registration-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+    if (!response.ok) {
+      throw new Error(responseData.error || 'Failed to verify registration OTP');
+    }
+    return responseData;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const loginWithGoogle = async (token) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login/google`, {
@@ -176,7 +255,7 @@ export const loginWithGoogle = async (token) => {
     }
 
     const data = await response.json();
-    
+
     // Set tokens in cookies if they exist in the response
     if (data.accessToken) {
       Cookies.set('accessToken', data.accessToken, { expires: 7 });
@@ -184,7 +263,7 @@ export const loginWithGoogle = async (token) => {
     if (data.refreshToken) {
       Cookies.set('refreshToken', data.refreshToken, { expires: 14 });
     }
-    
+
     return data;
 
   } catch (error) {
